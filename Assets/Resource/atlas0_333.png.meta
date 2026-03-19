@@ -1388,7 +1388,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_14
+      name: HP_4
       rect:
         serializedVersion: 2
         x: 1085
@@ -1542,7 +1542,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_21
+      name: HP_2
       rect:
         serializedVersion: 2
         x: 1030
@@ -1564,7 +1564,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_22
+      name: HP_5
       rect:
         serializedVersion: 2
         x: 1091
@@ -1630,7 +1630,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_25
+      name: HP_0
       rect:
         serializedVersion: 2
         x: 882
@@ -1652,7 +1652,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_26
+      name: HP_1
       rect:
         serializedVersion: 2
         x: 954
@@ -1713,72 +1713,6 @@ TextureImporter:
       bones: []
       spriteID: d5d56c314ae293de0800000000000000
       internalID: -1352998930806842019
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: atlas0_333_29
-      rect:
-        serializedVersion: 2
-        x: 1907
-        y: 1531
-        width: 13
-        height: 14
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4834aa691109c3f10800000000000000
-      internalID: 2250832318994989956
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: atlas0_333_30
-      rect:
-        serializedVersion: 2
-        x: 1919
-        y: 1523
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8c842b8d87da5b410800000000000000
-      internalID: 1492289586086430920
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: atlas0_333_31
-      rect:
-        serializedVersion: 2
-        x: 1967
-        y: 1523
-        width: 11
-        height: 12
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 13ed9bf73aa7d2030800000000000000
-      internalID: 3471565730413665841
       vertices: []
       indices: 
       edges: []
@@ -1911,28 +1845,6 @@ TextureImporter:
       bones: []
       spriteID: cec4a1706a6ba8700800000000000000
       internalID: 543447529251556588
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: atlas0_333_38
-      rect:
-        serializedVersion: 2
-        x: 1963
-        y: 1500
-        width: 17
-        height: 21
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ce48cffbd03f86140800000000000000
-      internalID: 4713284250424345836
       vertices: []
       indices: 
       edges: []
@@ -2114,50 +2026,6 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_47
-      rect:
-        serializedVersion: 2
-        x: 1915
-        y: 1436
-        width: 14
-        height: 17
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 39bf6253240650670800000000000000
-      internalID: 8504309308834904979
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: atlas0_333_48
-      rect:
-        serializedVersion: 2
-        x: 1971
-        y: 1447
-        width: 13
-        height: 14
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 33b85f09688986e50800000000000000
-      internalID: 6802854940868184883
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: atlas0_333_49
       rect:
         serializedVersion: 2
@@ -2180,13 +2048,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_50
+      name: HP_Hit_1
       rect:
         serializedVersion: 2
-        x: 1986
-        y: 1335
-        width: 61
-        height: 139
+        x: 1983
+        y: 1331
+        width: 65
+        height: 145
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2290,13 +2158,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_55
+      name: Gio_Get_3
       rect:
         serializedVersion: 2
-        x: 420
-        y: 1337
-        width: 70
-        height: 78
+        x: 431
+        y: 1334
+        width: 58
+        height: 58
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2400,7 +2268,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_60
+      name: Gio_Get_1
       rect:
         serializedVersion: 2
         x: 315
@@ -2422,13 +2290,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_61
+      name: Gio_Get_2
       rect:
         serializedVersion: 2
-        x: 371
-        y: 1311
-        width: 64
-        height: 56
+        x: 375
+        y: 1310
+        width: 58
+        height: 58
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2642,13 +2510,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_73
+      name: Gio_Get_4
       rect:
         serializedVersion: 2
-        x: 438
-        y: 1281
-        width: 62
-        height: 61
+        x: 439
+        y: 1280
+        width: 58
+        height: 58
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -3060,13 +2928,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_94
+      name: HP_Hit_4
       rect:
         serializedVersion: 2
-        x: 1843
+        x: 1841
         y: 1147
-        width: 70
-        height: 129
+        width: 75
+        height: 145
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -4160,13 +4028,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_146
+      name: HP_Hit_5
       rect:
         serializedVersion: 2
-        x: 1847
-        y: 1004
-        width: 64
-        height: 117
+        x: 1843
+        y: 999
+        width: 75
+        height: 145
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -5766,13 +5634,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_221
+      name: HP_Hit_0
       rect:
         serializedVersion: 2
-        x: 1850
-        y: 701
-        width: 67
-        height: 131
+        x: 1845
+        y: 686
+        width: 70
+        height: 145
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -6030,13 +5898,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_233
+      name: HP_Hit_3
       rect:
         serializedVersion: 2
-        x: 394
-        y: 703
-        width: 76
-        height: 110
+        x: 393
+        y: 705
+        width: 75
+        height: 130
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -6465,28 +6333,6 @@ TextureImporter:
       bones: []
       spriteID: baa6e808b8d8ecaa0800000000000000
       internalID: -6138813611762619733
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: atlas0_333_253
-      rect:
-        serializedVersion: 2
-        x: 1954
-        y: 725
-        width: 8
-        height: 12
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c4793d868e8035f40800000000000000
-      internalID: 5715922146347423564
       vertices: []
       indices: 
       edges: []
@@ -7856,7 +7702,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_321
+      name: HP_3
       rect:
         serializedVersion: 2
         x: 1157
@@ -7877,6 +7723,72 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: HP_Hit_2
+      rect:
+        serializedVersion: 2
+        x: 381
+        y: 838
+        width: 75
+        height: 130
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 14e6a2122ebd79649a90f3cfdc18a75b
+      internalID: -877445361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Gio_Get_0
+      rect:
+        serializedVersion: 2
+        x: 186
+        y: 1278
+        width: 58
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 704a1380bcb368847a0add8369219f1a
+      internalID: -480874723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Gio_0
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 1200
+        width: 58
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 20344729851d66b40b2790220f7f2426
+      internalID: 368468498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -7891,6 +7803,24 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      Gio_0: 368468498
+      Gio_Get_0: -480874723
+      Gio_Get_1: -4299007937340244189
+      Gio_Get_2: -3344461130942715115
+      Gio_Get_3: -6046027782481714910
+      Gio_Get_4: -7107159082482580248
+      HP_0: -4889145574749973945
+      HP_1: 2469425562861789562
+      HP_2: 2679537141883003477
+      HP_3: -1990067674
+      HP_4: -4125395782797335298
+      HP_5: -8479188032628673678
+      HP_Hit_0: 4426017701067547510
+      HP_Hit_1: -5441562365898595001
+      HP_Hit_2: -877445361
+      HP_Hit_3: 3849913500247431889
+      HP_Hit_4: 5134478655319758955
+      HP_Hit_5: 2640488292589471653
       atlas0_333_0: 7908536031314129441
       atlas0_333_1: -729202657687450339
       atlas0_333_10: -8610133917364508042
@@ -7937,14 +7867,12 @@ TextureImporter:
       atlas0_333_137: 8087326669678903298
       atlas0_333_138: -7567989587921903421
       atlas0_333_139: -1276574166318818924
-      atlas0_333_14: -4125395782797335298
       atlas0_333_140: -974485599923944382
       atlas0_333_141: -6476499281481099051
       atlas0_333_142: -6102950965079549595
       atlas0_333_143: -6576482675681164479
       atlas0_333_144: -2528493107511094144
       atlas0_333_145: -7020458167784029351
-      atlas0_333_146: 2640488292589471653
       atlas0_333_147: -5035827373308566520
       atlas0_333_148: 3262202027467934983
       atlas0_333_149: 7252469060312602739
@@ -8015,7 +7943,6 @@ TextureImporter:
       atlas0_333_207: 1975464419625035589
       atlas0_333_208: 6374818195720827324
       atlas0_333_209: 8904521337976373292
-      atlas0_333_21: 2679537141883003477
       atlas0_333_210: -6562391450184991517
       atlas0_333_211: 330631439931619769
       atlas0_333_212: 1521395119186225890
@@ -8026,9 +7953,7 @@ TextureImporter:
       atlas0_333_217: -3628202792288950689
       atlas0_333_218: 8004939429774950676
       atlas0_333_219: -1969148762457678349
-      atlas0_333_22: -8479188032628673678
       atlas0_333_220: -4481974631988579569
-      atlas0_333_221: 4426017701067547510
       atlas0_333_222: 3537575061245313589
       atlas0_333_223: 6820248705156810681
       atlas0_333_224: 7227033347288233783
@@ -8041,7 +7966,6 @@ TextureImporter:
       atlas0_333_230: -7059946158240352984
       atlas0_333_231: 7418493086078029174
       atlas0_333_232: 2702635919085003206
-      atlas0_333_233: 3849913500247431889
       atlas0_333_234: 1612665092351324795
       atlas0_333_235: -5579186912284529091
       atlas0_333_236: 3196212449690587274
@@ -8059,7 +7983,6 @@ TextureImporter:
       atlas0_333_247: 6634337954167770237
       atlas0_333_248: 5908284016074282095
       atlas0_333_249: 8159627245248020158
-      atlas0_333_25: -4889145574749973945
       atlas0_333_250: 2273037386592157800
       atlas0_333_251: 1076203363280078643
       atlas0_333_252: -6138813611762619733
@@ -8070,7 +7993,6 @@ TextureImporter:
       atlas0_333_257: -6437778643510497450
       atlas0_333_258: 1221253434487688436
       atlas0_333_259: -9197921924587815626
-      atlas0_333_26: 2469425562861789562
       atlas0_333_260: 5081080157861901062
       atlas0_333_261: -3552572379211858835
       atlas0_333_262: -3890857557892373695
@@ -8139,7 +8061,6 @@ TextureImporter:
       atlas0_333_319: -646315487
       atlas0_333_32: -1264168728184891572
       atlas0_333_320: -721383767
-      atlas0_333_321: -1990067674
       atlas0_333_33: -2068368079285255303
       atlas0_333_34: 2079302045706854389
       atlas0_333_35: -4066672626731718039
@@ -8159,19 +8080,15 @@ TextureImporter:
       atlas0_333_48: 6802854940868184883
       atlas0_333_49: -7633474482135975345
       atlas0_333_5: 6792845426390535245
-      atlas0_333_50: -5441562365898595001
       atlas0_333_51: -1684223689336525137
       atlas0_333_52: -1774467484051320244
       atlas0_333_53: -6437876908132341292
       atlas0_333_54: 2737883833371839062
-      atlas0_333_55: -6046027782481714910
       atlas0_333_56: -5772224185018338800
       atlas0_333_57: 7525007303282670108
       atlas0_333_58: -6426191271408798076
       atlas0_333_59: 79125188362852963
       atlas0_333_6: 7295504061209987384
-      atlas0_333_60: -4299007937340244189
-      atlas0_333_61: -3344461130942715115
       atlas0_333_62: 2722577036091273964
       atlas0_333_63: -4012599589616752214
       atlas0_333_64: -6004055991081978793
@@ -8184,7 +8101,6 @@ TextureImporter:
       atlas0_333_70: 5086552585661970548
       atlas0_333_71: 2231009564610978363
       atlas0_333_72: -8203526397372445282
-      atlas0_333_73: -7107159082482580248
       atlas0_333_74: -914001593730485771
       atlas0_333_75: -751880696779041027
       atlas0_333_76: 3088060204993867299
@@ -8207,7 +8123,6 @@ TextureImporter:
       atlas0_333_91: -6029036646670091252
       atlas0_333_92: 3078836139652805221
       atlas0_333_93: 4930549933902698732
-      atlas0_333_94: 5134478655319758955
       atlas0_333_95: 2631374876373160519
       atlas0_333_96: 290507283404941344
       atlas0_333_97: 4099479984042338659

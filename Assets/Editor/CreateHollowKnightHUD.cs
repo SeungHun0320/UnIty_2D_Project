@@ -17,6 +17,71 @@ public static class CreateHollowKnightHUD
     private const int SoulGaugeSize = 80;
     private const int GeoFontSize = 24;
 
+    [MenuItem("Tools/Hollow Knight HUD/Add or Update Geo Panel", false, 1)]
+    public static void AddOrUpdateGeoPanel()
+    {
+        var gameHUD = Object.FindObjectOfType<GameHUD>(true);
+        if (gameHUD == null)
+        {
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "씬에 HUD(GameHUD)가 없습니다. 먼저 HUD를 생성해 주세요.", "확인");
+            return;
+        }
+
+        GeoUI existingGeo = gameHUD.GetComponentInChildren<GeoUI>(true);
+        if (existingGeo != null)
+        {
+            Undo.DestroyObjectImmediate(existingGeo.gameObject);
+        }
+
+        GameObject geoPanel = CreateGeoPanel(gameHUD.transform);
+        SerializedObject soHud = new SerializedObject(gameHUD);
+        soHud.FindProperty("geoUI").objectReferenceValue = geoPanel.GetComponent<GeoUI>();
+        soHud.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorSceneManager.MarkSceneDirty(gameHUD.gameObject.scene);
+        Selection.activeGameObject = geoPanel;
+        Undo.RegisterCreatedObjectUndo(geoPanel, "Add or Update Geo Panel");
+        Debug.Log("[Hollow Knight HUD] 기존 HUD에 GeoPanel(이미지+텍스트)을 추가/갱신했습니다. GeoImage에 스프라이트를 할당해 주세요.");
+    }
+
+    [MenuItem("Tools/Hollow Knight HUD/Add Hit Flash to Existing HUD", false, 2)]
+    public static void AddHitFlashToExistingHUD()
+    {
+        var gameHUD = Object.FindObjectOfType<GameHUD>(true);
+        if (gameHUD == null)
+        {
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "씬에 HUD(GameHUD)가 없습니다. 먼저 HUD를 생성해 주세요.", "확인");
+            return;
+        }
+
+        MaskUI maskUI = gameHUD.GetComponentInChildren<MaskUI>(true);
+        if (maskUI == null)
+        {
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "HUD 안에 MaskPanel(MaskUI)을 찾을 수 없습니다.", "확인");
+            return;
+        }
+
+        Transform maskPanel = maskUI.transform;
+        Transform existing = maskPanel.Find("HitFlashPanel");
+        if (existing != null)
+        {
+            Selection.activeGameObject = existing.gameObject;
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "HitFlashPanel이 이미 있습니다.", "확인");
+            return;
+        }
+
+        GameObject hitFlashPanel = CreateHitFlashPanel(maskPanel);
+        hitFlashPanel.transform.SetAsLastSibling();
+        SerializedObject soHud = new SerializedObject(gameHUD);
+        soHud.FindProperty("hitFlashUI").objectReferenceValue = hitFlashPanel.GetComponent<HitFlashUI>();
+        soHud.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorSceneManager.MarkSceneDirty(gameHUD.gameObject.scene);
+        Selection.activeGameObject = hitFlashPanel;
+        Undo.RegisterCreatedObjectUndo(hitFlashPanel, "Add Hit Flash to HUD");
+        Debug.Log("[Hollow Knight HUD] 기존 HUD에 HitFlashPanel을 추가했습니다. Hit Sprites를 인스펙터에서 할당해 주세요.");
+    }
+
     [MenuItem("Tools/Hollow Knight HUD/Create in Scene and Save", false, 0)]
     public static void CreateInSceneAndSave()
     {
@@ -77,14 +142,16 @@ public static class CreateHollowKnightHUD
 
         // ---- Soul Panel (마스크 뒤, 아래쪽 위치) ----
         GameObject soulPanel = CreateSoulPanel(hudGo.transform);
-        // ---- Mask Panel (좌상단, Soul 위에 그려짐) ----
+        // ---- Mask Panel (좌상단, Soul 위에 그려짐). HitFlash는 자식으로 마스크 위에 겹침 ----
         GameObject maskPanel = CreateMaskPanel(hudGo.transform);
+        GameObject hitFlashPanel = CreateHitFlashPanel(maskPanel.transform);
         // ---- Geo Panel (우하단) ----
         GameObject geoPanel = CreateGeoPanel(hudGo.transform);
 
         // GameHUD에 참조 할당
         SerializedObject soHud = new SerializedObject(gameHUD);
         soHud.FindProperty("maskUI").objectReferenceValue = maskPanel.GetComponent<MaskUI>();
+        soHud.FindProperty("hitFlashUI").objectReferenceValue = hitFlashPanel.GetComponent<HitFlashUI>();
         soHud.FindProperty("soulUI").objectReferenceValue = soulPanel.GetComponent<SoulUI>();
         soHud.FindProperty("geoUI").objectReferenceValue = geoPanel.GetComponent<GeoUI>();
         soHud.FindProperty("hudCanvasGroup").objectReferenceValue = cg;
@@ -193,6 +260,39 @@ public static class CreateHollowKnightHUD
         return panel;
     }
 
+    private static GameObject CreateHitFlashPanel(Transform parent)
+    {
+        GameObject panel = new GameObject("HitFlashPanel");
+        panel.transform.SetParent(parent, false);
+
+        RectTransform rect = panel.AddComponent<RectTransform>();
+        SetFullStretch(rect);
+
+        var layoutEl = panel.AddComponent<LayoutElement>();
+        layoutEl.ignoreLayout = true;
+
+        HitFlashUI hitFlash = panel.AddComponent<HitFlashUI>();
+        SerializedObject so = new SerializedObject(hitFlash);
+        so.FindProperty("frameDuration").floatValue = 0.06f;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        GameObject icon = new GameObject("Icon");
+        icon.transform.SetParent(panel.transform, false);
+        RectTransform iconRt = icon.AddComponent<RectTransform>();
+        SetFullStretch(iconRt);
+        Image img = icon.AddComponent<Image>();
+        img.color = Color.white;
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+
+        so.Update();
+        so.FindProperty("hitImage").objectReferenceValue = img;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        panel.transform.SetAsLastSibling();
+        return panel;
+    }
+
     private static GameObject CreateSoulPanel(Transform parent)
     {
         GameObject panel = new GameObject("SoulPanel");
@@ -239,6 +339,9 @@ public static class CreateHollowKnightHUD
 
     private static GameObject CreateGeoPanel(Transform parent)
     {
+        const int geoIconSize = 36;
+        const int geoSpacing = 8;
+
         GameObject panel = new GameObject("GeoPanel");
         panel.transform.SetParent(parent, false);
 
@@ -247,14 +350,42 @@ public static class CreateHollowKnightHUD
         rect.anchorMax = new Vector2(1, 0);
         rect.pivot = new Vector2(1, 0);
         rect.anchoredPosition = new Vector2(-24, 24);
-        rect.sizeDelta = new Vector2(120, 40);
+        rect.sizeDelta = new Vector2(120, 44);
+
+        HorizontalLayoutGroup layout = panel.AddComponent<HorizontalLayoutGroup>();
+        layout.spacing = geoSpacing;
+        layout.childAlignment = TextAnchor.MiddleRight;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
 
         GeoUI geoUI = panel.AddComponent<GeoUI>();
 
+        // 왼쪽: 지오 아이콘 이미지
+        GameObject imageGo = new GameObject("GeoImage");
+        imageGo.transform.SetParent(panel.transform, false);
+        RectTransform imageRect = imageGo.AddComponent<RectTransform>();
+        imageRect.sizeDelta = new Vector2(geoIconSize, geoIconSize);
+        LayoutElement imageLe = imageGo.AddComponent<LayoutElement>();
+        imageLe.preferredWidth = geoIconSize;
+        imageLe.preferredHeight = geoIconSize;
+        imageLe.flexibleWidth = 0f;
+        imageLe.flexibleHeight = 0f;
+
+        Image geoImg = imageGo.AddComponent<Image>();
+        geoImg.color = new Color(1f, 0.9f, 0.4f, 0.95f); // 골드 톤 (스프라이트 없을 때 placeholder)
+        geoImg.preserveAspect = true;
+        geoImg.raycastTarget = false;
+
+        // 오른쪽: 지오 수량 텍스트
         GameObject textGo = new GameObject("GeoText");
         textGo.transform.SetParent(panel.transform, false);
         RectTransform textRect = textGo.AddComponent<RectTransform>();
-        SetFullStretch(textRect);
+        LayoutElement textLe = textGo.AddComponent<LayoutElement>();
+        textLe.preferredWidth = 60;
+        textLe.flexibleWidth = 1f;
+        textLe.minHeight = 32;
 
         Text text = textGo.AddComponent<Text>();
         text.text = "0";
@@ -265,6 +396,7 @@ public static class CreateHollowKnightHUD
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         SerializedObject so = new SerializedObject(geoUI);
+        so.FindProperty("geoImage").objectReferenceValue = geoImg;
         so.FindProperty("geoText").objectReferenceValue = text;
         so.FindProperty("currentGeo").intValue = 0;
         so.ApplyModifiedPropertiesWithoutUndo();

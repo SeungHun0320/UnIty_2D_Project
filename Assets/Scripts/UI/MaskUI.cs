@@ -100,10 +100,18 @@ public class MaskUI : MonoBehaviour
     public void SetHealth(int currentHealth, int previousHealth = -1)
     {
         currentHealth = Mathf.Clamp(currentHealth, 0, _maxHealth);
-        if (previousHealth >= 0 && currentHealth < previousHealth)
+        bool tookDamage = previousHealth >= 0 && currentHealth < previousHealth;
+        if (tookDamage)
             _lastDamagedMaskIndex = currentHealth; // 방금 빈칸이 된 마스크 인덱스
         _currentHealth = currentHealth;
         RefreshAllMasks();
+
+        if (tookDamage)
+        {
+            var gameHUD = GetComponentInParent<GameHUD>();
+            if (gameHUD != null)
+                gameHUD.PlayHitFlash(_lastDamagedMaskIndex);
+        }
     }
 
     public int GetCurrentHealth() => _currentHealth;

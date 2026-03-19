@@ -10,6 +10,7 @@ public class GameHUD : MonoBehaviour
 {
     [Header("UI 참조")]
     [SerializeField] private MaskUI maskUI;
+    [SerializeField] private HitFlashUI hitFlashUI;
     [SerializeField] private SoulUI soulUI;
     [SerializeField] private GeoUI geoUI;
 
@@ -41,8 +42,11 @@ public class GameHUD : MonoBehaviour
     public void SetHealth(int current, int max, int previousHealth = -1)
     {
         if (maskUI == null) return;
+        bool tookDamage = previousHealth >= 0 && current < previousHealth;
         maskUI.SetMaxHealth(max);
         maskUI.SetHealth(current, previousHealth);
+        if (tookDamage && hitFlashUI != null)
+            hitFlashUI.PlayHit(current);
     }
 
     public void SetSoul(int current, int max = -1)
@@ -60,4 +64,11 @@ public class GameHUD : MonoBehaviour
 
     public void Show() => _wantsVisible = true;
     public void Hide() => _wantsVisible = false;
+
+    /// <summary> Hit 연출 재생 (피격 시). slotIndex = 방금 빈칸이 된 마스크 슬롯 인덱스. </summary>
+    public void PlayHitFlash(int slotIndex = 0)
+    {
+        if (hitFlashUI != null)
+            hitFlashUI.PlayHit(slotIndex);
+    }
 }

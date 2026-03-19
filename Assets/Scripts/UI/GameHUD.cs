@@ -62,6 +62,13 @@ public class GameHUD : MonoBehaviour
         geoUI.SetGeo(amount);
     }
 
+    /// <summary> 지오 획득. 대기 텍스트에 쌓였다가 일정 시간 후 메인 지오에 반영됨. </summary>
+    public void AddGeo(int amount)
+    {
+        if (geoUI == null) return;
+        geoUI.AddGeo(amount);
+    }
+
     public void Show() => _wantsVisible = true;
     public void Hide() => _wantsVisible = false;
 

@@ -341,6 +341,7 @@ public static class CreateHollowKnightHUD
     {
         const int geoIconSize = 36;
         const int geoSpacing = 8;
+        const int rowSpacing = 4;
 
         GameObject panel = new GameObject("GeoPanel");
         panel.transform.SetParent(parent, false);
@@ -350,21 +351,34 @@ public static class CreateHollowKnightHUD
         rect.anchorMax = new Vector2(1, 0);
         rect.pivot = new Vector2(1, 0);
         rect.anchoredPosition = new Vector2(-24, 24);
-        rect.sizeDelta = new Vector2(120, 44);
+        rect.sizeDelta = new Vector2(120, 72);
 
-        HorizontalLayoutGroup layout = panel.AddComponent<HorizontalLayoutGroup>();
-        layout.spacing = geoSpacing;
-        layout.childAlignment = TextAnchor.MiddleRight;
-        layout.childControlWidth = true;
-        layout.childControlHeight = true;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
+        VerticalLayoutGroup panelLayout = panel.AddComponent<VerticalLayoutGroup>();
+        panelLayout.spacing = rowSpacing;
+        panelLayout.childAlignment = TextAnchor.MiddleRight;
+        panelLayout.childControlWidth = true;
+        panelLayout.childControlHeight = true;
+        panelLayout.childForceExpandWidth = false;
+        panelLayout.childForceExpandHeight = false;
 
         GeoUI geoUI = panel.AddComponent<GeoUI>();
 
-        // 왼쪽: 지오 아이콘 이미지
+        // 첫 번째 줄: 아이콘 + 메인 지오 텍스트
+        GameObject mainRow = new GameObject("MainRow");
+        mainRow.transform.SetParent(panel.transform, false);
+        HorizontalLayoutGroup rowLayout = mainRow.AddComponent<HorizontalLayoutGroup>();
+        rowLayout.spacing = geoSpacing;
+        rowLayout.childAlignment = TextAnchor.MiddleRight;
+        rowLayout.childControlWidth = true;
+        rowLayout.childControlHeight = true;
+        rowLayout.childForceExpandWidth = false;
+        rowLayout.childForceExpandHeight = false;
+        LayoutElement mainRowLe = mainRow.AddComponent<LayoutElement>();
+        mainRowLe.preferredHeight = 40;
+        mainRowLe.flexibleHeight = 0f;
+
         GameObject imageGo = new GameObject("GeoImage");
-        imageGo.transform.SetParent(panel.transform, false);
+        imageGo.transform.SetParent(mainRow.transform, false);
         RectTransform imageRect = imageGo.AddComponent<RectTransform>();
         imageRect.sizeDelta = new Vector2(geoIconSize, geoIconSize);
         LayoutElement imageLe = imageGo.AddComponent<LayoutElement>();
@@ -374,14 +388,12 @@ public static class CreateHollowKnightHUD
         imageLe.flexibleHeight = 0f;
 
         Image geoImg = imageGo.AddComponent<Image>();
-        geoImg.color = new Color(1f, 0.9f, 0.4f, 0.95f); // 골드 톤 (스프라이트 없을 때 placeholder)
+        geoImg.color = new Color(1f, 0.9f, 0.4f, 0.95f);
         geoImg.preserveAspect = true;
         geoImg.raycastTarget = false;
 
-        // 오른쪽: 지오 수량 텍스트
         GameObject textGo = new GameObject("GeoText");
-        textGo.transform.SetParent(panel.transform, false);
-        RectTransform textRect = textGo.AddComponent<RectTransform>();
+        textGo.transform.SetParent(mainRow.transform, false);
         LayoutElement textLe = textGo.AddComponent<LayoutElement>();
         textLe.preferredWidth = 60;
         textLe.flexibleWidth = 1f;
@@ -395,10 +407,28 @@ public static class CreateHollowKnightHUD
         if (Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf") != null)
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
+        // 두 번째 줄: 대기 지오 텍스트 (쌓였다가 일정 시간 후 메인에 반영)
+        GameObject pendingGo = new GameObject("PendingText");
+        pendingGo.transform.SetParent(panel.transform, false);
+        LayoutElement pendingLe = pendingGo.AddComponent<LayoutElement>();
+        pendingLe.preferredHeight = 22;
+        pendingLe.flexibleWidth = 1f;
+
+        Text pendingText = pendingGo.AddComponent<Text>();
+        pendingText.text = "";
+        pendingText.fontSize = 18;
+        pendingText.alignment = TextAnchor.MiddleRight;
+        pendingText.color = new Color(1f, 0.95f, 0.6f, 0.9f);
+        if (Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf") != null)
+            pendingText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
         SerializedObject so = new SerializedObject(geoUI);
         so.FindProperty("geoImage").objectReferenceValue = geoImg;
         so.FindProperty("geoText").objectReferenceValue = text;
+        so.FindProperty("pendingText").objectReferenceValue = pendingText;
         so.FindProperty("currentGeo").intValue = 0;
+        so.FindProperty("pendingFontSize").intValue = 18;
+        so.FindProperty("commitDelay").floatValue = 1.5f;
         so.ApplyModifiedPropertiesWithoutUndo();
 
         return panel;

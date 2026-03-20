@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
@@ -57,8 +58,9 @@ public class MaskUI : MonoBehaviour
     private int _maxHealth;
     private int _lastDamagedMaskIndex = -1;
     private float _spriteCycleTime;  // 6프레임 돌리기용
-    private float _periodicTimer;
     private float _burstRemaining;
+    private Coroutine _spriteAnimationRoutine;
+    private DebugKeyHandler _debugKeyHandler;
 
     private void Awake()
     {
@@ -71,6 +73,9 @@ public class MaskUI : MonoBehaviour
         EnsureMaskCount();
         ApplySizing();
         RefreshAllMasks();
+
+        StartSpriteAnimationRoutine();
+        _debugKeyHandler = new DebugKeyHandler(this);
     }
 
     private void OnValidate()
@@ -84,6 +89,94 @@ public class MaskUI : MonoBehaviour
         {
             CollectMaskIcons();
             ApplySizing();
+        }
+        else
+        {
+            // 에디터에서 값 바꿀 때도 즉시 반영되도록 애니메이션 루틴 재시작
+            StartSpriteAnimationRoutine();
+        }
+    }
+
+    private void OnDisable()
+    {
+        StopSpriteAnimationRoutine();
+    }
+
+    private void StartSpriteAnimationRoutine()
+    {
+        StopSpriteAnimationRoutine();
+
+        if (maskFullSprites == null || maskFullSprites.Length <= 0) return;
+        if (spriteFrameDuration <= 0f) return;
+
+        // 초기 값은 시각적으로 0프레임부터 시작하는 느낌으로 맞춤
+        _spriteCycleTime = 0f;
+        _burstRemaining = 0f;
+
+        // 현재 체력/스프라이트 상태 반영(사이즈 변경 없이 스프라이트만)
+        RefreshAllMasks(applySizing: false);
+
+        _spriteAnimationRoutine = StartCoroutine(
+            animatePeriodically ? AnimateSpritePeriodically() : AnimateSpriteContinuously()
+        );
+    }
+
+    private void StopSpriteAnimationRoutine()
+    {
+        if (_spriteAnimationRoutine != null)
+        {
+            StopCoroutine(_spriteAnimationRoutine);
+            _spriteAnimationRoutine = null;
+        }
+    }
+
+    private IEnumerator AnimateSpriteContinuously()
+    {
+        int len = maskFullSprites.Length;
+        float cycleLen = spriteFrameDuration * len;
+        while (true)
+        {
+            yield return new WaitForSeconds(spriteFrameDuration);
+            _spriteCycleTime += spriteFrameDuration;
+            if (_spriteCycleTime >= cycleLen)
+                _spriteCycleTime -= cycleLen;
+
+            RefreshAllMasks(applySizing: false); // 스프라이트만 돌림
+        }
+    }
+
+    private IEnumerator AnimateSpritePeriodically()
+    {
+        int len = maskFullSprites.Length;
+        float cycleLen = spriteFrameDuration * len;
+
+        while (true)
+        {
+            // interval 동안은 "정지 상태(프레임 0 고정)"로 보이게 하려면 여기서 RefreshAllMasks(false) 호출을 추가해도 됩니다.
+            yield return new WaitForSeconds(animationIntervalSeconds);
+
+            float burstTime = animationBurstSeconds > 0f ? animationBurstSeconds : cycleLen;
+            _burstRemaining = burstTime;
+            _spriteCycleTime = 0f;
+            RefreshAllMasks(applySizing: false);
+
+            while (_burstRemaining > 0f)
+            {
+                float wait = Mathf.Min(spriteFrameDuration, _burstRemaining);
+                yield return new WaitForSeconds(wait);
+                _burstRemaining -= wait;
+
+                _spriteCycleTime += wait;
+                if (_spriteCycleTime >= cycleLen)
+                    _spriteCycleTime -= cycleLen;
+
+                RefreshAllMasks(applySizing: false);
+            }
+
+            // 끝나면 첫 프레임으로 돌아가 고정
+            _spriteCycleTime = 0f;
+            _burstRemaining = 0f;
+            RefreshAllMasks(applySizing: false);
         }
     }
 
@@ -133,76 +226,49 @@ public class MaskUI : MonoBehaviour
 
     private void Update()
     {
-        if (maskFullSprites != null && maskFullSprites.Length > 0 && spriteFrameDuration > 0f)
+        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
+    }
+
+    private sealed class DebugKeyHandler
+    {
+        private readonly MaskUI _owner;
+
+        public DebugKeyHandler(MaskUI owner)
         {
-            if (!animatePeriodically)
+            _owner = owner;
+        }
+
+        public void Tick(bool enabled, int step)
+        {
+            if (!enabled) return;
+
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            if (keyboard.f3Key.wasPressedThisFrame)
             {
-                _spriteCycleTime += Time.deltaTime;
-                if (_spriteCycleTime >= spriteFrameDuration * maskFullSprites.Length)
-                    _spriteCycleTime = 0f;
-                RefreshAllMasks(applySizing: false); // 스프라이트만 돌림
+                _owner.Damage(step);
+#if UNITY_EDITOR
+                Debug.Log($"[MaskUI] 데미지: {_owner.GetCurrentHealth()}/{_owner.GetMaxHealth()}");
+#endif
             }
-            else
+
+            if (keyboard.f4Key.wasPressedThisFrame)
             {
-                // 주기적으로만 재생: (interval마다 burstSeconds 동안) 프레임을 돌림
-                if (_burstRemaining > 0f)
-                {
-                    _burstRemaining -= Time.deltaTime;
-                    _spriteCycleTime += Time.deltaTime;
-                    float cycleLen = spriteFrameDuration * maskFullSprites.Length;
-                    if (_spriteCycleTime >= cycleLen) _spriteCycleTime -= cycleLen;
-                    RefreshAllMasks(applySizing: false);
-
-                    if (_burstRemaining <= 0f)
-                    {
-                        // 끝나면 첫 프레임으로 돌아가 고정
-                        _burstRemaining = 0f;
-                        _spriteCycleTime = 0f;
-                        RefreshAllMasks(applySizing: false);
-                    }
-                }
-                else
-                {
-                    _periodicTimer += Time.deltaTime;
-                    if (_periodicTimer >= animationIntervalSeconds)
-                    {
-                        _periodicTimer = 0f;
-                        float cycleLen = spriteFrameDuration * maskFullSprites.Length;
-                        _burstRemaining = animationBurstSeconds > 0f ? animationBurstSeconds : cycleLen;
-                        // 시작할 때는 0프레임에서 출발
-                        _spriteCycleTime = 0f;
-                        RefreshAllMasks(applySizing: false);
-                    }
-                }
+                _owner.Heal(step);
+#if UNITY_EDITOR
+                Debug.Log($"[MaskUI] 회복: {_owner.GetCurrentHealth()}/{_owner.GetMaxHealth()}");
+#endif
             }
-        }
 
-        if (!enableDebugKeys) return;
-
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
-
-        if (keyboard.f3Key.wasPressedThisFrame)
-        {
-            Damage(debugStep);
+            if (keyboard.f5Key.wasPressedThisFrame)
+            {
+                _owner.SetMaxHealth(_owner.GetMaxHealth() + 1);
+                _owner.Heal(1);
 #if UNITY_EDITOR
-            Debug.Log($"[MaskUI] 데미지: {_currentHealth}/{_maxHealth}");
+                Debug.Log($"[MaskUI] 최대 체력 증가: {_owner.GetCurrentHealth()}/{_owner.GetMaxHealth()}");
 #endif
-        }
-        if (keyboard.f4Key.wasPressedThisFrame)
-        {
-            Heal(debugStep);
-#if UNITY_EDITOR
-            Debug.Log($"[MaskUI] 회복: {_currentHealth}/{_maxHealth}");
-#endif
-        }
-        if (keyboard.f5Key.wasPressedThisFrame)
-        {
-            SetMaxHealth(_maxHealth + 1);
-            Heal(1);
-#if UNITY_EDITOR
-            Debug.Log($"[MaskUI] 최대 체력 증가: {_currentHealth}/{_maxHealth}");
-#endif
+            }
         }
     }
 

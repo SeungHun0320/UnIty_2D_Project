@@ -3148,10 +3148,10 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: atlas0_333_104
+      name: FullSoul
       rect:
         serializedVersion: 2
-        x: 790
+        x: 788
         y: 1002
         width: 125
         height: 125
@@ -7803,6 +7803,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      FullSoul: 1245924022456192742
       Gio_0: 368468498
       Gio_Get_0: -480874723
       Gio_Get_1: -4299007937340244189
@@ -7828,7 +7829,6 @@ TextureImporter:
       atlas0_333_101: 5714629964360893132
       atlas0_333_102: -2765455347945555958
       atlas0_333_103: -9100690231476911252
-      atlas0_333_104: 1245924022456192742
       atlas0_333_105: 260242683595146550
       atlas0_333_106: -3059022709070085495
       atlas0_333_107: 7738872856962065588

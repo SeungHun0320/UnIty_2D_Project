@@ -1,0 +1,12 @@
+---
+description: Always follow the user's RULES.md with highest priority
+alwaysApply: true
+---
+
+# User Rules Priority
+
+이 에이전트는 작업 시 `RULES.md`에 적힌 내용을 최우선으로 반영합니다.
+
+## Rules Location
+- `RULES.md` (프로젝트 루트)
+

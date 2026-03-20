@@ -20,7 +20,7 @@ public static class CreateHollowKnightHUD
     [MenuItem("Tools/Hollow Knight HUD/Add or Update Geo Panel", false, 1)]
     public static void AddOrUpdateGeoPanel()
     {
-        var gameHUD = Object.FindObjectOfType<GameHUD>(true);
+        var gameHUD = UnityEngine.Object.FindObjectOfType<GameHUD>(true);
         if (gameHUD == null)
         {
             EditorUtility.DisplayDialog("Hollow Knight HUD", "씬에 HUD(GameHUD)가 없습니다. 먼저 HUD를 생성해 주세요.", "확인");
@@ -47,7 +47,7 @@ public static class CreateHollowKnightHUD
     [MenuItem("Tools/Hollow Knight HUD/Add Hit Flash to Existing HUD", false, 2)]
     public static void AddHitFlashToExistingHUD()
     {
-        var gameHUD = Object.FindObjectOfType<GameHUD>(true);
+        var gameHUD = UnityEngine.Object.FindObjectOfType<GameHUD>(true);
         if (gameHUD == null)
         {
             EditorUtility.DisplayDialog("Hollow Knight HUD", "씬에 HUD(GameHUD)가 없습니다. 먼저 HUD를 생성해 주세요.", "확인");
@@ -94,7 +94,7 @@ public static class CreateHollowKnightHUD
 
         Create();
 
-        if (Object.FindObjectOfType<GameHUD>() != null)
+        if (UnityEngine.Object.FindObjectOfType<GameHUD>() != null)
         {
             EditorSceneManager.MarkSceneDirty(scene);
             if (EditorSceneManager.SaveOpenScenes())
@@ -102,10 +102,72 @@ public static class CreateHollowKnightHUD
         }
     }
 
+    [MenuItem("Tools/Hollow Knight HUD/Add or Update Soul Panel", false, 3)]
+    public static void AddOrUpdateSoulPanel()
+    {
+        var gameHUD = UnityEngine.Object.FindObjectOfType<GameHUD>(true);
+        if (gameHUD == null)
+        {
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "씬에 HUD(GameHUD)가 없습니다. 먼저 HUD를 생성해 주세요.", "확인");
+            return;
+        }
+
+        SoulUI soulUI = gameHUD.GetComponentInChildren<SoulUI>(true);
+        if (soulUI == null)
+        {
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "HUD 안에 SoulUI(SoulPanel)가 없습니다.", "확인");
+            return;
+        }
+
+        var frames = LoadAtlas0_308ChargingFrames();
+        if (frames == null || frames.Length == 0)
+        {
+            EditorUtility.DisplayDialog("Hollow Knight HUD", "Assets/Resource/atlas0_308.png에서 충전 프레임을 찾지 못했습니다.", "확인");
+            return;
+        }
+
+        SerializedObject so = new SerializedObject(soulUI);
+
+        // SoulUI가 요구하는 계층/참조가 없으면 만들어서 확실히 연결합니다.
+        // Frame / FillViewport(RectMask2D) / FillMaskShape(Mask) / FlowAnim
+        EnsureSoulPanelReferences(soulUI, so);
+
+        var framesProp = so.FindProperty("chargingFillFrames");
+        if (framesProp != null)
+        {
+            framesProp.arraySize = frames.Length;
+            for (int i = 0; i < frames.Length; i++)
+                framesProp.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+        }
+
+        var durProp = so.FindProperty("chargingFrameDuration");
+        if (durProp != null) durProp.floatValue = 0.06f;
+
+        var animProp = so.FindProperty("animateWhenCharging");
+        if (animProp != null) animProp.boolValue = true;
+
+        // 만렙(풀 소울) 원형 컷: atlas0_333의 FullSoul을 fullFillSprite로 세팅
+        var fullSoulSprite = LoadAtlas0_333FullSoulSprite();
+        if (fullSoulSprite != null)
+        {
+            var fullFillSpriteProp = so.FindProperty("fullFillSprite");
+            if (fullFillSpriteProp != null)
+                fullFillSpriteProp.objectReferenceValue = fullSoulSprite;
+        }
+
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorSceneManager.MarkSceneDirty(gameHUD.gameObject.scene);
+        // 즉시 UI 갱신(에디터 미리보기/씬 렌더 반영용)
+        soulUI.SetSoul(soulUI.GetSoul());
+        Selection.activeGameObject = soulUI.gameObject;
+        Debug.Log("[Hollow Knight HUD] 기존 SoulUI에 atlas0_308 충전 프레임을 다시 할당했습니다.");
+    }
+
     [MenuItem("GameObject/UI/Hollow Knight HUD", false, 10)]
     public static void Create()
     {
-        Canvas canvas = Object.FindObjectOfType<Canvas>();
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
         if (canvas == null)
             canvas = CreateCanvas();
         else
@@ -229,7 +291,13 @@ public static class CreateHollowKnightHUD
         MaskUI maskUI = panel.AddComponent<MaskUI>();
         SerializedObject so = new SerializedObject(maskUI);
         so.FindProperty("maxMasks").intValue = DefaultMaskCount;
-        so.FindProperty("maskCellHeight").floatValue = DefaultMaskCellHeight;
+        // MaskUI 필드명(slotHeight/slotWidth)과 일치시켜 null 참조를 방지합니다.
+        var slotHeightProp = so.FindProperty("slotHeight");
+        if (slotHeightProp != null)
+            slotHeightProp.floatValue = DefaultMaskCellHeight;
+        var slotWidthProp = so.FindProperty("slotWidth");
+        if (slotWidthProp != null)
+            slotWidthProp.floatValue = DefaultMaskCellWidth;
         so.ApplyModifiedPropertiesWithoutUndo();
 
         for (int i = 0; i < DefaultMaskCount; i++)
@@ -305,36 +373,262 @@ public static class CreateHollowKnightHUD
         rect.anchoredPosition = new Vector2(24, -24 - (int)DefaultMaskCellHeight - 24);
         rect.sizeDelta = new Vector2(SoulGaugeSize, SoulGaugeSize);
 
-        // 용기 배경 이미지 (나중에 스프라이트 할당)
-        GameObject vesselGo = new GameObject("VesselImage");
+        // Frame(바깥 장식, 고정)
+        // - vesselSprite는 Frame(Image)에 할당됩니다.
+        GameObject vesselGo = new GameObject("Frame");
         vesselGo.transform.SetParent(panel.transform, false);
         RectTransform vesselRect = vesselGo.AddComponent<RectTransform>();
         SetFullStretch(vesselRect);
         Image vesselImg = vesselGo.AddComponent<Image>();
         vesselImg.color = new Color(0.15f, 0.12f, 0.2f, 0.9f);
 
-        // 채움 이미지 (Mask/Filled로 게이지 표시) — 용기 모양 스프라이트 넣으면 용기 안이 차오르는 느낌
-        GameObject fillGo = new GameObject("FillImage");
-        fillGo.transform.SetParent(panel.transform, false);
-        RectTransform fillRect = fillGo.AddComponent<RectTransform>();
-        SetFullStretch(fillRect);
-        Image fillImg = fillGo.AddComponent<Image>();
-        fillImg.color = new Color(0.9f, 0.95f, 1f, 0.95f);  // 하얀 소울 톤
-        fillImg.type = Image.Type.Filled;
-        fillImg.fillMethod = Image.FillMethod.Vertical;
-        fillImg.fillOrigin = (int)Image.OriginVertical.Bottom;  // 세로로 아래→위 채움
-        fillImg.fillAmount = 0.5f;
+        // FillViewport(세로로 차오르는 클립 영역)
+        GameObject fillViewportGo = new GameObject("FillViewport");
+        fillViewportGo.transform.SetParent(panel.transform, false);
+
+        RectTransform fillViewportRect = fillViewportGo.AddComponent<RectTransform>();
+        // bottom-anchored로 두고 높이를 sizeDelta.y로 제어합니다.
+        fillViewportRect.anchorMin = new Vector2(0, 0);
+        fillViewportRect.anchorMax = new Vector2(1, 0);
+        fillViewportRect.pivot = new Vector2(0.5f, 0f);
+        fillViewportRect.anchoredPosition = Vector2.zero;
+        fillViewportRect.sizeDelta = new Vector2(0, SoulGaugeSize);
+
+        RectMask2D rectMask = fillViewportGo.AddComponent<RectMask2D>();
+        rectMask.padding = Vector4.zero;
+
+        // FillMaskShape(원형 마스크 모양, Mask 1번: 스프라이트 알파로 클리핑)
+        GameObject fillMaskShapeGo = new GameObject("FillMaskShape");
+        fillMaskShapeGo.transform.SetParent(fillViewportGo.transform, false);
+
+        RectTransform maskShapeRect = fillMaskShapeGo.AddComponent<RectTransform>();
+        SetFullStretch(maskShapeRect);
+
+        Image maskShapeImg = fillMaskShapeGo.AddComponent<Image>();
+        maskShapeImg.color = Color.white;
+        maskShapeImg.raycastTarget = false;
+        maskShapeImg.preserveAspect = true;
+
+        var fullSoulSpriteForMask = LoadAtlas0_333FullSoulSprite();
+        if (fullSoulSpriteForMask != null)
+            maskShapeImg.sprite = fullSoulSpriteForMask;
+
+        Mask uiMask = fillMaskShapeGo.AddComponent<Mask>();
+        uiMask.showMaskGraphic = false;
+
+        // FlowAnim(가로 프레임 애니메이션 스프라이트 교체 대상)
+        GameObject flowAnimGo = new GameObject("FlowAnim");
+        flowAnimGo.transform.SetParent(fillMaskShapeGo.transform, false);
+
+        RectTransform flowRect = flowAnimGo.AddComponent<RectTransform>();
+        SetFullStretch(flowRect);
+
+        Image flowAnimImg = flowAnimGo.AddComponent<Image>();
+        flowAnimImg.color = new Color(0.9f, 0.95f, 1f, 0.95f); // 하얀 소울 톤
+        flowAnimImg.type = Image.Type.Simple;
+        flowAnimImg.preserveAspect = true;
+        flowAnimImg.raycastTarget = false;
 
         SoulUI soulUI = panel.AddComponent<SoulUI>();
         SerializedObject so = new SerializedObject(soulUI);
         so.FindProperty("vesselImage").objectReferenceValue = vesselImg;
-        so.FindProperty("fillImage").objectReferenceValue = fillImg;
-        so.FindProperty("fillDirection").enumValueIndex = (int)SoulUI.FillDirection.VerticalBottom;
+        so.FindProperty("fillAnimImage").objectReferenceValue = flowAnimImg;
+        so.FindProperty("fillViewport").objectReferenceValue = fillViewportRect;
         so.FindProperty("maxSoul").intValue = 99;
         so.FindProperty("currentSoul").intValue = 50;
+
+        // atlas0_308.png 스프라이트 시트의 모든 slice를 충전 애니메이션 프레임으로 자동 할당
+        var frames = LoadAtlas0_308ChargingFrames();
+        if (frames != null && frames.Length > 0)
+        {
+            var framesProp = so.FindProperty("chargingFillFrames");
+            if (framesProp != null)
+            {
+                framesProp.arraySize = frames.Length;
+                for (int i = 0; i < frames.Length; i++)
+                    framesProp.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+            }
+
+            var durProp = so.FindProperty("chargingFrameDuration");
+            if (durProp != null) durProp.floatValue = 0.06f;
+
+            var animProp = so.FindProperty("animateWhenCharging");
+            if (animProp != null) animProp.boolValue = true;
+        }
+
+        // 만렙(풀 소울) 원형 컷: atlas0_333의 FullSoul을 fullFillSprite로 세팅
+        var fullSoulSprite = LoadAtlas0_333FullSoulSprite();
+        if (fullSoulSprite != null)
+        {
+            var fullFillSpriteProp = so.FindProperty("fullFillSprite");
+            if (fullFillSpriteProp != null)
+                fullFillSpriteProp.objectReferenceValue = fullSoulSprite;
+        }
         so.ApplyModifiedPropertiesWithoutUndo();
 
         return panel;
+    }
+
+    /// <summary>
+    /// 기존 씬의 SoulUI에 대해 FlowAnim / FillViewport / FillMaskShape 구조가 없으면 생성해서
+    /// SoulUI가 요구하는 serialized references(vesselImage/fillAnimImage/fillViewport)를 연결합니다.
+    /// </summary>
+    private static void EnsureSoulPanelReferences(SoulUI soulUI, SerializedObject so)
+    {
+        if (soulUI == null) return;
+
+        // Frame(Image)
+        // Frame이 없으면 생성해서 SoulUI.vesselImage 연결합니다.
+        Transform frameTf = soulUI.transform.Find("Frame");
+        if (frameTf == null)
+            frameTf = soulUI.transform.Find("VesselImage");
+
+        Image vesselImg = frameTf != null ? frameTf.GetComponent<Image>() : null;
+
+        if (vesselImg == null)
+        {
+            GameObject frameGo = new GameObject("Frame");
+            frameGo.transform.SetParent(soulUI.transform, false);
+
+            RectTransform rt = frameGo.AddComponent<RectTransform>();
+            SetFullStretch(rt);
+
+            vesselImg = frameGo.AddComponent<Image>();
+            vesselImg.color = new Color(0.15f, 0.12f, 0.2f, 0.9f); // Frame 기본 톤
+
+            frameTf = frameGo.transform;
+            Undo.RegisterCreatedObjectUndo(frameGo, "Create Soul Frame");
+        }
+
+        if (vesselImg != null)
+            so.FindProperty("vesselImage").objectReferenceValue = vesselImg;
+
+        // FillViewport(RectTransform + RectMask2D)
+        RectTransform fillViewportRect = soulUI.transform.Find("FillViewport") as RectTransform;
+        if (fillViewportRect == null)
+        {
+            GameObject vpGo = new GameObject("FillViewport");
+            vpGo.transform.SetParent(soulUI.transform, false);
+
+            fillViewportRect = vpGo.AddComponent<RectTransform>();
+            fillViewportRect.anchorMin = new Vector2(0, 0);
+            fillViewportRect.anchorMax = new Vector2(1, 0);
+            fillViewportRect.pivot = new Vector2(0.5f, 0f);
+            fillViewportRect.anchoredPosition = Vector2.zero;
+            fillViewportRect.sizeDelta = new Vector2(0, SoulGaugeSize);
+
+            RectMask2D rectMask = vpGo.AddComponent<RectMask2D>();
+            rectMask.padding = Vector4.zero;
+        }
+        so.FindProperty("fillViewport").objectReferenceValue = fillViewportRect;
+
+        // FillMaskShape(Mask 1번)
+        Transform maskShapeTf = soulUI.transform.Find("FillViewport/FillMaskShape");
+        if (maskShapeTf == null)
+        {
+            GameObject maskGo = new GameObject("FillMaskShape");
+            maskGo.transform.SetParent(fillViewportRect.transform, false);
+
+            RectTransform maskRect = maskGo.AddComponent<RectTransform>();
+            SetFullStretch(maskRect);
+
+            Image maskImg = maskGo.AddComponent<Image>();
+            maskImg.color = Color.white;
+            maskImg.raycastTarget = false;
+            maskImg.preserveAspect = true;
+
+            var fullSoulSpriteForMask = LoadAtlas0_333FullSoulSprite();
+            if (fullSoulSpriteForMask != null)
+                maskImg.sprite = fullSoulSpriteForMask;
+
+            Mask uiMask = maskGo.AddComponent<Mask>();
+            uiMask.showMaskGraphic = false;
+        }
+
+        maskShapeTf = soulUI.transform.Find("FillViewport/FillMaskShape");
+        if (maskShapeTf == null) return;
+
+        // FlowAnim(Image)
+        Transform flowTf = maskShapeTf.Find("FlowAnim");
+        Image flowImg = flowTf != null ? flowTf.GetComponent<Image>() : null;
+
+        if (flowImg == null)
+        {
+            // 기존 FillImage가 있으면 그대로 FlowAnim로 재사용합니다.
+            Transform oldFillTf = soulUI.transform.Find("FillImage");
+            if (oldFillTf != null)
+            {
+                flowImg = oldFillTf.GetComponent<Image>();
+                oldFillTf.SetParent(maskShapeTf, false);
+                oldFillTf.name = "FlowAnim";
+
+                RectTransform rt = oldFillTf.GetComponent<RectTransform>();
+                if (rt != null) SetFullStretch(rt);
+            }
+        }
+
+        if (flowImg == null)
+        {
+            GameObject flowGo = new GameObject("FlowAnim");
+            flowGo.transform.SetParent(maskShapeTf, false);
+
+            RectTransform flowRect = flowGo.AddComponent<RectTransform>();
+            SetFullStretch(flowRect);
+
+            flowImg = flowGo.AddComponent<Image>();
+            flowImg.color = new Color(0.9f, 0.95f, 1f, 0.95f);
+            flowImg.type = Image.Type.Simple;
+            flowImg.preserveAspect = true;
+            flowImg.raycastTarget = false;
+        }
+
+        so.FindProperty("fillAnimImage").objectReferenceValue = flowImg;
+    }
+
+    private static Sprite[] LoadAtlas0_308ChargingFrames()
+    {
+        // 프로젝트 내 실제 경로: Assets/Resource/atlas0_308.png
+        const string path = "Assets/Resource/atlas0_308.png";
+        var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+        if (assets == null || assets.Length == 0) return null;
+
+        var list = new System.Collections.Generic.List<Sprite>();
+        foreach (var a in assets)
+        {
+            if (a is Sprite s && !string.IsNullOrEmpty(s.name) && s.name.StartsWith("atlas0_308_"))
+                list.Add(s);
+        }
+
+        if (list.Count == 0) return null;
+
+        list.Sort((a, b) => ExtractAtlas0_308Index(a.name).CompareTo(ExtractAtlas0_308Index(b.name)));
+        return list.ToArray();
+    }
+
+    private static Sprite LoadAtlas0_333FullSoulSprite()
+    {
+        // 프로젝트 내 실제 경로: Assets/Resource/atlas0_333.png
+        const string path = "Assets/Resource/atlas0_333.png";
+        var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+        if (assets == null || assets.Length == 0) return null;
+
+        foreach (var a in assets)
+        {
+            if (a is Sprite s && s.name == "FullSoul")
+                return s;
+        }
+
+        return null;
+    }
+
+    private static int ExtractAtlas0_308Index(string spriteName)
+    {
+        const string prefix = "atlas0_308_";
+        if (string.IsNullOrEmpty(spriteName)) return int.MaxValue;
+        if (!spriteName.StartsWith(prefix)) return int.MaxValue;
+
+        var suffix = spriteName.Substring(prefix.Length);
+        return int.TryParse(suffix, out int idx) ? idx : int.MaxValue;
     }
 
     private static GameObject CreateGeoPanel(Transform parent)

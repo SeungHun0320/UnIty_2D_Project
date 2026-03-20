@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
@@ -38,8 +39,8 @@ public class GeoUI : MonoBehaviour
     [SerializeField] private int debugStep = 10;
 
     private CanvasGroup _canvasGroup;
-    private int _pendingGeo;
-    private float _pendingTimer;
+    private DebugKeyHandler _debugKeyHandler;
+    private PendingGeoCommitter _pendingCommitter;
 
     private void Awake()
     {
@@ -54,38 +55,29 @@ public class GeoUI : MonoBehaviour
         if (_canvasGroup == null)
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
         ApplySizes();
+        EnsurePendingCommitter();
         RefreshPendingText();
         RefreshVisibility();
+
+        _debugKeyHandler = new DebugKeyHandler(this);
     }
 
     private void Update()
     {
-        if (enableDebugKeys)
-        {
-            var keyboard = Keyboard.current;
-            if (keyboard != null)
-            {
-                if (keyboard.f3Key.wasPressedThisFrame)
-                    AddGeo(debugStep);
-                if (keyboard.f4Key.wasPressedThisFrame)
-                    SetGeo(currentGeo - debugStep);
-            }
-        }
-
-        if (_pendingGeo <= 0) return;
-        _pendingTimer -= Time.deltaTime;
-        if (_pendingTimer <= 0f)
-            CommitPending();
+        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
     }
 
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        EnsurePendingCommitter();
         ApplySizes();
+        RefreshPendingText();
+        RefreshVisibility();
     }
 #endif
 
-    /// <summary> iconSize, fontSize, 행 높이 등을 자식 UI에 적용. 에디터에서 크기 수정 시 호출됨. </summary>
+    /// <summary> iconSize, fontSize 등을 자식 UI에 적용. 에디터에서 값 변경 시 호출됨. </summary>
     public void ApplySizes()
     {
         if (geoImage != null)
@@ -109,26 +101,24 @@ public class GeoUI : MonoBehaviour
     public void AddGeo(int amount)
     {
         if (amount <= 0) return;
-        _pendingGeo += amount;
-        _pendingTimer = commitDelay;
+        _pendingCommitter.AddPending(amount);
+    }
+
+    /// <summary> 현재 지오를 지정값으로 설정 (세이브 로드 등). 대기량/코루틴은 초기화. </summary>
+    public void SetGeo(int amount)
+    {
+        currentGeo = Mathf.Max(0, amount);
+        _pendingCommitter.ResetPending();
+        if (geoText != null)
+            geoText.text = prefix + currentGeo.ToString();
         RefreshPendingText();
         RefreshVisibility();
     }
 
-    /// <summary> 현재 지오를 지정값으로 설정 (세이브 로드 등). 대기량은 유지. </summary>
-    public void SetGeo(int amount)
+    private void CommitPending(int pendingAmount)
     {
-        currentGeo = Mathf.Max(0, amount);
-        if (geoText != null)
-            geoText.text = prefix + currentGeo.ToString();
-        RefreshVisibility();
-    }
-
-    private void CommitPending()
-    {
-        if (_pendingGeo <= 0) return;
-        currentGeo += _pendingGeo;
-        _pendingGeo = 0;
+        if (pendingAmount <= 0) return;
+        currentGeo += pendingAmount;
         if (geoText != null)
             geoText.text = prefix + currentGeo.ToString();
         RefreshPendingText();
@@ -138,10 +128,10 @@ public class GeoUI : MonoBehaviour
     private void RefreshPendingText()
     {
         if (pendingText == null) return;
-        if (_pendingGeo <= 0)
+        if (_pendingCommitter.PendingGeo <= 0)
             pendingText.text = "";
         else
-            pendingText.text = pendingPrefix + _pendingGeo.ToString();
+            pendingText.text = pendingPrefix + _pendingCommitter.PendingGeo.ToString();
     }
 
     /// <summary> 지오·대기량 둘 다 0이면 숨김, 하나라도 있으면 표시. </summary>
@@ -149,12 +139,87 @@ public class GeoUI : MonoBehaviour
     {
         if (_canvasGroup == null) _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null) return;
-        bool show = currentGeo > 0 || _pendingGeo > 0;
+        bool show = currentGeo > 0 || _pendingCommitter.PendingGeo > 0;
         _canvasGroup.alpha = show ? 1f : 0f;
         _canvasGroup.blocksRaycasts = show;
         _canvasGroup.interactable = show;
     }
 
     public int GetGeo() => currentGeo;
-    public int GetPendingGeo() => _pendingGeo;
+    public int GetPendingGeo() => _pendingCommitter != null ? _pendingCommitter.PendingGeo : 0;
+
+    private void EnsurePendingCommitter()
+    {
+        if (_pendingCommitter == null)
+            _pendingCommitter = new PendingGeoCommitter(this);
+    }
+
+    private sealed class PendingGeoCommitter
+    {
+        private readonly GeoUI _owner;
+        private int _pendingGeo;
+        private Coroutine _commitRoutine;
+
+        public PendingGeoCommitter(GeoUI owner)
+        {
+            _owner = owner;
+        }
+
+        public int PendingGeo => _pendingGeo;
+
+        public void AddPending(int amount)
+        {
+            if (amount <= 0) return;
+            _pendingGeo += amount;
+
+            _owner.RefreshPendingText();
+            _owner.RefreshVisibility();
+
+            // 마지막 획득 이후 commitDelay 동안 추가 획득이 없으면 커밋.
+            if (_commitRoutine != null)
+                _owner.StopCoroutine(_commitRoutine);
+            _commitRoutine = _owner.StartCoroutine(CommitAfterDelay());
+        }
+
+        public void ResetPending()
+        {
+            _pendingGeo = 0;
+            if (_commitRoutine != null)
+                _owner.StopCoroutine(_commitRoutine);
+            _commitRoutine = null;
+        }
+
+        private IEnumerator CommitAfterDelay()
+        {
+            yield return new WaitForSeconds(_owner.commitDelay);
+            _commitRoutine = null;
+
+            int amount = _pendingGeo;
+            _pendingGeo = 0;
+            _owner.CommitPending(amount);
+        }
+    }
+
+    private sealed class DebugKeyHandler
+    {
+        private readonly GeoUI _owner;
+
+        public DebugKeyHandler(GeoUI owner)
+        {
+            _owner = owner;
+        }
+
+        public void Tick(bool enabled, int step)
+        {
+            if (!enabled) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            if (keyboard.f3Key.wasPressedThisFrame)
+                _owner.AddGeo(step);
+
+            if (keyboard.f4Key.wasPressedThisFrame)
+                _owner.SetGeo(_owner.GetGeo() - step);
+        }
+    }
 }

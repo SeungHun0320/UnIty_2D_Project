@@ -1,158 +1,262 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// 할로우 나이트 스타일 소울(기력) UI.
-/// - vesselImage: 비어 있는 용기/프레임 (동그라미 + 흰 뿔 장식 등). 항상 전체 표시.
-/// - fillImage: 꽉 찬 소울 이미지 (하얀 소울이 가득 찬 동그라미).
-///   Image Type = Filled 로 두고, fillAmount 만큼만 보이게 해서 "마스크"처럼 사용.
-///   세로 채움 시 동그라미 안에 하얀 소울이 아래에서 위로 차오르는 느낌.
-/// </summary>
 public class SoulUI : MonoBehaviour
 {
-    [Header("용기 & 채움 이미지")]
-    [Tooltip("비어 있는 용기/프레임 (동그라미 테두리 + 장식). 여기에 스프라이트 넣으면 vesselImage에 적용됨.")]
-    [SerializeField] private Sprite vesselSprite;
-    [Tooltip("용기 이미지가 붙어 있는 UI Image (자식 VesselImage). 스프라이트는 위 vesselSprite 또는 여기서 직접 넣기.")]
+    [Header("References")]
     [SerializeField] private Image vesselImage;
-    [Tooltip("꽉 찬 소울 스프라이트. 여기에 넣으면 fillImage에 적용됨.")]
-    [SerializeField] private Sprite fillSprite;
-    [Tooltip("채움 이미지가 붙어 있는 UI Image (자식 FillImage). Filled로 fillAmount만큼만 보임.")]
-    [SerializeField] private Image fillImage;
-    [Tooltip("채움 방향. Vertical Bottom = 동그라미 안에 세로로 아래→위 채움.")]
-    [SerializeField] private FillDirection fillDirection = FillDirection.VerticalBottom;
-    [Tooltip("fillImage에 스프라이트가 없을 때 쓸 기본 이미지. None이면 자동 할당 안 함.")]
-    [SerializeField] private DefaultFillSprite defaultFillSprite = DefaultFillSprite.WaveFill;
+    [SerializeField] private Image fillAnimImage;
+    [SerializeField] private RectTransform fillViewport;
 
-    [Header("값")]
+    [Header("Sprites")]
+    [SerializeField] private Sprite vesselSprite;
+    [SerializeField] private Sprite fullFillSprite;
+    [SerializeField] private Sprite[] chargingFillFrames;
+
+    [Header("Animation")]
+    [SerializeField, Min(0.01f)] private float chargingFrameDuration = 0.06f;
+    [SerializeField] private bool animateWhenCharging = true;
+
+    [Header("Soul Value")]
     [SerializeField] private int maxSoul = 99;
     [SerializeField] private int currentSoul = 0;
 
     [Header("디버그 (플레이 중에만 동작)")]
-    [Tooltip("체크 시 F1/F2로 소울 증감 테스트. 빌드에서는 끄는 걸 권장.")]
+    [Tooltip("플레이 중 F1/F2로 소울을 증감합니다.")]
     [SerializeField] private bool enableDebugKeys = true;
-    [Tooltip("디버그로 한 번에 증감할 양")]
+    [Tooltip("F1/F2 한 번에 증감할 소울 양")]
     [SerializeField] private int debugStep = 10;
 
-    public enum FillDirection
-    {
-        VerticalBottom,  // 아래에서 위로 (소울 차오름)
-        VerticalTop,
-        HorizontalLeft,
-        HorizontalRight
-    }
+    private Coroutine _animRoutine;
+    private int _frameIndex;
+    private float _fullViewportHeight = -1f;
 
-    public enum DefaultFillSprite
-    {
-        None,       // 사용 안 함 (스프라이트 없으면 안 보일 수 있음)
-        White,      // 흰색 단색
-        WaveFill    // 물결 모양 상단 채움
-    }
-
-    private void OnValidate()
-    {
-        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
-        ApplySpritesToImages();
-    }
+    private DebugKeyHandler _debugKeyHandler;
 
     private void Awake()
     {
-        ApplySpritesToImages();
-        EnsureFillSprite();
-        ApplyFillSettings();
+        maxSoul = Mathf.Max(1, maxSoul);
+        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
+
+        ApplyStaticSprites();
+        CacheFullViewportHeight();
+        Refresh(immediate: true);
+
+        _debugKeyHandler = new DebugKeyHandler(this);
     }
 
     private void Update()
     {
-        if (!enableDebugKeys) return;
-
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
-
-        if (keyboard.f1Key.wasPressedThisFrame)
-        {
-            SetSoul(currentSoul - debugStep);
-#if UNITY_EDITOR
-            Debug.Log($"[SoulUI] 소울 감소: {currentSoul}/{maxSoul}");
-#endif
-        }
-        if (keyboard.f2Key.wasPressedThisFrame)
-        {
-            SetSoul(currentSoul + debugStep);
-#if UNITY_EDITOR
-            Debug.Log($"[SoulUI] 소울 증가: {currentSoul}/{maxSoul}");
-#endif
-        }
+        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
     }
 
-    /// <summary> SoulUI 인스펙터에 넣은 vesselSprite, fillSprite를 각 Image에 적용. </summary>
-    private void ApplySpritesToImages()
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        maxSoul = Mathf.Max(1, maxSoul);
+        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
+
+        ApplyStaticSprites();
+
+        if (!Application.isPlaying)
+        {
+            CacheFullViewportHeight();
+            Refresh(immediate: true);
+        }
+    }
+#endif
+
+    private void OnDisable()
+    {
+        StopChargingAnimation();
+    }
+
+    private void ApplyStaticSprites()
     {
         if (vesselImage != null && vesselSprite != null)
             vesselImage.sprite = vesselSprite;
-        if (fillImage != null && fillSprite != null)
-            fillImage.sprite = fillSprite;
+
+        if (fillAnimImage != null)
+            fillAnimImage.type = Image.Type.Simple;
     }
 
-    private void EnsureFillSprite()
+    private void CacheFullViewportHeight()
     {
-        if (fillImage == null || defaultFillSprite == DefaultFillSprite.None) return;
-        if (fillImage.sprite != null) return;
+        if (fillViewport == null) return;
 
-        fillImage.sprite = defaultFillSprite == DefaultFillSprite.WaveFill
-            ? UIDefaultSprites.WaveFill
-            : UIDefaultSprites.White;
-        fillImage.color = new Color(1f, 1f, 1f, 0.95f);
+        float h = fillViewport.rect.height;
+        if (h <= 0.001f)
+            h = fillViewport.sizeDelta.y;
+
+        if (h > 0.001f)
+            _fullViewportHeight = h;
+    }
+
+    public void SetSoul(int soul)
+    {
+        currentSoul = Mathf.Clamp(soul, 0, maxSoul);
+        Refresh(immediate: false);
     }
 
     public void SetMaxSoul(int max)
     {
         maxSoul = Mathf.Max(1, max);
-        Refresh();
-    }
-
-    public void SetSoul(int current)
-    {
-        currentSoul = Mathf.Clamp(current, 0, maxSoul);
-        Refresh();
+        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
+        Refresh(immediate: false);
     }
 
     public int GetSoul() => currentSoul;
     public int GetMaxSoul() => maxSoul;
 
-    private void ApplyFillSettings()
+    private void Refresh(bool immediate)
     {
-        if (fillImage == null) return;
+        ApplyViewportHeight();
+        UpdateVisualState(immediate);
+    }
 
-        fillImage.type = Image.Type.Filled;
+    private void ApplyViewportHeight()
+    {
+        if (fillViewport == null) return;
 
-        switch (fillDirection)
+        if (_fullViewportHeight <= 0.001f)
+            CacheFullViewportHeight();
+
+        if (_fullViewportHeight <= 0.001f)
+            return;
+
+        float ratio = Mathf.Clamp01((float)currentSoul / maxSoul);
+
+        Vector2 size = fillViewport.sizeDelta;
+        size.y = _fullViewportHeight * ratio;
+        fillViewport.sizeDelta = size;
+    }
+
+    private void UpdateVisualState(bool immediate)
+    {
+        if (fillAnimImage == null)
+            return;
+
+        bool isEmpty = currentSoul <= 0;
+        bool isFull = currentSoul >= maxSoul;
+        bool canAnimate = animateWhenCharging &&
+                          chargingFillFrames != null &&
+                          chargingFillFrames.Length > 0;
+
+        if (isEmpty)
         {
-            case FillDirection.VerticalBottom:
-                fillImage.fillMethod = Image.FillMethod.Vertical;
-                fillImage.fillOrigin = (int)Image.OriginVertical.Bottom;
-                break;
-            case FillDirection.VerticalTop:
-                fillImage.fillMethod = Image.FillMethod.Vertical;
-                fillImage.fillOrigin = (int)Image.OriginVertical.Top;
-                break;
-            case FillDirection.HorizontalLeft:
-                fillImage.fillMethod = Image.FillMethod.Horizontal;
-                fillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
-                break;
-            case FillDirection.HorizontalRight:
-                fillImage.fillMethod = Image.FillMethod.Horizontal;
-                fillImage.fillOrigin = (int)Image.OriginHorizontal.Right;
-                break;
+            StopChargingAnimation();
+
+            if (canAnimate && chargingFillFrames[0] != null)
+                fillAnimImage.sprite = chargingFillFrames[0];
+            else if (fullFillSprite != null)
+                fillAnimImage.sprite = fullFillSprite;
+
+            return;
+        }
+
+        if (isFull)
+        {
+            StopChargingAnimation();
+
+            if (fullFillSprite != null)
+                fillAnimImage.sprite = fullFillSprite;
+
+            return;
+        }
+
+        // charging state
+        if (canAnimate)
+        {
+            if (immediate)
+            {
+                _frameIndex = 0;
+                if (chargingFillFrames[0] != null)
+                    fillAnimImage.sprite = chargingFillFrames[0];
+            }
+
+            if (_animRoutine == null)
+                _animRoutine = StartCoroutine(ChargingAnimationLoop());
+        }
+        else
+        {
+            StopChargingAnimation();
+
+            if (fullFillSprite != null)
+                fillAnimImage.sprite = fullFillSprite;
         }
     }
 
-    private void Refresh()
+    private IEnumerator ChargingAnimationLoop()
     {
-        if (fillImage == null) return;
+        _frameIndex = 0;
 
-        ApplyFillSettings();
-        fillImage.fillAmount = (float)currentSoul / Mathf.Max(1, maxSoul);
+        if (chargingFillFrames != null &&
+            chargingFillFrames.Length > 0 &&
+            chargingFillFrames[0] != null)
+        {
+            fillAnimImage.sprite = chargingFillFrames[0];
+        }
+
+        while (true)
+        {
+            if (currentSoul <= 0 || currentSoul >= maxSoul)
+            {
+                _animRoutine = null;
+                yield break;
+            }
+
+            yield return new WaitForSeconds(chargingFrameDuration);
+
+            if (chargingFillFrames == null || chargingFillFrames.Length == 0)
+                continue;
+
+            _frameIndex = (_frameIndex + 1) % chargingFillFrames.Length;
+
+            Sprite next = chargingFillFrames[_frameIndex];
+            if (next != null)
+                fillAnimImage.sprite = next;
+        }
+    }
+
+    private void StopChargingAnimation()
+    {
+        if (_animRoutine != null)
+        {
+            StopCoroutine(_animRoutine);
+            _animRoutine = null;
+        }
+    }
+
+    private sealed class DebugKeyHandler
+    {
+        private readonly SoulUI _owner;
+
+        public DebugKeyHandler(SoulUI owner) => _owner = owner;
+
+        public void Tick(bool enabled, int step)
+        {
+            if (!enabled) return;
+
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            if (keyboard.f1Key.wasPressedThisFrame)
+            {
+                _owner.SetSoul(_owner.GetSoul() + step);
+#if UNITY_EDITOR
+                Debug.Log($"[SoulUI] F1 +{step} => {_owner.GetSoul()}/{_owner.GetMaxSoul()}");
+#endif
+            }
+
+            if (keyboard.f2Key.wasPressedThisFrame)
+            {
+                _owner.SetSoul(_owner.GetSoul() - step);
+#if UNITY_EDITOR
+                Debug.Log($"[SoulUI] F2 -{step} => {_owner.GetSoul()}/{_owner.GetMaxSoul()}");
+#endif
+            }
+        }
     }
 }

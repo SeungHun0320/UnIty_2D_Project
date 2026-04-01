@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using System.Collections;
 
 public class SoulUI : MonoBehaviour
@@ -91,13 +91,7 @@ public class SoulUI : MonoBehaviour
         EnsureViewportAnchors();
         CacheFullViewportHeight();
         Refresh(immediate: true);
-
         _debugKeyHandler = new DebugKeyHandler(this);
-    }
-
-    private void Update()
-    {
-        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
     }
 
     private IEnumerator Start()
@@ -106,6 +100,11 @@ public class SoulUI : MonoBehaviour
         yield return null;
         CacheFullViewportHeight();
         Refresh(immediate: true);
+    }
+
+    private void Update()
+    {
+        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
     }
 
     private bool HasRequiredReferences()
@@ -507,4 +506,5 @@ public class SoulUI : MonoBehaviour
             }
         }
     }
+
 }

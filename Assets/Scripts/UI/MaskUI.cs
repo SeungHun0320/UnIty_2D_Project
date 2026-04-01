@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.InputSystem;
 
 /// <summary>
 /// 할로우 나이트 스타일 마스크(체력) UI.
@@ -49,18 +48,12 @@ public class MaskUI : MonoBehaviour
     [Tooltip("슬롯(칸) 세로(px). 55x70 계열이면 70 권장.")]
     [SerializeField] private float slotHeight = 70f;
 
-    [Header("디버그 (플레이 중에만 동작)")]
-    [SerializeField] private bool enableDebugKeys = true;
-    [Tooltip("F3: 데미지, F4: 회복, F5: 최대+1")]
-    [SerializeField] private int debugStep = 1;
-
     private int _currentHealth;
     private int _maxHealth;
     private int _lastDamagedMaskIndex = -1;
     private float _spriteCycleTime;  // 6프레임 돌리기용
     private float _burstRemaining;
     private Coroutine _spriteAnimationRoutine;
-    private DebugKeyHandler _debugKeyHandler;
 
     private void Awake()
     {
@@ -75,7 +68,6 @@ public class MaskUI : MonoBehaviour
         RefreshAllMasks();
 
         StartSpriteAnimationRoutine();
-        _debugKeyHandler = new DebugKeyHandler(this);
     }
 
     private void OnValidate()
@@ -222,54 +214,6 @@ public class MaskUI : MonoBehaviour
         amount = Mathf.Max(1, amount);
         SetHealth(_currentHealth + amount, _currentHealth);
         _lastDamagedMaskIndex = -1;
-    }
-
-    private void Update()
-    {
-        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
-    }
-
-    private sealed class DebugKeyHandler
-    {
-        private readonly MaskUI _owner;
-
-        public DebugKeyHandler(MaskUI owner)
-        {
-            _owner = owner;
-        }
-
-        public void Tick(bool enabled, int step)
-        {
-            if (!enabled) return;
-
-            var keyboard = Keyboard.current;
-            if (keyboard == null) return;
-
-            if (keyboard.f3Key.wasPressedThisFrame)
-            {
-                _owner.Damage(step);
-#if UNITY_EDITOR
-                Debug.Log($"[MaskUI] 데미지: {_owner.GetCurrentHealth()}/{_owner.GetMaxHealth()}");
-#endif
-            }
-
-            if (keyboard.f4Key.wasPressedThisFrame)
-            {
-                _owner.Heal(step);
-#if UNITY_EDITOR
-                Debug.Log($"[MaskUI] 회복: {_owner.GetCurrentHealth()}/{_owner.GetMaxHealth()}");
-#endif
-            }
-
-            if (keyboard.f5Key.wasPressedThisFrame)
-            {
-                _owner.SetMaxHealth(_owner.GetMaxHealth() + 1);
-                _owner.Heal(1);
-#if UNITY_EDITOR
-                Debug.Log($"[MaskUI] 최대 체력 증가: {_owner.GetCurrentHealth()}/{_owner.GetMaxHealth()}");
-#endif
-            }
-        }
     }
 
     private void CollectMaskIcons()

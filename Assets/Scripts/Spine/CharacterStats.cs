@@ -1,0 +1,82 @@
+using System;
+using UnityEngine;
+
+// 캐릭터(플레이어/몬스터) 공통 스탯 인터페이스입니다.
+// 데미지/회복/체력 조회 등 상호작용을 추상화합니다.
+public interface ICharacterStats
+{
+    float MaxHealth { get; }
+    float CurrentHealth { get; }
+    float AttackPower { get; }
+
+    bool IsDead { get; }
+
+    void TakeDamage(float damage);
+    void Heal(float amount);
+}
+
+// 캐릭터(플레이어/몬스터) 공통 스탯 베이스 클래스입니다.
+// 체력/공격력 관리와 데미지/회복 로직만 책임집니다.
+public abstract class CharacterStats : MonoBehaviour, ICharacterStats
+{
+    [Header("Base Stats")]
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float currentHealth = 100f;
+    [SerializeField] private float attackPower = 10f;
+
+    public float MaxHealth => maxHealth;
+    public float CurrentHealth => currentHealth;
+    public float AttackPower => attackPower;
+
+    public bool IsDead => currentHealth <= 0f;
+
+    // 뷰모델/기타 시스템에서 구독할 수 있는 체력 변경 이벤트입니다.
+    public event Action<float, float> OnHealthChanged;
+
+    // 초기 체력을 최대 체력 범위 안으로 보정합니다.
+    protected virtual void Awake()
+    {
+        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+        RaiseHealthChanged();
+    }
+
+    // 데미지를 적용하는 기본 로직입니다.
+    public virtual void TakeDamage(float damage)
+    {
+        if (damage <= 0f) return;
+        currentHealth = Mathf.Clamp(currentHealth - damage, 0f, maxHealth);
+        RaiseHealthChanged();
+    }
+
+    // 회복 로직의 기본 구현입니다.
+    public virtual void Heal(float amount)
+    {
+        if (amount <= 0f) return;
+        currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);
+        RaiseHealthChanged();
+    }
+
+    // 완전 회복용 헬퍼입니다.
+    public virtual void ResetHealthToMax()
+    {
+        currentHealth = maxHealth;
+        RaiseHealthChanged();
+    }
+
+    // 최대 체력을 증감시키기 위한 메서드입니다(디버그/레벨업 등에 사용할 수 있습니다).
+    public virtual void AddMaxHealth(float amount)
+    {
+        if (Mathf.Approximately(amount, 0f)) return;
+
+        maxHealth = Mathf.Max(1f, maxHealth + amount);
+        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+        RaiseHealthChanged();
+    }
+
+    // 체력 변경 시 이벤트를 발생시키는 헬퍼입니다.
+    protected void RaiseHealthChanged()
+    {
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+}
+

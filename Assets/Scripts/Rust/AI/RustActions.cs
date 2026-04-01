@@ -97,6 +97,7 @@ public class RustAttackActionNode : RustActionNode
                 Blackboard.animationDriver.SetMoving(false);
 
             Blackboard.animationDriver.PlayAttack();
+            DealDamageToPlayer();
             _attackStarted = true;
             _attackStartTime = Time.time;
             return BTNodeState.Running;
@@ -111,6 +112,26 @@ public class RustAttackActionNode : RustActionNode
         // 충분한 시간이 지난 뒤에야 Success 로 처리하여
         // 비헤이비어 트리가 다시 다음 공격 여부를 판단하도록 합니다.
         return BTNodeState.Success;
+    }
+
+    // Rust가 플레이어에게 데미지를 가할 때 사용하는 헬퍼입니다.
+    private void DealDamageToPlayer()
+    {
+        if (Blackboard.playerTransform == null)
+            return;
+
+        // 플레이어에서 공통 스탯 인터페이스를 찾습니다.
+        ICharacterStats targetStats = Blackboard.playerTransform.GetComponent<ICharacterStats>();
+        if (targetStats == null)
+            return;
+
+        // 자기 자신(러스트)에서 EnemyStats를 찾아 공격력을 가져옵니다.
+        EnemyStats enemyStats = null;
+        if (Blackboard.selfTransform != null)
+            enemyStats = Blackboard.selfTransform.GetComponent<EnemyStats>();
+
+        float damage = enemyStats != null ? enemyStats.AttackPower : 1f;
+        targetStats.TakeDamage(damage);
     }
 }
 

@@ -15,7 +15,12 @@ public class SpineAnimationDriver : MonoBehaviour
     [SerializeField] private string attackAnimation = "attack";
 
     [Header("Mix")]
+    [Tooltip("기본 애니메이션 전환 시 사용할 믹스 시간입니다.")]
     [SerializeField, Min(0f)] private float defaultMixDuration = 0.1f;
+    [Tooltip("점프 → Idle 전환 시 사용할 믹스 시간입니다. (0이면 defaultMix 사용)")]
+    [SerializeField, Min(0f)] private float jumpToIdleMix = 0.05f;
+    [Tooltip("점프 → 이동 전환 시 사용할 믹스 시간입니다. (0이면 defaultMix 사용)")]
+    [SerializeField, Min(0f)] private float jumpToMoveMix = 0.05f;
     [SerializeField, Min(0f)] private float attackToIdleDelay = 0f;
 
     // 이동/Idle 계열 애니메이션이 변경되지 않도록 잠그는 플래그입니다.
@@ -38,6 +43,7 @@ public class SpineAnimationDriver : MonoBehaviour
         }
 
         ApplyDefaultMix();
+        ApplyCustomMixes();
         PlayIdle(forceRestart: true);
     }
 
@@ -52,9 +58,12 @@ public class SpineAnimationDriver : MonoBehaviour
 
     public void SetMoving(bool moving)
     {
-        if (_lockMoveAnimations) return;
+        // 잠겨 있어도 현재 이동 여부(_isMoving)는 갱신합니다.
+        // 이렇게 해야 점프 도중에 방향키를 떼면, 착지 후 Idle로 자연스럽게 돌아갈 수 있습니다.
         if (moving == _isMoving) return;
         _isMoving = moving;
+
+        if (_lockMoveAnimations) return;
 
         if (_isMoving)
         {
@@ -88,15 +97,18 @@ public class SpineAnimationDriver : MonoBehaviour
 
         var jumpEntry = skeletonAnimation.AnimationState.SetAnimation(0, jumpAnimation, false);
 
-        // 점프 이후에는 현재 이동 상태에 따라 Idle 또는 Move로 돌아갑니다.
-        string next = _isMoving ? moveAnimation : idleAnimation;
-        if (CanPlay(next))
-            skeletonAnimation.AnimationState.AddAnimation(0, next, true, 0f);
-
-        // 점프 애니메이션이 끝나면 잠금을 해제합니다.
+        // 점프 애니메이션이 끝나면, 그 시점의 이동 여부(_isMoving)에 따라
+        // Idle 또는 Move로 자연스럽게 전환하고 잠금을 해제합니다.
         if (jumpEntry != null)
         {
-            jumpEntry.Complete += _ => { UnlockMoveAnimations(); };
+            jumpEntry.Complete += _ =>
+            {
+                UnlockMoveAnimations();
+
+                string next = _isMoving ? moveAnimation : idleAnimation;
+                if (CanPlay(next))
+                    skeletonAnimation.AnimationState.SetAnimation(0, next, true);
+            };
         }
     }
 
@@ -139,6 +151,24 @@ public class SpineAnimationDriver : MonoBehaviour
         if (stateData == null) return;
 
         stateData.DefaultMix = defaultMixDuration;
+    }
+
+    // 애니메이션 쌍별 믹스 시간을 설정합니다.
+    private void ApplyCustomMixes()
+    {
+        AnimationStateData stateData = skeletonAnimation.AnimationState != null
+            ? skeletonAnimation.AnimationState.Data
+            : null;
+        if (stateData == null) return;
+
+        float jtIdle = jumpToIdleMix > 0f ? jumpToIdleMix : defaultMixDuration;
+        float jtMove = jumpToMoveMix > 0f ? jumpToMoveMix : defaultMixDuration;
+
+        // 점프가 끝나고 Idle/Move로 돌아갈 때의 블렌드를 부드럽게 제어합니다.
+        if (!string.IsNullOrWhiteSpace(jumpAnimation) && !string.IsNullOrWhiteSpace(idleAnimation))
+            stateData.SetMix(jumpAnimation, idleAnimation, jtIdle);
+        if (!string.IsNullOrWhiteSpace(jumpAnimation) && !string.IsNullOrWhiteSpace(moveAnimation))
+            stateData.SetMix(jumpAnimation, moveAnimation, jtMove);
     }
 
 #if UNITY_EDITOR

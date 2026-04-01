@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8ce6c793a874d0e418592c152ea88b45
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 186513
+  packageName: 2D Animated Character - RUST
+  packageVersion: 1.0
+  assetPath: Assets/Assets/2D_Character_Rust/Srites/1_00.controller
+  uploadId: 410133

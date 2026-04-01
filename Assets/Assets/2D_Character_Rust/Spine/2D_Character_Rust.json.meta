@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b3bfcc63a62bd7744905fdceecb530f1
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 186513
+  packageName: 2D Animated Character - RUST
+  packageVersion: 1.0
+  assetPath: Assets/Assets/2D_Character_Rust/Spine/2D_Character_Rust.json
+  uploadId: 410133

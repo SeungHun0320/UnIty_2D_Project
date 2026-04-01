@@ -6,6 +6,7 @@ public class SpineInputController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriver;
+    [SerializeField] private PlayerStateMachine playerStateMachine;
 
     [Header("Input Actions (Input System)")]
     [SerializeField] private InputActionProperty moveAction;
@@ -23,6 +24,9 @@ public class SpineInputController : MonoBehaviour
     {
         if (animationDriver == null)
             animationDriver = GetComponent<SpineAnimationDriver>();
+
+        if (playerStateMachine == null)
+            playerStateMachine = GetComponent<PlayerStateMachine>();
 
         EnsureActions();
     }
@@ -50,16 +54,17 @@ public class SpineInputController : MonoBehaviour
 
     private void Update()
     {
-        if (animationDriver == null) return;
+        if (playerStateMachine == null) return;
 
         Vector2 move = Vector2.zero;
         InputAction action = GetMoveAction();
         if (action != null)
             move = action.ReadValue<Vector2>();
 
-        bool isMoving = move.sqrMagnitude > movingThreshold * movingThreshold;
-        animationDriver.SetMoving(isMoving);
+        // 입력 벡터를 상태머신으로 전달하여 애니메이션 상태를 관리합니다.
+        playerStateMachine.OnMoveInput(move, movingThreshold);
 
+        bool isMoving = move.sqrMagnitude > movingThreshold * movingThreshold;
         if (isMoving)
         {
             Vector3 delta = new Vector3(move.x, move.y, 0f) * (moveSpeed * Time.deltaTime);
@@ -76,8 +81,8 @@ public class SpineInputController : MonoBehaviour
 
     private void OnAttackPerformed(InputAction.CallbackContext _)
     {
-        if (animationDriver == null) return;
-        animationDriver.PlayAttack();
+        if (playerStateMachine == null) return;
+        playerStateMachine.OnAttackInput();
     }
 
     private void EnsureActions()
@@ -138,6 +143,9 @@ public class SpineInputController : MonoBehaviour
     {
         if (animationDriver == null)
             animationDriver = GetComponent<SpineAnimationDriver>();
+
+        if (playerStateMachine == null)
+            playerStateMachine = GetComponent<PlayerStateMachine>();
     }
 #endif
 }

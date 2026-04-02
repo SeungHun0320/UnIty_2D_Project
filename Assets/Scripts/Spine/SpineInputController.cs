@@ -2,13 +2,16 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // 플레이어 입력(이동/점프/공격)을 처리하는 컨트롤러입니다.
-// 간단한 중력/점프 로직을 사용하며, y=0을 바닥으로 취급합니다.
+// 한국어: 타일맵 콜라이더와 안정적으로 충돌하도록 Rigidbody2D 기반으로 이동합니다.
+// 한국어: 바닥 판정은 콜라이더 캐스트로 처리해 지터/침투에 강하게 합니다.
 [RequireComponent(typeof(SpineAnimationDriver))]
 public class SpineInputController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriver;
     [SerializeField] private PlayerStateMachine playerStateMachine;
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Collider2D bodyCollider;
 
     [Header("Input Actions (Input System)")]
     [SerializeField] private InputActionProperty moveAction;
@@ -22,14 +25,18 @@ public class SpineInputController : MonoBehaviour
 
     [Header("Jump")]
     [SerializeField, Min(0f)] private float jumpForce = 7f;
-    [SerializeField, Min(0f)] private float gravity = 20f;
+    [SerializeField, Min(0f)] private float gravity = 3f; // 한국어: Rigidbody2D.gravityScale로 사용(기존 직렬화 유지)
+
+    [Header("Ground Check")]
+    [SerializeField] private LayerMask groundLayers = ~0; // 한국어: 충돌(바닥)로 취급할 레이어
+    [SerializeField, Min(0.01f)] private float groundProbeDistance = 0.08f;
 
     private InputAction _runtimeMoveAction;
     private InputAction _runtimeAttackAction;
     private InputAction _runtimeJumpAction;
 
     private bool _isGrounded;
-    private float _verticalVelocity;
+    private Vector2 _moveInput;
 
     private void Awake()
     {
@@ -39,15 +46,21 @@ public class SpineInputController : MonoBehaviour
         if (playerStateMachine == null)
             playerStateMachine = GetComponent<PlayerStateMachine>();
 
-        // 이 컨트롤러는 직접 transform을 움직이므로,
-        // 존재하는 Rigidbody2D가 있다면 물리 시뮬레이션은 끕니다.
-        var rb2D = GetComponent<Rigidbody2D>();
-        if (rb2D != null)
-        {
-            rb2D.simulated = false;
-        }
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
+
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<Collider2D>();
 
         EnsureActions();
+
+        // 한국어: 물리 이동 전제 기본값(프로젝트 설정을 해치지 않는 선)
+        if (rb != null)
+        {
+            rb.gravityScale = gravity;
+            rb.freezeRotation = true;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        }
     }
 
     private void OnEnable()
@@ -91,20 +104,10 @@ public class SpineInputController : MonoBehaviour
         if (action != null)
             move = action.ReadValue<Vector2>();
 
-        // y=0을 바닥으로 취급하여 점프 가능 여부를 판정합니다.
-        _isGrounded = transform.position.y <= 0.0001f && _verticalVelocity <= 0f;
+        _moveInput = move;
 
         // 입력 벡터를 상태머신으로 전달하여 애니메이션 상태를 관리합니다.
         playerStateMachine.OnMoveInput(move, movingThreshold);
-
-        bool isMoving = Mathf.Abs(move.x) > movingThreshold;
-
-        // 수평 이동 (transform 기반)
-        if (isMoving)
-        {
-            Vector3 delta = new Vector3(move.x, 0f, 0f) * (moveSpeed * Time.deltaTime);
-            transform.position += delta;
-        }
 
         if (flipByMoveX && Mathf.Abs(move.x) > 0.001f)
         {
@@ -112,25 +115,33 @@ public class SpineInputController : MonoBehaviour
             scale.x = Mathf.Abs(scale.x) * Mathf.Sign(move.x);
             transform.localScale = scale;
         }
+    }
 
-        // 간단한 중력/점프 적용
-        if (!_isGrounded)
-        {
-            _verticalVelocity -= gravity * Time.deltaTime;
-        }
+    private void FixedUpdate()
+    {
+        if (rb == null)
+            return;
 
-        Vector3 pos = transform.position;
-        pos.y += _verticalVelocity * Time.deltaTime;
+        _isGrounded = IsGroundedByCast();
 
-        // y=0 아래로는 내려가지 않도록 클램프
-        if (pos.y <= 0f)
-        {
-            pos.y = 0f;
-            _verticalVelocity = 0f;
-            _isGrounded = true;
-        }
+        Vector2 v = rb.linearVelocity;
+        float targetX = Mathf.Abs(_moveInput.x) > movingThreshold ? (_moveInput.x * moveSpeed) : 0f;
+        v.x = targetX;
+        rb.linearVelocity = v;
+    }
 
-        transform.position = pos;
+    private bool IsGroundedByCast()
+    {
+        // 한국어: 콜라이더 외곽에서 아래로 살짝 캐스트하여 TilemapCollider2D에서도 안정적으로 접지 판정
+        if (bodyCollider == null)
+            return false;
+
+        Bounds b = bodyCollider.bounds;
+        Vector2 origin = b.center;
+        Vector2 size = new Vector2(b.size.x * 0.92f, b.size.y);
+
+        RaycastHit2D hit = Physics2D.BoxCast(origin, size, 0f, Vector2.down, groundProbeDistance, groundLayers);
+        return hit.collider != null && hit.collider != bodyCollider;
     }
 
     private void OnAttackPerformed(InputAction.CallbackContext _)
@@ -147,8 +158,13 @@ public class SpineInputController : MonoBehaviour
         if (animationDriver != null)
             animationDriver.PlayJump();
 
-        // 기존 수직 속도를 덮어쓰고 위로 점프합니다.
-        _verticalVelocity = jumpForce;
+        // 한국어: 물리 기반 점프(수직 속도만 교체)
+        if (rb != null)
+        {
+            Vector2 v = rb.linearVelocity;
+            v.y = jumpForce;
+            rb.linearVelocity = v;
+        }
     }
 
     private void EnsureActions()
@@ -228,6 +244,12 @@ public class SpineInputController : MonoBehaviour
 
         if (playerStateMachine == null)
             playerStateMachine = GetComponent<PlayerStateMachine>();
+
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
+
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<Collider2D>();
     }
 #endif
 }

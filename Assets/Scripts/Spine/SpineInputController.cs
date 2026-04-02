@@ -30,6 +30,7 @@ public class SpineInputController : MonoBehaviour
     [Header("Ground Check")]
     [SerializeField] private LayerMask groundLayers = ~0; // 한국어: 충돌(바닥)로 취급할 레이어
     [SerializeField, Min(0.01f)] private float groundProbeDistance = 0.08f;
+    [SerializeField, Min(0f)] private float coyoteTime = 0.08f; // 한국어: 바닥에서 살짝 떨어져도 점프 허용
 
     private InputAction _runtimeMoveAction;
     private InputAction _runtimeAttackAction;
@@ -37,6 +38,7 @@ public class SpineInputController : MonoBehaviour
 
     private bool _isGrounded;
     private Vector2 _moveInput;
+    private float _lastGroundedTime;
 
     private void Awake()
     {
@@ -52,6 +54,18 @@ public class SpineInputController : MonoBehaviour
         if (bodyCollider == null)
             bodyCollider = GetComponent<Collider2D>();
 
+        // 한국어: 플레이어에 Collider2D가 없으면 충돌 자체가 불가능하므로 기본 콜라이더를 자동 생성합니다.
+        if (bodyCollider == null)
+        {
+            var capsule = GetComponent<CapsuleCollider2D>();
+            if (capsule == null)
+                capsule = gameObject.AddComponent<CapsuleCollider2D>();
+
+            capsule.isTrigger = false;
+            capsule.direction = CapsuleDirection2D.Vertical;
+            bodyCollider = capsule;
+        }
+
         EnsureActions();
 
         // 한국어: 물리 이동 전제 기본값(프로젝트 설정을 해치지 않는 선)
@@ -60,6 +74,7 @@ public class SpineInputController : MonoBehaviour
             rb.gravityScale = gravity;
             rb.freezeRotation = true;
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous; // 한국어: 고중력/고속 낙하 시 바닥 관통(터널링) 방지
         }
     }
 
@@ -123,6 +138,8 @@ public class SpineInputController : MonoBehaviour
             return;
 
         _isGrounded = IsGroundedByCast();
+        if (_isGrounded)
+            _lastGroundedTime = Time.time;
 
         Vector2 v = rb.linearVelocity;
         float targetX = Mathf.Abs(_moveInput.x) > movingThreshold ? (_moveInput.x * moveSpeed) : 0f;
@@ -152,7 +169,10 @@ public class SpineInputController : MonoBehaviour
 
     private void OnJumpPerformed(InputAction.CallbackContext _)
     {
-        if (!_isGrounded) return;
+        // 한국어: 입력 이벤트가 FixedUpdate보다 먼저 들어오면 _isGrounded가 갱신되기 전일 수 있어 즉시 재확인합니다.
+        bool groundedNow = _isGrounded || IsGroundedByCast();
+        bool withinCoyote = (Time.time - _lastGroundedTime) <= coyoteTime;
+        if (!groundedNow && !withinCoyote) return;
 
         // 점프 시작 시 점프 애니메이션을 재생합니다.
         if (animationDriver != null)

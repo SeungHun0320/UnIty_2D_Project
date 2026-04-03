@@ -40,6 +40,7 @@ public class SpineInputController : MonoBehaviour
     private Vector2 _moveInput;
     private float _lastGroundedTime;
 
+    private bool _wasGrounded;
     private void Awake()
     {
         if (animationDriver == null)
@@ -68,6 +69,7 @@ public class SpineInputController : MonoBehaviour
 
         EnsureActions();
 
+        _wasGrounded = true;
         // 한국어: 물리 이동 전제 기본값(프로젝트 설정을 해치지 않는 선)
         if (rb != null)
         {
@@ -104,6 +106,17 @@ public class SpineInputController : MonoBehaviour
         InputAction attack = GetAttackAction();
         if (attack != null)
             attack.performed -= OnAttackPerformed;
+
+        // 하강/상승 상태를 애니메이션 드라이버에 전달
+        if (animationDriver != null)
+            animationDriver.NotifyVelocityY(rb.linearVelocity.y);
+
+        // 착지 감지: 이전 프레임에 공중이었다가 지금 땅에 닿은 경우
+        bool justLanded = !_wasGrounded && _isGrounded;
+        if (justLanded && animationDriver != null)
+            animationDriver.NotifyLanded();
+
+        _wasGrounded = _isGrounded;
 
         InputAction jump = GetJumpAction();
         if (jump != null)

@@ -71,9 +71,6 @@ public class SpineInputController : MonoBehaviour
         InputAction jump = GetJumpAction();
         if (jump != null) jump.performed -= OnJumpPerformed;
 
-        // 비활성화 시 현재 Y 속도를 드라이버에 전달
-        if (animationDriver != null && playerMover != null)
-            animationDriver.NotifyVelocityY(playerMover.GetVelocityY());
     }
 
     private void Update()
@@ -90,14 +87,12 @@ public class SpineInputController : MonoBehaviour
     private void FixedUpdate()
     {
         playerMover?.FixedTick(_moveInput);
-
-        if (animationDriver != null && playerMover != null)
-            animationDriver.NotifyVelocityY(playerMover.GetVelocityY());
     }
 
     private void HandleLanded()
     {
         animationDriver?.NotifyLanded();
+        playerStateMachine?.OnLanded();
     }
 
     private void HandleAttackComplete()
@@ -116,7 +111,8 @@ public class SpineInputController : MonoBehaviour
         bool groundedNow = playerMover.IsGrounded || playerMover.CheckGroundedImmediate();
         if (!groundedNow && !playerMover.CanJump) return;
 
-        animationDriver?.PlayJump();
+        // JumpingState.Enter → PlayJump 호출
+        playerStateMachine?.OnJumpInput();
         playerMover.Jump();
     }
 

@@ -3927,7 +3927,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1940328961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4101,10 +4101,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpineAnimationDriver
   skeletonAnimation: {fileID: 1940328961}
-  idleAnimation: idle
-  moveAnimation: run
-  jumpAnimation: jump
-  attackAnimation: attack
+  idleAnimation: Idle_1
+  moveAnimation: Walk_1
+  jumpAnimation: Jump_1
+  attackAnimation: Shoot_Pistol_1
   defaultMixDuration: 0.1
   jumpToIdleMix: 0.05
   jumpToMoveMix: 0.05
@@ -4345,6 +4345,7 @@ GameObject:
   - component: {fileID: 2121868739}
   - component: {fileID: 2121868740}
   - component: {fileID: 2121868741}
+  - component: {fileID: 2121868742}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -4649,6 +4650,21 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   skinWidth: 0.02
+--- !u!114 &2121868742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2121868729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ed508ee32a047449b75bcad7aad9df7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDebugController
+  playerStats: {fileID: 2121868737}
+  healthStep: 1
+  maxHealthStep: 1
 --- !u!1 &2134996387
 GameObject:
   m_ObjectHideFlags: 0

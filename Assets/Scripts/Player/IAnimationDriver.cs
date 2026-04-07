@@ -6,7 +6,6 @@ public interface IAnimationDriver
     void SetMoving(bool moving);
     void PlayJump();
     void PlayAttack();
-    void NotifyVelocityY(float vy);
     void NotifyLanded();
 
     // 공격 애니메이션 완료 시 발행됩니다.

@@ -2,7 +2,7 @@ using Spine;
 using Spine.Unity;
 using UnityEngine;
 
-public class SpineAnimationDriver : MonoBehaviour
+public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
 {
     [Header("References")]
     [SerializeField] private SkeletonAnimation skeletonAnimation;
@@ -46,9 +46,22 @@ public class SpineAnimationDriver : MonoBehaviour
 
     public void PlayIdle(bool forceRestart = false)
     {
-        if (_lockMove) return;
-        if (!CanPlay(idleAnimation)) return;
-        if (!forceRestart && IsCurrent(idleAnimation)) return;
+        if (_lockMove)
+        {
+            Debug.Log("[PlayIdle] _lockMove is true, returning");
+            return;
+        }
+        if (!CanPlay(idleAnimation))
+        {
+            Debug.Log("[PlayIdle] Cannot play idle animation");
+            return;
+        }
+        if (!forceRestart && IsCurrent(idleAnimation))
+        {
+            Debug.Log("[PlayIdle] Already playing idle, skipping");
+            return;
+        }
+        Debug.Log("[PlayIdle] Setting idle animation");
         skeletonAnimation.AnimationState.SetAnimation(0, idleAnimation, true);
         _isMoving = false;
     }
@@ -57,13 +70,22 @@ public class SpineAnimationDriver : MonoBehaviour
     {
         if (moving == _isMoving) return;
         _isMoving = moving;
-        if (_lockMove) return;
+        if (_lockMove)
+        {
+            Debug.Log($"[SetMoving] _lockMove is true, returning. moving={moving}");
+            return;
+        }
         if (_isMoving)
         {
             if (!CanPlay(moveAnimation)) return;
+            Debug.Log("[SetMoving] Playing move animation");
             skeletonAnimation.AnimationState.SetAnimation(0, moveAnimation, true);
         }
-        else { PlayIdle(); }
+        else
+        {
+            Debug.Log("[SetMoving] Calling PlayIdle()");
+            PlayIdle();
+        }
     }
 
     public void LockMoveAnimations() { _lockMove = true; }
@@ -100,10 +122,10 @@ public class SpineAnimationDriver : MonoBehaviour
 
     public void NotifyLanded()
     {
+        _lockMove = false;
         if (!_isJumping) return;
         _isJumping = false;
         _jumpEntry = null;
-        _lockMove = false;
         string next = _isMoving ? moveAnimation : idleAnimation;
         if (CanPlay(next))
             skeletonAnimation.AnimationState.SetAnimation(0, next, true);

@@ -2,22 +2,15 @@ using System;
 using UnityEngine;
 
 // 캐릭터(플레이어/몬스터) 공통 스탯 인터페이스입니다.
-// 데미지/회복/체력 조회 등 상호작용을 추상화합니다.
-public interface ICharacterStats
+// IDamageable + IHealable을 조합해 공격력까지 포함합니다. (ISP)
+public interface ICharacterStats : IDamageable, IHealable
 {
-    float MaxHealth { get; }
-    float CurrentHealth { get; }
     float AttackPower { get; }
-
-    bool IsDead { get; }
-
-    void TakeDamage(float damage);
-    void Heal(float amount);
 }
 
 // 캐릭터(플레이어/몬스터) 공통 스탯 베이스 클래스입니다.
 // 체력/공격력 관리와 데미지/회복 로직만 책임집니다.
-public abstract class CharacterStats : MonoBehaviour, ICharacterStats
+public abstract class CharacterStats : MonoBehaviour, ICharacterStats, IDamageable, IHealable
 {
     [Header("Base Stats")]
     [SerializeField] private float maxHealth = 100f;
@@ -74,9 +67,11 @@ public abstract class CharacterStats : MonoBehaviour, ICharacterStats
     }
 
     // 체력 변경 시 이벤트를 발생시키는 헬퍼입니다.
+    // 기존 OnHealthChanged(직접 구독)와 EventBus 둘 다 발행합니다.
     protected void RaiseHealthChanged()
     {
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        EventBus.Publish(new HealthChangedEvent(currentHealth, maxHealth, this is PlayerStats));
     }
 }
 

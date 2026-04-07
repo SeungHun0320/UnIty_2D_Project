@@ -3041,7 +3041,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5340538105306347130, guid: 78538c3cab4610f4d914a10e71bdf46b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6.9716606
+      value: 4.51
       objectReference: {fileID: 0}
     - target: {fileID: 5340538105306347130, guid: 78538c3cab4610f4d914a10e71bdf46b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4112,11 +4112,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5789200093759024975, guid: ab9278aa8a6f856468c48e893720a765, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8.42915
+      value: 2.87
       objectReference: {fileID: 0}
     - target: {fileID: 5789200093759024975, guid: ab9278aa8a6f856468c48e893720a765, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.023635734
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 5789200093759024975, guid: ab9278aa8a6f856468c48e893720a765, type: 3}
       propertyPath: m_LocalPosition.z
@@ -6234,7 +6234,6 @@ GameObject:
   - component: {fileID: 2121868733}
   - component: {fileID: 2121868732}
   - component: {fileID: 2121868731}
-  - component: {fileID: 2121868730}
   - component: {fileID: 2121868734}
   - component: {fileID: 2121868735}
   - component: {fileID: 2121868736}
@@ -6249,28 +6248,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2121868730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2121868729}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b6ad00976386bb4197afd7f9a5c6d15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpineAnimationDriver
-  skeletonAnimation: {fileID: 2121868731}
-  idleAnimation: idle_1
-  moveAnimation: run
-  jumpAnimation: jump
-  attackAnimation: sword_attack
-  defaultMixDuration: 0.1
-  jumpToIdleMix: 0.5
-  jumpToMoveMix: 0.5
-  attackToIdleDelay: 0
-  fallVelocityThreshold: -0.1
 --- !u!114 &2121868731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6427,7 +6404,7 @@ MonoBehaviour:
   moveSpeed: 4
   movingThreshold: 0.05
   flipByMoveX: 1
-  jumpForce: 10
+  jumpForce: 15
   gravity: 3
   groundLayers:
     serializedVersion: 2
@@ -6552,7 +6529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpineAnimationDriver
   skeletonAnimation: {fileID: 2121868731}
-  idleAnimation: idle
+  idleAnimation: idle_1
   moveAnimation: run
   jumpAnimation: jump
   attackAnimation: attack

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp:*)",
+      "mcp__coplay-mcp__get_unity_editor_state",
+      "mcp__coplay-mcp__list_unity_project_roots",
+      "mcp__coplay-mcp__set_unity_project_root"
+    ]
+  }
+}

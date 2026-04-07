@@ -9,6 +9,8 @@ public class RustBlackboard : MonoBehaviour
     public Transform selfTransform;
     public Transform playerTransform;
     public SpineAnimationDriver animationDriver;
+    public Rigidbody2D rb;
+    public Collider2D col;
 
     [Header("Combat Settings")]
     public float sightRange = 8f;
@@ -19,6 +21,13 @@ public class RustBlackboard : MonoBehaviour
     [Header("Attack Timing")]
     [Tooltip("한 번의 공격 애니메이션이 유지되는 시간(초)입니다.")]
     public float attackDuration = 0.5f;
+
+    [Header("Ground / Wall Detection")]
+    public LayerMask groundLayers;
+    [Tooltip("발 앞쪽 낙하 감지 Raycast 거리")]
+    public float ledgeCheckDistance = 0.5f;
+    [Tooltip("앞쪽 벽 감지 Raycast 거리")]
+    public float wallCheckDistance = 0.3f;
 
     [Header("State")]
     public float currentHealth = 10f;
@@ -31,6 +40,12 @@ public class RustBlackboard : MonoBehaviour
 
         if (animationDriver == null)
             animationDriver = GetComponent<SpineAnimationDriver>();
+
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
+
+        if (col == null)
+            col = GetComponent<Collider2D>();
     }
 
     public bool IsDead => currentHealth <= 0f;

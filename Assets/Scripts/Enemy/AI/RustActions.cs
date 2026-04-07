@@ -32,42 +32,77 @@ public class RustChasePlayerActionNode : RustActionNode
 
     protected override BTNodeState OnUpdate()
     {
-        // 플레이어 / 자기 자신 참조가 없으면 추격 실패로 처리합니다.
-        if (Blackboard.playerTransform == null || Blackboard.selfTransform == null)
+        if (Blackboard.playerTransform == null || Blackboard.selfTransform == null || Blackboard.rb == null)
             return BTNodeState.Failure;
 
-        Vector3 selfPos = Blackboard.selfTransform.position;
-        Vector3 targetPos = Blackboard.playerTransform.position;
+        float selfX = Blackboard.selfTransform.position.x;
+        float targetX = Blackboard.playerTransform.position.x;
+        float dirX = Mathf.Sign(targetX - selfX);
 
-        Vector3 dir = (targetPos - selfPos);
-        dir.z = 0f;
-
-        // 공격 사거리(또는 그 근처) 안으로 들어오면 더 이상 다가가지 않습니다.
-        float distance = dir.magnitude;
-        if (distance <= Blackboard.attackRange)
+        // 공격 사거리 안이면 멈춥니다.
+        if (Blackboard.DistanceToPlayer <= Blackboard.attackRange)
         {
-            if (Blackboard.animationDriver != null)
-                Blackboard.animationDriver.SetMoving(false);
-
+            Blackboard.rb.linearVelocity = new Vector2(0f, Blackboard.rb.linearVelocity.y);
+            Blackboard.animationDriver?.SetMoving(false);
             return BTNodeState.Success;
         }
 
-        dir.Normalize();
-        Vector3 delta = dir * (Blackboard.moveSpeed * Time.deltaTime);
-        Blackboard.selfTransform.position += delta;
-
-        // 좌우 방향에 따라 스케일 반전
-        if (Mathf.Abs(dir.x) > 0.001f)
+        // 벽 감지: 진행 방향 앞에 벽이 있으면 멈춥니다.
+        if (IsWallAhead(dirX))
         {
-            Vector3 scale = Blackboard.selfTransform.localScale;
-            scale.x = Mathf.Abs(scale.x) * Mathf.Sign(dir.x);
-            Blackboard.selfTransform.localScale = scale;
+            Blackboard.rb.linearVelocity = new Vector2(0f, Blackboard.rb.linearVelocity.y);
+            Blackboard.animationDriver?.SetMoving(false);
+            return BTNodeState.Running;
         }
 
-        if (Blackboard.animationDriver != null)
-            Blackboard.animationDriver.SetMoving(true);
+        // 낙하 감지: 발 앞에 지면이 없으면 멈춥니다.
+        if (IsLedgeAhead(dirX))
+        {
+            Blackboard.rb.linearVelocity = new Vector2(0f, Blackboard.rb.linearVelocity.y);
+            Blackboard.animationDriver?.SetMoving(false);
+            return BTNodeState.Running;
+        }
 
+        // X축만 이동, Y는 Rigidbody2D Physics(중력)에 맡깁니다.
+        Blackboard.rb.linearVelocity = new Vector2(dirX * Blackboard.moveSpeed, Blackboard.rb.linearVelocity.y);
+
+        // 좌우 방향에 따라 스케일 반전
+        Vector3 scale = Blackboard.selfTransform.localScale;
+        scale.x = Mathf.Abs(scale.x) * dirX;
+        Blackboard.selfTransform.localScale = scale;
+
+        Blackboard.animationDriver?.SetMoving(true);
         return BTNodeState.Running;
+    }
+
+    private static readonly RaycastHit2D[] _rayBuffer = new RaycastHit2D[8];
+
+    // 진행 방향 앞에 벽이 있는지 감지합니다. (자기 자신 제외)
+    private bool IsWallAhead(float dirX)
+    {
+        if (Blackboard.col == null) return false;
+        Bounds b = Blackboard.col.bounds;
+        Vector2 origin = new Vector2(dirX > 0f ? b.max.x : b.min.x, b.center.y);
+        int count = Physics2D.RaycastNonAlloc(origin, Vector2.right * dirX,
+            _rayBuffer, Blackboard.wallCheckDistance, Blackboard.groundLayers);
+        for (int i = 0; i < count; i++)
+            if (_rayBuffer[i].collider != null && _rayBuffer[i].collider != Blackboard.col)
+                return true;
+        return false;
+    }
+
+    // 발 앞쪽 아래에 지면이 없는지(낙하 위험) 감지합니다. (자기 자신 제외)
+    private bool IsLedgeAhead(float dirX)
+    {
+        if (Blackboard.col == null) return false;
+        Bounds b = Blackboard.col.bounds;
+        Vector2 origin = new Vector2(dirX > 0f ? b.max.x : b.min.x, b.min.y);
+        int count = Physics2D.RaycastNonAlloc(origin, Vector2.down,
+            _rayBuffer, Blackboard.ledgeCheckDistance, Blackboard.groundLayers);
+        for (int i = 0; i < count; i++)
+            if (_rayBuffer[i].collider != null && _rayBuffer[i].collider != Blackboard.col)
+                return false; // 지면 있음
+        return true; // 지면 없음 = 낙하 위험
     }
 }
 

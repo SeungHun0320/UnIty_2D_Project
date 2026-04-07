@@ -19,7 +19,7 @@ public class RustBehaviourTree : MonoBehaviour
         BuildTree();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (_root == null)
             return;

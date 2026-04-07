@@ -70,11 +70,7 @@ public class PlayerMover : MonoBehaviour
         bool grounded = rawGrounded;
 
         bool justLanded = !_wasGrounded && grounded;
-        if (justLanded)
-        {
-            Debug.Log($"[Jump] 착지 | velocityY={_velocity.y:F2}");
-            OnLanded?.Invoke();
-        }
+        if (justLanded) OnLanded?.Invoke();
 
         // 낙하 속도 초기화 (상승 중에는 건드리지 않음)
         if (grounded)
@@ -153,7 +149,6 @@ public class PlayerMover : MonoBehaviour
 
     public void Jump()
     {
-        Debug.Log($"[Jump] Jump() 호출 | isGrounded={_isGrounded} | canJump={CanJump} | velocityY before={_velocity.y:F2} | jumpForce={jumpForce}");
         _velocity.y = jumpForce;
         _isGrounded = false;
         _wasGrounded = false;
@@ -171,10 +166,5 @@ public class PlayerMover : MonoBehaviour
     public float GetVelocityY() => _velocity.y;
 
     // 외부에서 즉시 접지 여부를 확인할 때 사용합니다 (점프 입력 이벤트에서 호출).
-    public bool CheckGroundedImmediate()
-    {
-        bool result = CheckGrounded();
-        Debug.Log($"[Jump] CheckGroundedImmediate | result={result} | lastGroundedTime={_lastGroundedTime:F2} | coyoteElapsed={Time.time - _lastGroundedTime:F3}s");
-        return result;
-    }
+    public bool CheckGroundedImmediate() => CheckGrounded();
 }

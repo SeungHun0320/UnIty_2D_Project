@@ -42,22 +42,9 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
 
     public void PlayIdle(bool forceRestart = false)
     {
-        if (_lockMove)
-        {
-            Debug.Log("[PlayIdle] _lockMove is true, returning");
-            return;
-        }
-        if (!CanPlay(idleAnimation))
-        {
-            Debug.Log("[PlayIdle] Cannot play idle animation");
-            return;
-        }
-        if (!forceRestart && IsCurrent(idleAnimation))
-        {
-            Debug.Log("[PlayIdle] Already playing idle, skipping");
-            return;
-        }
-        Debug.Log("[PlayIdle] Setting idle animation");
+        if (_lockMove) return;
+        if (!CanPlay(idleAnimation)) return;
+        if (!forceRestart && IsCurrent(idleAnimation)) return;
         skeletonAnimation.AnimationState.SetAnimation(0, idleAnimation, true);
         _isMoving = false;
     }
@@ -69,20 +56,14 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
 
         _isMoving = moving;
 
-        if (_lockMove)
-        {
-            Debug.Log($"[SetMoving] _lockMove is true, returning. moving={moving}");
-            return;
-        }
+        if (_lockMove) return;
         if (_isMoving)
         {
             if (!CanPlay(moveAnimation)) return;
-            Debug.Log("[SetMoving] Playing move animation");
             skeletonAnimation.AnimationState.SetAnimation(0, moveAnimation, true);
         }
         else
         {
-            Debug.Log("[SetMoving] Calling PlayIdle()");
             PlayIdle();
         }
     }

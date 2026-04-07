@@ -40,9 +40,20 @@ public class AttackingState : IPlayerState
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }
 }
 
+public class JumpingState : IPlayerState
+{
+    public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.PlayJump();
+    public void Exit(PlayerStateMachine sm) { }
+    // 점프 중 이동 입력은 물리(PlayerMover)가 처리 - 상태 전환만 막음
+    public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold)
+    {
+        sm.LastMoveInput = move;
+    }
+}
+
 // ---------- 상태머신 ----------
 
-public enum PlayerState { Idle, Moving, Attacking }
+public enum PlayerState { Idle, Moving, Attacking, Jumping }
 
 [RequireComponent(typeof(SpineAnimationDriver))]
 public class PlayerStateMachine : MonoBehaviour
@@ -77,7 +88,12 @@ public class PlayerStateMachine : MonoBehaviour
     public void OnAttackInput()
     {
         ChangeState(AttackingState);
-        // 공격 애니메이션 완료 후 Idle로 복귀는 SpineAnimationDriver가 처리합니다.
+    }
+
+    // SpineAnimationDriver.OnAttackComplete 이벤트를 SpineInputController가 전달합니다.
+    public void OnAttackComplete()
+    {
+        ChangeState(IdleState);
     }
 
     public void ChangeState(IPlayerState newState)

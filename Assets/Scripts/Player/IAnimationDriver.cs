@@ -8,4 +8,7 @@ public interface IAnimationDriver
     void PlayAttack();
     void NotifyVelocityY(float vy);
     void NotifyLanded();
+
+    // 공격 애니메이션 완료 시 발행됩니다.
+    event System.Action OnAttackComplete;
 }

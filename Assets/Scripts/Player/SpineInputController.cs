@@ -38,6 +38,7 @@ public class SpineInputController : MonoBehaviour
             playerMover = GetComponent<PlayerMover>();
 
         playerMover.OnLanded += HandleLanded;
+        animationDriverComponent.OnAttackComplete += HandleAttackComplete;
 
         EnsureActions();
     }
@@ -46,6 +47,8 @@ public class SpineInputController : MonoBehaviour
     {
         if (playerMover != null)
             playerMover.OnLanded -= HandleLanded;
+        if (animationDriverComponent != null)
+            animationDriverComponent.OnAttackComplete -= HandleAttackComplete;
     }
 
     private void OnEnable()
@@ -95,6 +98,11 @@ public class SpineInputController : MonoBehaviour
     private void HandleLanded()
     {
         animationDriver?.NotifyLanded();
+    }
+
+    private void HandleAttackComplete()
+    {
+        playerStateMachine?.OnAttackComplete();
     }
 
     private void OnAttackPerformed(InputAction.CallbackContext _)

@@ -27,6 +27,7 @@ public class PlayerMover : MonoBehaviour
     private bool _isGrounded;
     private bool _wasGrounded = true;
     private float _lastGroundedTime;
+    private bool _isJumping;
 
     public bool IsGrounded => _isGrounded;
     public bool CanJump => _isGrounded || (Time.time - _lastGroundedTime) <= coyoteTime;
@@ -59,15 +60,25 @@ public class PlayerMover : MonoBehaviour
         _rb.MovePosition(_rb.position + delta);
 
         // 이동 후 접지 판정
-        bool grounded = CheckGrounded();
+        // _isJumping 중에는 지면 오감지 방지 (점프 직후 아직 지면에 닿아있는 프레임 무시)
+        bool rawGrounded = CheckGrounded();
+        if (_isJumping)
+        {
+            if (rawGrounded) rawGrounded = false;  // 아직 지면 근처 → 오감지 억제
+            else _isJumping = false;               // 실제로 지면을 벗어남 → 플래그 해제
+        }
+        bool grounded = rawGrounded;
 
         bool justLanded = !_wasGrounded && grounded;
         if (justLanded)
+        {
+            Debug.Log($"[Jump] 착지 | velocityY={_velocity.y:F2}");
             OnLanded?.Invoke();
+        }
 
-        // 지면에 닿았을 때 낙하 속도 초기화
+        // 낙하 속도 초기화 (상승 중에는 건드리지 않음)
         if (grounded)
-            _velocity.y = Mathf.Min(_velocity.y, 0f);
+            _velocity.y = 0f;
 
         _isGrounded = grounded;
         _wasGrounded = grounded;
@@ -89,8 +100,8 @@ public class PlayerMover : MonoBehaviour
         {
             Vector2 dir = delta.y > 0f ? Vector2.up : Vector2.down;
             float dist = Mathf.Abs(delta.y) + skinWidth;
-            RaycastHit2D hit = Physics2D.BoxCast(b.center, vSize, 0f, dir, dist, groundLayers);
-            if (hit.collider != null && hit.collider != _col)
+            RaycastHit2D hit = BoxCastSolid(b.center, vSize, dir, dist);
+            if (hit.collider != null)
             {
                 float allowed = Mathf.Max(hit.distance - skinWidth, 0f);
                 delta.y = delta.y > 0f ? allowed : -allowed;
@@ -103,8 +114,8 @@ public class PlayerMover : MonoBehaviour
         {
             Vector2 dir = delta.x > 0f ? Vector2.right : Vector2.left;
             float dist = Mathf.Abs(delta.x) + skinWidth;
-            RaycastHit2D hit = Physics2D.BoxCast(b.center, hSize, 0f, dir, dist, groundLayers);
-            if (hit.collider != null && hit.collider != _col)
+            RaycastHit2D hit = BoxCastSolid(b.center, hSize, dir, dist);
+            if (hit.collider != null)
             {
                 float allowed = Mathf.Max(hit.distance - skinWidth, 0f);
                 delta.x = delta.x > 0f ? allowed : -allowed;
@@ -120,15 +131,33 @@ public class PlayerMover : MonoBehaviour
     {
         Bounds b = _col.bounds;
         Vector2 size = new Vector2(b.size.x * 0.9f - skinWidth * 2f, b.size.y - skinWidth * 2f);
-        RaycastHit2D hit = Physics2D.BoxCast(b.center, size, 0f, Vector2.down, skinWidth * 3f, groundLayers);
-        return hit.collider != null && hit.collider != _col;
+        RaycastHit2D hit = BoxCastSolid(b.center, size, Vector2.down, skinWidth * 3f);
+        return hit.collider != null;
+    }
+
+    // 트리거를 제외하고 이동 방향과 반대 노말을 가진 첫 번째 솔리드 충돌체를 반환합니다.
+    // BoxCast는 가장 가까운 하나만 반환하므로, 트리거가 더 가까울 경우 그 뒤의 솔리드를 놓칩니다.
+    // BoxCastNonAlloc으로 전체 히트 목록을 순회해 이 문제를 해결합니다.
+    private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[8];
+    private RaycastHit2D BoxCastSolid(Vector2 origin, Vector2 size, Vector2 direction, float distance)
+    {
+        int count = Physics2D.BoxCastNonAlloc(origin, size, 0f, direction, _hitBuffer, distance, groundLayers);
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit2D h = _hitBuffer[i];
+            if (h.collider == _col || h.collider.isTrigger) continue;
+            if (Vector2.Dot(h.normal, direction) < 0f) return h;
+        }
+        return default;
     }
 
     public void Jump()
     {
+        Debug.Log($"[Jump] Jump() 호출 | isGrounded={_isGrounded} | canJump={CanJump} | velocityY before={_velocity.y:F2} | jumpForce={jumpForce}");
         _velocity.y = jumpForce;
         _isGrounded = false;
         _wasGrounded = false;
+        _isJumping = true;
     }
 
     public void FlipByInput(float inputX)
@@ -142,5 +171,10 @@ public class PlayerMover : MonoBehaviour
     public float GetVelocityY() => _velocity.y;
 
     // 외부에서 즉시 접지 여부를 확인할 때 사용합니다 (점프 입력 이벤트에서 호출).
-    public bool CheckGroundedImmediate() => CheckGrounded();
+    public bool CheckGroundedImmediate()
+    {
+        bool result = CheckGrounded();
+        Debug.Log($"[Jump] CheckGroundedImmediate | result={result} | lastGroundedTime={_lastGroundedTime:F2} | coyoteElapsed={Time.time - _lastGroundedTime:F3}s");
+        return result;
+    }
 }

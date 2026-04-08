@@ -11,6 +11,7 @@ public class RustBlackboard : MonoBehaviour
     public SpineAnimationDriver animationDriver;
     public Rigidbody2D rb;
     public Collider2D col;
+    public EnemyAttackHitbox attackHitbox;
 
     [Header("Combat Settings")]
     public float sightRange = 8f;

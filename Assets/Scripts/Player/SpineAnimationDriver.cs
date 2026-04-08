@@ -11,6 +11,7 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
     [SerializeField] private string moveAnimation = "run";
     [SerializeField] private string jumpAnimation = "jump";
     [SerializeField] private string attackAnimation = "attack";
+    [SerializeField] private string hitAnimation = "hit";
 
     [Header("Mix")]
     [SerializeField, Min(0f)] private float defaultMixDuration = 0.1f;
@@ -96,6 +97,19 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
         entry.Complete += _ => OnAttackComplete?.Invoke();
         if (CanPlay(idleAnimation))
             skeletonAnimation.AnimationState.AddAnimation(0, idleAnimation, true, attackToIdleDelay);
+    }
+
+    public void PlayHit()
+    {
+        if (!CanPlay(hitAnimation)) return;
+        var entry = skeletonAnimation.AnimationState.SetAnimation(0, hitAnimation, false);
+        // 히트 애니메이션 종료 후 idle로 복귀합니다.
+        entry.Complete += _ =>
+        {
+            string next = _isMoving ? moveAnimation : idleAnimation;
+            if (CanPlay(next))
+                skeletonAnimation.AnimationState.SetAnimation(0, next, true);
+        };
     }
 
     private bool CanPlay(string anim)

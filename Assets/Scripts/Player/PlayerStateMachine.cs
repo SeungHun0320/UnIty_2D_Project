@@ -34,8 +34,12 @@ public class MovingState : IPlayerState
 
 public class AttackingState : IPlayerState
 {
-    public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.PlayAttack();
-    public void Exit(PlayerStateMachine sm) { }
+    public void Enter(PlayerStateMachine sm)
+    {
+        sm.AnimationDriver?.PlayAttack();
+        sm.AttackHitbox?.Activate();
+    }
+    public void Exit(PlayerStateMachine sm) => sm.AttackHitbox?.Deactivate();
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }
 }
 
@@ -50,24 +54,38 @@ public class JumpingState : IPlayerState
     }
 }
 
+public class HitState : IPlayerState
+{
+    public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.PlayHit();
+    public void Exit(PlayerStateMachine sm) { }
+    // 피격 중 이동 입력은 물리(PlayerMover/넉백)가 처리 - 상태 전환만 막음
+    public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold)
+    {
+        sm.LastMoveInput = move;
+    }
+}
+
 // ---------- 상태머신 ----------
 
-public enum PlayerState { Idle, Moving, Attacking, Jumping }
+public enum PlayerState { Idle, Moving, Attacking, Jumping, Hit }
 [RequireComponent(typeof(SpineAnimationDriver))]
 public class PlayerStateMachine : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriverComponent;
+    [SerializeField] private PlayerAttackHitbox attackHitbox;
 
     // 상태 싱글턴 인스턴스 (할당 최소화)
     public readonly IdleState IdleState = new IdleState();
     public readonly MovingState MovingState = new MovingState();
     public readonly AttackingState AttackingState = new AttackingState();
     public readonly JumpingState JumpingState = new JumpingState();
+    public readonly HitState HitState = new HitState();
 
     private IPlayerState _currentState;
 
     public IAnimationDriver AnimationDriver { get; private set; }
+    public PlayerAttackHitbox AttackHitbox => attackHitbox;
     public PlayerState CurrentState { get; private set; }
     public Vector2 LastMoveInput { get; set; }
     public float MovingThreshold { get; private set; }
@@ -112,6 +130,12 @@ public class PlayerStateMachine : MonoBehaviour
         ChangeState(IdleState);
     }
 
+    // PlayerHitReceiver가 피격 시 호출합니다.
+    public void OnHit()
+    {
+        ChangeState(HitState);
+    }
+
     public void ChangeState(IPlayerState newState)
     {
         _currentState?.Exit(this);
@@ -122,6 +146,7 @@ public class PlayerStateMachine : MonoBehaviour
         else if (newState is MovingState) CurrentState = PlayerState.Moving;
         else if (newState is AttackingState) CurrentState = PlayerState.Attacking;
         else if (newState is JumpingState) CurrentState = PlayerState.Jumping;
+        else if (newState is HitState) CurrentState = PlayerState.Hit;
 
         _currentState.Enter(this);
     }

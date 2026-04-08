@@ -20,6 +20,9 @@ public class PlayerMover : MonoBehaviour
     [SerializeField] private LayerMask groundLayers = ~0;
     [SerializeField, Min(0.001f)] private float skinWidth = 0.02f;
 
+    [Header("Knockback")]
+    [SerializeField, Min(0f)] private float knockbackDuration = 0.25f;
+
     private Rigidbody2D _rb;
     private Collider2D _col;
 
@@ -28,6 +31,8 @@ public class PlayerMover : MonoBehaviour
     private bool _wasGrounded = true;
     private float _lastGroundedTime;
     private bool _isJumping;
+
+    private float _knockbackTimer;
 
     public bool IsGrounded => _isGrounded;
     public bool CanJump => _isGrounded || (Time.time - _lastGroundedTime) <= coyoteTime;
@@ -48,10 +53,18 @@ public class PlayerMover : MonoBehaviour
 
     public void FixedTick(Vector2 moveInput)
     {
-        // 수평 속도
-        _velocity.x = Mathf.Abs(moveInput.x) > movingThreshold ? moveInput.x * moveSpeed : 0f;
+        // 넉백 중에는 moveInput 무시
+        if (_knockbackTimer > 0f)
+        {
+            _knockbackTimer -= Time.fixedDeltaTime;
+        }
+        else
+        {
+            // 수평 속도
+            _velocity.x = Mathf.Abs(moveInput.x) > movingThreshold ? moveInput.x * moveSpeed : 0f;
+        }
 
-        // 수직: 공중에서만 중력 적용
+        // 수직: 공중에서만 중력 적용 (넉백 중에도 중력/점프는 정상 작동)
         if (!_isGrounded)
             _velocity.y = Mathf.Max(_velocity.y - gravityStrength * Time.fixedDeltaTime, -maxFallSpeed);
 
@@ -145,6 +158,14 @@ public class PlayerMover : MonoBehaviour
             if (Vector2.Dot(h.normal, direction) < 0f) return h;
         }
         return default;
+    }
+
+    // 피격 시 외부에서 호출합니다. 넉백 방향은 (적 → 플레이어) 방향으로 계산해서 넘겨주세요.
+    public void ApplyKnockback(Vector2 knockbackVelocity)
+    {
+        _velocity = knockbackVelocity;
+        _knockbackTimer = knockbackDuration;
+        _isGrounded = false;
     }
 
     public void Jump()

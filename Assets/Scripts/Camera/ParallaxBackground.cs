@@ -77,8 +77,11 @@ public class ParallaxBackground : MonoBehaviour
         {
             if (layer.tiles == null) continue;
 
-            // X 이동량 (시차 적용)
-            float moveX = cameraDeltaX * (1f - layer.parallaxFactor);
+            // X 이동량 (시차 적용, Lerp 스무딩)
+            float rawMoveX    = cameraDeltaX * (1f - layer.parallaxFactor);
+            float smoothMoveX = smoothSpeed > 0f
+                ? Mathf.Lerp(0f, rawMoveX, smoothSpeed * Time.deltaTime)
+                : rawMoveX;
             // Y는 카메라 완전 추종
             float moveY = cameraDeltaY;
 
@@ -86,7 +89,7 @@ public class ParallaxBackground : MonoBehaviour
             {
                 if (tile == null) continue;
                 Vector3 pos = tile.transform.position;
-                pos.x += moveX;
+                pos.x += smoothMoveX;
                 pos.y += moveY;
                 tile.transform.position = pos;
             }

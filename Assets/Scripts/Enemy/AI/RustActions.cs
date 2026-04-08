@@ -118,7 +118,7 @@ public class RustAttackActionNode : RustActionNode
         _attackStarted = false;
         _attackStartTime = 0f;
         // 이전 공격이 중단된 채로 남아있을 경우를 대비해 히트박스를 초기화합니다.
-        Blackboard.attackHitbox?.Deactivate();
+        Blackboard.AttackHitbox?.Deactivate();
     }
 
     protected override BTNodeState OnUpdate()
@@ -132,7 +132,7 @@ public class RustAttackActionNode : RustActionNode
             Blackboard.animationDriver.PlayAttack();
 
             // 히트박스 활성화 → 데미지는 PlayerHitReceiver가 처리합니다.
-            Blackboard.attackHitbox?.Activate();
+            Blackboard.AttackHitbox?.Activate();
 
             _attackStarted = true;
             _attackStartTime = Time.time;
@@ -144,7 +144,7 @@ public class RustAttackActionNode : RustActionNode
             return BTNodeState.Running;
 
         // 공격 종료 → 히트박스 비활성화
-        Blackboard.attackHitbox?.Deactivate();
+        Blackboard.AttackHitbox?.Deactivate();
         return BTNodeState.Success;
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 // Player GameObject의 자식 "AttackHitbox" 오브젝트에 부착합니다.
 // 레이어는 PlayerAttackHitbox로 설정해야 합니다.
 [RequireComponent(typeof(Collider2D))]
-public class PlayerAttackHitbox : MonoBehaviour
+public class PlayerAttackHitbox : MonoBehaviour, IAttackHitbox
 {
     private Collider2D _col;
 

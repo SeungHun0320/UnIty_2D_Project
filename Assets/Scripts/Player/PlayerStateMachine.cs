@@ -73,7 +73,8 @@ public class PlayerStateMachine : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriverComponent;
-    [SerializeField] private PlayerAttackHitbox attackHitbox;
+    [SerializeField] private PlayerAttackHitbox attackHitboxComponent;
+    public IAttackHitbox AttackHitbox { get; private set; }
 
     // 상태 싱글턴 인스턴스 (할당 최소화)
     public readonly IdleState IdleState = new IdleState();
@@ -85,7 +86,6 @@ public class PlayerStateMachine : MonoBehaviour
     private IPlayerState _currentState;
 
     public IAnimationDriver AnimationDriver { get; private set; }
-    public PlayerAttackHitbox AttackHitbox => attackHitbox;
     public PlayerState CurrentState { get; private set; }
     public Vector2 LastMoveInput { get; set; }
     public float MovingThreshold { get; private set; }
@@ -95,6 +95,7 @@ public class PlayerStateMachine : MonoBehaviour
         if (animationDriverComponent == null)
             animationDriverComponent = GetComponent<SpineAnimationDriver>();
         AnimationDriver = animationDriverComponent;
+        AttackHitbox = attackHitboxComponent;
 
         ChangeState(IdleState);
     }

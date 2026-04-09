@@ -23,6 +23,7 @@ public class RustBlackboard : MonoBehaviour
     public float attackRange        => aiSettings != null ? aiSettings.attackRange        : 1.5f;
     public float moveSpeed          => aiSettings != null ? aiSettings.moveSpeed          : 2f;
     public float attackDuration     => aiSettings != null ? aiSettings.attackDuration     : 0.5f;
+    public float attackCooldown     => aiSettings != null ? aiSettings.attackCooldown     : 1.0f;
     public LayerMask groundLayers   => aiSettings != null ? aiSettings.groundLayers       : default;
     public float ledgeCheckDistance => aiSettings != null ? aiSettings.ledgeCheckDistance : 0.5f;
     public float wallCheckDistance  => aiSettings != null ? aiSettings.wallCheckDistance  : 0.3f;

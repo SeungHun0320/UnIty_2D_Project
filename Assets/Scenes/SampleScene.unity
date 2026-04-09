@@ -3608,7 +3608,7 @@ GameObject:
   - component: {fileID: 916286919}
   - component: {fileID: 916286921}
   - component: {fileID: 916286920}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: AttackHitBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4637,7 +4637,7 @@ GameObject:
   - component: {fileID: 1522443097}
   - component: {fileID: 1522443099}
   - component: {fileID: 1522443098}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: EnemyHurtbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4671,7 +4671,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29cbd390fb7168c4c848b4eeb54a43d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHitReceiver
-  invincibilityDuration: 0.2
+  invincibilityDuration: 0.5
 --- !u!61 &1522443099
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -5053,7 +5053,7 @@ MonoBehaviour:
     materialsInsideMask: []
     materialsOutsideMask: []
   disableRenderingOnOverride: 1
-  _animationName: Idle_1
+  _animationName: Damage_1
   loop: 1
   timeScale: 1
 --- !u!23 &1940328962
@@ -5193,14 +5193,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpineAnimationDriver
   skeletonAnimation: {fileID: 1940328961}
-  idleAnimation: Idle_1
-  moveAnimation: Walk_1
-  jumpAnimation: Jump_1
-  attackAnimation: Shoot_Pistol_1
-  hitAnimation: Damage_1
-  defaultMixDuration: 0.1
-  jumpToIdleMix: 0.05
-  jumpToMoveMix: 0.05
+  animations:
+    Idle: Idle_1
+    Move: Walk_1
+    Jump: Jump_1
+    Attack: Hit_1
+    Hit: Damage_1
+    Dead: Lose_1
   attackToIdleDelay: 0
 --- !u!50 &1940328971
 Rigidbody2D:
@@ -5561,7 +5560,7 @@ GameObject:
   - component: {fileID: 2066899999}
   - component: {fileID: 2066900001}
   - component: {fileID: 2066900000}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: AttackHitBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5844,6 +5843,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStateMachine
   animationDriverComponent: {fileID: 2121868740}
   attackHitboxComponent: {fileID: 916286920}
+  attackHitboxDelay: 0.6
+  attackHitboxDuration: 0.4
 --- !u!114 &2121868737
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5937,14 +5938,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpineAnimationDriver
   skeletonAnimation: {fileID: 2121868731}
-  idleAnimation: idle_1
-  moveAnimation: run
-  jumpAnimation: jump
-  attackAnimation: sword_attack
-  hitAnimation: hit
-  defaultMixDuration: 0.1
-  jumpToIdleMix: 0.05
-  jumpToMoveMix: 0.05
+  animations:
+    Idle: idle_1
+    Move: run_shield
+    Jump: jump
+    Attack: sword_attack
+    Hit: hit
+    Dead: dead
   attackToIdleDelay: 0
 --- !u!114 &2121868741
 MonoBehaviour:

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 // 플레이어 상태를 나타내는 인터페이스입니다. (OCP)
 // 새 상태를 추가할 때 기존 코드를 수정하지 않고 새 클래스를 추가하기만 합니다.
@@ -34,12 +35,33 @@ public class MovingState : IPlayerState
 
 public class AttackingState : IPlayerState
 {
+    private Coroutine _hitboxCoroutine;
+
     public void Enter(PlayerStateMachine sm)
     {
         sm.AnimationDriver?.PlayAttack();
-        sm.AttackHitbox?.Activate();
+        _hitboxCoroutine = sm.StartCoroutine(HitboxRoutine(sm));
     }
-    public void Exit(PlayerStateMachine sm) => sm.AttackHitbox?.Deactivate();
+
+    public void Exit(PlayerStateMachine sm)
+    {
+        if (_hitboxCoroutine != null)
+        {
+            sm.StopCoroutine(_hitboxCoroutine);
+            _hitboxCoroutine = null;
+        }
+        sm.AttackHitbox?.Deactivate();
+    }
+
+    // 딜레이 후 히트박스를 활성화하고 지정 시간 후 비활성화합니다.
+    private IEnumerator HitboxRoutine(PlayerStateMachine sm)
+    {
+        yield return new WaitForSeconds(sm.AttackHitboxDelay);
+        sm.AttackHitbox?.Activate();
+        yield return new WaitForSeconds(sm.AttackHitboxDuration);
+        sm.AttackHitbox?.Deactivate();
+    }
+
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }
 }
 
@@ -86,6 +108,12 @@ public class PlayerStateMachine : MonoBehaviour
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriverComponent;
     [SerializeField] private PlayerAttackHitbox attackHitboxComponent;
+
+    [Header("Attack Timing")]
+    [SerializeField, Min(0f)] private float attackHitboxDelay    = 0.8f;
+    [SerializeField, Min(0f)] private float attackHitboxDuration = 0.4f;  // 0.8 ~ 1.2초
+    public float AttackHitboxDelay    => attackHitboxDelay;
+    public float AttackHitboxDuration => attackHitboxDuration;
     public IAttackHitbox AttackHitbox { get; private set; }
 
     // 상태 싱글턴 인스턴스 (할당 최소화)

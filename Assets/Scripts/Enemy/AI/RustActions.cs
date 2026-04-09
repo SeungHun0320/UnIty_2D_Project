@@ -110,6 +110,7 @@ public class RustAttackActionNode : RustActionNode
 {
     private bool _attackStarted;
     private float _attackStartTime;
+    private bool _inCooldown;
 
     public RustAttackActionNode(RustBlackboard blackboard) : base(blackboard) { }
 
@@ -117,6 +118,7 @@ public class RustAttackActionNode : RustActionNode
     {
         _attackStarted = false;
         _attackStartTime = 0f;
+        _inCooldown = false;
         // 이전 공격이 중단된 채로 남아있을 경우를 대비해 히트박스를 초기화합니다.
         Blackboard.AttackHitbox?.Deactivate();
     }
@@ -126,12 +128,12 @@ public class RustAttackActionNode : RustActionNode
         if (Blackboard.animationDriver == null)
             return BTNodeState.Failure;
 
+        float elapsed = Time.time - _attackStartTime;
+
         if (!_attackStarted)
         {
             Blackboard.animationDriver.SetMoving(false);
             Blackboard.animationDriver.PlayAttack();
-
-            // 히트박스 활성화 → 데미지는 PlayerHitReceiver가 처리합니다.
             Blackboard.AttackHitbox?.Activate();
 
             _attackStarted = true;
@@ -139,12 +141,20 @@ public class RustAttackActionNode : RustActionNode
             return BTNodeState.Running;
         }
 
-        // 공격 애니메이션이 충분히 재생될 때까지 Running 상태를 유지합니다.
-        if (Time.time - _attackStartTime < Blackboard.attackDuration)
+        // 공격 애니메이션 대기
+        if (elapsed < Blackboard.attackDuration)
             return BTNodeState.Running;
 
-        // 공격 종료 → 히트박스 비활성화
-        Blackboard.AttackHitbox?.Deactivate();
+        // 공격 종료 → 히트박스 비활성화 후 쿨다운 대기
+        if (!_inCooldown)
+        {
+            Blackboard.AttackHitbox?.Deactivate();
+            _inCooldown = true;
+        }
+
+        if (elapsed < Blackboard.attackDuration + Blackboard.attackCooldown)
+            return BTNodeState.Running;
+
         return BTNodeState.Success;
     }
 }

@@ -33,6 +33,9 @@ public class EnemyHitReceiver : MonoBehaviour
 
     private int _playerAttackLayer;
 
+    // 히트박스 활성화 시점에 이미 겹쳐있는 경우도 처리합니다.
+    private void OnTriggerStay2D(Collider2D other) => OnTriggerEnter2D(other);
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (IsInvincible) return;
@@ -44,6 +47,7 @@ public class EnemyHitReceiver : MonoBehaviour
         if (playerStats == null) return;
 
         _enemyStats?.TakeDamage(playerStats.TotalAttackPower);
+        Debug.Log($"[EnemyHitReceiver] {transform.parent?.name} HP: {_enemyStats?.CurrentHealth} / {_enemyStats?.MaxHealth}");
         _animationDriver?.PlayHit();
         _invincibilityTimer = invincibilityDuration;
     }

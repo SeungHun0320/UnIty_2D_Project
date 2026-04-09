@@ -12,6 +12,7 @@ public class EnemyAISO : ScriptableObject
     public float attackRange     = 1.5f;
     public float moveSpeed       = 2f;
     public float attackDuration  = 0.5f;
+    public float attackCooldown  = 1.0f;
 
     [Header("Ground / Wall Detection")]
     public LayerMask groundLayers;

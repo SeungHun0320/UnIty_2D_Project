@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAISO
   sightRange: 8
   chaseRange: 10
-  attackRange: 1.5
+  attackRange: 2
   moveSpeed: 2
-  attackDuration: 0.5
+  attackDuration: 3
   groundLayers:
     serializedVersion: 2
     m_Bits: 1

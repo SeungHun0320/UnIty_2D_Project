@@ -16,7 +16,8 @@ MonoBehaviour:
   chaseRange: 10
   attackRange: 2
   moveSpeed: 2
-  attackDuration: 3
+  attackDuration: 0.5
+  attackCooldown: 0.5
   groundLayers:
     serializedVersion: 2
     m_Bits: 1

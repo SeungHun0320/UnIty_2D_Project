@@ -102,7 +102,7 @@ public class DeadState : IPlayerState
 // ---------- 상태머신 ----------
 
 public enum PlayerState { Idle, Moving, Attacking, Jumping, Hit, Dead }
-[RequireComponent(typeof(SpineAnimationDriver))]
+[RequireComponent(typeof(PlayerAnimationDriver))]
 public class PlayerStateMachine : MonoBehaviour
 {
     [Header("References")]

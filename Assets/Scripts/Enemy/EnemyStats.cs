@@ -7,5 +7,12 @@ public class EnemyStats : CharacterStats
     [Header("Enemy Only")]
     [Tooltip("플레이어가 처치 시 얻는 경험치 양입니다.")]
     public int rewardExp = 0;
+
+    protected override void OnDead()
+    {
+        base.OnDead(); // OnDeadEvent 발행
+        GameManager.Instance?.OnEnemyDead(gameObject);
+        EventBus.Publish(new EnemyDeadEvent(gameObject));
+    }
 }
 

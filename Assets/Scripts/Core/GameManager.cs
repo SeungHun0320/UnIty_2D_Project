@@ -61,10 +61,16 @@ public class GameManager : MonoBehaviour
         if (playerTransform == null && playerStatsComponent != null)
             playerTransform = playerStatsComponent.transform;
 
-        EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
-
         SetGameState(GameState.Playing);
-        RespawnPlayer();
+    }
+
+    private void OnEnable()  => EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+    private void OnDisable() => EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+
+    private void OnDestroy()
+    {
+        // DontDestroyOnLoad 오브젝트가 씬 종료 시 파괴될 때 정리합니다.
+        EventBus.Clear();
     }
 
     /// <summary> 게임 상태를 변경하고 이벤트를 발생시킵니다. </summary>
@@ -78,11 +84,6 @@ public class GameManager : MonoBehaviour
         EventBus.Publish(new GameStateChangedEvent(_currentGameState));
 
         Debug.Log($"[GameManager] Game State Changed: {_currentGameState}");
-    }
-
-    private void OnDestroy()
-    {
-        EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
     }
 
     /// <summary> PlayerDeadEvent 구독 핸들러 — 리스폰 처리. </summary>

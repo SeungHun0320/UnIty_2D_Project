@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 // 플레이어 입력을 받아 PlayerMover(물리)와 PlayerStateMachine(상태)에 위임합니다. (SRP)
 // 이 클래스는 입력 처리만 담당합니다.
-[RequireComponent(typeof(SpineAnimationDriver))]
+[RequireComponent(typeof(PlayerAnimationDriver))]
 [RequireComponent(typeof(PlayerMover))]
 public class SpineInputController : MonoBehaviour
 {
@@ -74,11 +74,14 @@ public class SpineInputController : MonoBehaviour
 
     private void OnDisable()
     {
+        InputAction move = GetMoveAction();
+        if (move != null) move.Disable();
+
         InputAction attack = GetAttackAction();
-        if (attack != null) attack.performed -= OnAttackPerformed;
+        if (attack != null) { attack.performed -= OnAttackPerformed; attack.Disable(); }
 
         InputAction jump = GetJumpAction();
-        if (jump != null) jump.performed -= OnJumpPerformed;
+        if (jump != null) { jump.performed -= OnJumpPerformed; jump.Disable(); }
 
         if (_runtimeRespawnAction != null)
         {
@@ -93,6 +96,7 @@ public class SpineInputController : MonoBehaviour
     // 사망 시 일반 입력을 차단하고 E키 리스폰 대기 모드로 전환합니다.
     private void OnPlayerDead(PlayerDeadEvent _)
     {
+        if (_waitingForRespawn) return; // 이미 대기 중이면 중복 구독 방지
         _waitingForRespawn = true;
         _runtimeRespawnAction.performed += OnRespawnPerformed;
         _runtimeRespawnAction.Enable();

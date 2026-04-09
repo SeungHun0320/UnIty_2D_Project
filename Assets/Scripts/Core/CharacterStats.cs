@@ -26,6 +26,9 @@ public abstract class CharacterStats : MonoBehaviour, ICharacterStats, IDamageab
     // 뷰모델/기타 시스템에서 구독할 수 있는 체력 변경 이벤트입니다.
     public event Action<float, float> OnHealthChanged;
 
+    // 사망 시 발생하는 이벤트입니다. EnemyDeathHandler 등 외부 컴포넌트에서 구독합니다.
+    public event Action OnDeadEvent;
+
     // 초기 체력을 최대 체력 범위 안으로 보정합니다.
     protected virtual void Awake()
     {
@@ -43,7 +46,7 @@ public abstract class CharacterStats : MonoBehaviour, ICharacterStats, IDamageab
     }
 
     // 사망 시 서브클래스에서 처리를 정의합니다. (OCP)
-    protected virtual void OnDead() { }
+    protected virtual void OnDead() { OnDeadEvent?.Invoke(); }
 
     // 회복 로직의 기본 구현입니다.
     public virtual void Heal(float amount)

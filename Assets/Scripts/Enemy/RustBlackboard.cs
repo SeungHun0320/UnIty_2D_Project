@@ -8,6 +8,7 @@ public class RustBlackboard : MonoBehaviour
     [Header("References")]
     public Transform selfTransform;
     public Transform playerTransform;
+    public EnemyStats enemyStats;
     public EnemyAnimationDriver animationDriver;
     public Rigidbody2D rb;
     public Collider2D col;
@@ -28,14 +29,13 @@ public class RustBlackboard : MonoBehaviour
     public float ledgeCheckDistance => aiSettings != null ? aiSettings.ledgeCheckDistance : 0.5f;
     public float wallCheckDistance  => aiSettings != null ? aiSettings.wallCheckDistance  : 0.3f;
 
-    [Header("State")]
-    public float currentHealth = 10f;
-    public float maxHealth = 10f;
-
     private void Awake()
     {
         if (selfTransform == null)
             selfTransform = transform;
+
+        if (enemyStats == null)
+            enemyStats = GetComponent<EnemyStats>();
 
         if (animationDriver == null)
             animationDriver = GetComponent<EnemyAnimationDriver>();
@@ -47,7 +47,7 @@ public class RustBlackboard : MonoBehaviour
             col = GetComponent<Collider2D>();
     }
 
-    public bool IsDead => currentHealth <= 0f;
+    public bool IsDead => enemyStats != null && enemyStats.IsDead;
 
     public float DistanceToPlayer
     {

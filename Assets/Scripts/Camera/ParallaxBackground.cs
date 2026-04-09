@@ -37,6 +37,11 @@ public class ParallaxBackground : MonoBehaviour
 
     private float _previousCameraX;
     private float _previousCameraY;
+    private bool _frozen;
+
+    private void OnEnable()  => EventBus.Subscribe<StageClearEvent>(OnStageClear);
+    private void OnDisable() => EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
+    private void OnStageClear(StageClearEvent _) => _frozen = true;
 
     private void Awake()
     {
@@ -69,17 +74,22 @@ public class ParallaxBackground : MonoBehaviour
     {
         GameObject go = new GameObject(original.gameObject.name + (offsetX < 0 ? "_L" : "_R"));
         go.transform.SetParent(original.transform.parent, false);
-        go.transform.position = original.transform.position + new Vector3(offsetX, 0f, 0f);
+        // Z를 0.001f 오프셋해 같은 Z에서 렌더 순서가 프레임마다 바뀌는 깜빡임을 방지합니다.
+        float zOffset = offsetX < 0 ? -0.001f : 0.001f;
+        go.transform.position = original.transform.position + new Vector3(offsetX, 0f, zOffset);
 
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite          = original.sprite;
-        sr.sortingOrder    = original.sortingOrder;
-        sr.sortingLayerID  = original.sortingLayerID;
+        sr.sprite           = original.sprite;
+        sr.sortingOrder     = original.sortingOrder;
+        sr.sortingLayerID   = original.sortingLayerID;
+        sr.sortingLayerName = original.sortingLayerName;
         return sr;
     }
 
     private void LateUpdate()
     {
+        if (_frozen) return;
+
         float cameraDeltaX = targetCamera.transform.position.x - _previousCameraX;
         float cameraDeltaY = targetCamera.transform.position.y - _previousCameraY;
         float camX         = targetCamera.transform.position.x;
@@ -110,20 +120,22 @@ public class ParallaxBackground : MonoBehaviour
                 tile.transform.position = pos;
             }
 
-            // 순환 재배치: 타일이 카메라에서 textureWidth 이상 벗어나면 반대편으로
+            // 순환 재배치: 1.5W 기준으로 체크해 양쪽 조건이 오실레이션하지 않도록 합니다.
+            // 1W 기준이면 점프 후 즉시 반대 조건이 충족되어 무한 왕복이 발생합니다.
             if (layer.textureWidth > 0f)
             {
+                float threshold = layer.textureWidth * 1.5f;
                 foreach (var tile in layer.tiles)
                 {
                     if (tile == null) continue;
                     float tileX = tile.transform.position.x;
-                    if (tileX + layer.textureWidth < camX)
+                    if (tileX + threshold < camX)
                     {
                         Vector3 p = tile.transform.position;
                         p.x += layer.textureWidth * 3f;
                         tile.transform.position = p;
                     }
-                    else if (tileX - layer.textureWidth > camX)
+                    else if (tileX - threshold > camX)
                     {
                         Vector3 p = tile.transform.position;
                         p.x -= layer.textureWidth * 3f;

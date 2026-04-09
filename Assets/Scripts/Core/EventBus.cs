@@ -69,3 +69,11 @@ public readonly struct GameStateChangedEvent
     public readonly GameState NewState;
     public GameStateChangedEvent(GameState state) { NewState = state; }
 }
+
+public readonly struct StageClearEvent { }
+
+public readonly struct PlayerRespawnEvent
+{
+    public readonly UnityEngine.Vector3 Position;
+    public PlayerRespawnEvent(UnityEngine.Vector3 pos) { Position = pos; }
+}

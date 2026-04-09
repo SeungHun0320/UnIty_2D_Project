@@ -8,7 +8,7 @@ public class RustBlackboard : MonoBehaviour
     [Header("References")]
     public Transform selfTransform;
     public Transform playerTransform;
-    public SpineAnimationDriver animationDriver;
+    public EnemyAnimationDriver animationDriver;
     public Rigidbody2D rb;
     public Collider2D col;
     [SerializeField] private EnemyAttackHitbox attackHitboxComponent;
@@ -38,7 +38,7 @@ public class RustBlackboard : MonoBehaviour
             selfTransform = transform;
 
         if (animationDriver == null)
-            animationDriver = GetComponent<SpineAnimationDriver>();
+            animationDriver = GetComponent<EnemyAnimationDriver>();
 
         if (rb == null)
             rb = GetComponent<Rigidbody2D>();

@@ -14,7 +14,9 @@ public struct AnimationNames
     public string Dead;
 }
 
-public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
+// Spine 애니메이션 공통 로직을 담는 추상 베이스 클래스입니다.
+// PlayerAnimationDriver / EnemyAnimationDriver 가 이를 상속합니다.
+public abstract class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
 {
     [Header("References")]
     [SerializeField] private SkeletonAnimation skeletonAnimation;
@@ -30,24 +32,22 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
         Dead   = "death",
     };
 
-    [Header("Timing")]
-    [SerializeField, Min(0f)] private float attackToIdleDelay = 0f;
+    public abstract event Action OnAttackComplete;
 
-    public event Action OnAttackComplete;
-
-    private bool _lockMove;
-    private bool _isMoving;
-    private bool _isJumping;
-    private bool _isDead;
+    protected bool _lockMove;
+    protected bool _isMoving;
+    protected bool _isJumping;
+    protected bool _isDead;
 
     public SkeletonAnimation SkeletonAnimation => skeletonAnimation;
+    protected AnimationNames Animations => animations;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         skeletonAnimation ??= GetComponent<SkeletonAnimation>();
         if (skeletonAnimation == null)
         {
-            Debug.LogError("[SpineAnimationDriver] SkeletonAnimation reference is missing.", this);
+            Debug.LogError($"[{GetType().Name}] SkeletonAnimation reference is missing.", this);
             enabled = false;
             return;
         }
@@ -103,22 +103,13 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
             skeletonAnimation.AnimationState.SetAnimation(0, next, true);
     }
 
-    public void PlayAttack()
-    {
-        if (_isDead) return;
-        if (!CanPlay(animations.Attack)) return;
-        var entry = skeletonAnimation.AnimationState.SetAnimation(0, animations.Attack, false);
-        entry.Complete += _ => OnAttackComplete?.Invoke();
-        if (CanPlay(animations.Idle))
-            skeletonAnimation.AnimationState.AddAnimation(0, animations.Idle, true, attackToIdleDelay);
-    }
+    public abstract void PlayAttack();
 
     public void PlayHit()
     {
         if (_isDead) return;
         if (!CanPlay(animations.Hit)) return;
         var entry = skeletonAnimation.AnimationState.SetAnimation(0, animations.Hit, false);
-        // 히트 애니메이션 종료 후 idle로 복귀합니다.
         entry.Complete += _ =>
         {
             string next = _isMoving ? animations.Move : animations.Idle;
@@ -127,7 +118,6 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
         };
     }
 
-    // 사망 애니메이션을 재생합니다. 이후 모든 애니메이션 전환을 차단합니다.
     public void PlayDead()
     {
         if (_isDead) return;
@@ -137,24 +127,34 @@ public class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
         skeletonAnimation.AnimationState.SetAnimation(0, animations.Dead, false);
     }
 
-    private bool CanPlay(string anim)
+    // 리스폰 시 상태를 초기화하고 Idle로 복귀합니다.
+    public void ResetState()
+    {
+        _isDead   = false;
+        _lockMove = false;
+        _isMoving = false;
+        _isJumping = false;
+        PlayIdle(forceRestart: true);
+    }
+
+    protected bool CanPlay(string anim)
     {
         if (string.IsNullOrWhiteSpace(anim)) return false;
         var data = skeletonAnimation.Skeleton?.Data;
         if (data == null) return false;
         if (data.FindAnimation(anim) != null) return true;
-        Debug.LogWarning($"[SpineAnimationDriver] Animation '{anim}' not found.", this);
+        Debug.LogWarning($"[{GetType().Name}] Animation '{anim}' not found.", this);
         return false;
     }
 
-    private bool IsCurrent(string anim)
+    protected bool IsCurrent(string anim)
     {
         var cur = skeletonAnimation.AnimationState.GetCurrent(0);
         return cur != null && cur.Animation?.Name == anim;
     }
 
 #if UNITY_EDITOR
-    private void OnValidate()
+    protected virtual void OnValidate()
     {
         if (skeletonAnimation == null)
             skeletonAnimation = GetComponent<SkeletonAnimation>();

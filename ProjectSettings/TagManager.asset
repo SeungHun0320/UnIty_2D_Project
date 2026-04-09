@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Player
   layers:
   - Default
   - TransparentFX
@@ -42,22 +43,22 @@ TagManager:
     uniqueID: 0
     locked: 0
   - name: Background
-    uniqueID: 332801758
+    uniqueID: 2905275995
     locked: 0
   - name: Ground
-    uniqueID: 2024493761
+    uniqueID: 1941434923
     locked: 0
   - name: Deco
-    uniqueID: 0
+    uniqueID: 1890611953
     locked: 0
   - name: Object
-    uniqueID: 2051284657
+    uniqueID: 3127716749
     locked: 0
   - name: Character
-    uniqueID: 159138813
+    uniqueID: 1831048345
     locked: 0
   - name: UI
-    uniqueID: 0
+    uniqueID: 1579724007
     locked: 0
   m_RenderingLayers:
   - Default

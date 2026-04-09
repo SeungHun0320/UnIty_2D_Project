@@ -24,6 +24,8 @@ public class SpineInputController : MonoBehaviour
     private InputAction _runtimeJumpAction;
 
     private Vector2 _moveInput;
+    private bool _waitingForRespawn;
+    private InputAction _runtimeRespawnAction;
 
     private void Awake()
     {
@@ -39,6 +41,10 @@ public class SpineInputController : MonoBehaviour
 
         playerMover.OnLanded += HandleLanded;
         animationDriverComponent.OnAttackComplete += HandleAttackComplete;
+
+        _runtimeRespawnAction = new InputAction(name: "Respawn", type: InputActionType.Button);
+        _runtimeRespawnAction.AddBinding("<Keyboard>/e");
+        _runtimeRespawnAction.AddBinding("<Gamepad>/buttonEast");
 
         EnsureActions();
     }
@@ -63,6 +69,7 @@ public class SpineInputController : MonoBehaviour
         if (jump != null) { jump.performed += OnJumpPerformed; jump.Enable(); }
 
         EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
+        EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
     }
 
     private void OnDisable()
@@ -73,15 +80,41 @@ public class SpineInputController : MonoBehaviour
         InputAction jump = GetJumpAction();
         if (jump != null) jump.performed -= OnJumpPerformed;
 
+        if (_runtimeRespawnAction != null)
+        {
+            _runtimeRespawnAction.performed -= OnRespawnPerformed;
+            _runtimeRespawnAction.Disable();
+        }
+
         EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
+        EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
     }
 
-    // 사망 시 이 컴포넌트를 비활성화해 모든 입력을 차단합니다.
-    private void OnPlayerDead(PlayerDeadEvent _) => enabled = false;
+    // 사망 시 일반 입력을 차단하고 E키 리스폰 대기 모드로 전환합니다.
+    private void OnPlayerDead(PlayerDeadEvent _)
+    {
+        _waitingForRespawn = true;
+        _runtimeRespawnAction.performed += OnRespawnPerformed;
+        _runtimeRespawnAction.Enable();
+    }
+
+    private void OnRespawnPerformed(InputAction.CallbackContext _)
+    {
+        if (!_waitingForRespawn) return;
+        GameManager.Instance?.RespawnPlayer();
+    }
+
+    private void OnPlayerRespawn(PlayerRespawnEvent _)
+    {
+        _waitingForRespawn = false;
+        _runtimeRespawnAction.performed -= OnRespawnPerformed;
+        _runtimeRespawnAction.Disable();
+    }
 
     private void Update()
     {
         if (playerStateMachine == null) return;
+        if (_waitingForRespawn) { _moveInput = Vector2.zero; return; }
 
         InputAction action = GetMoveAction();
         _moveInput = action != null ? action.ReadValue<Vector2>() : Vector2.zero;

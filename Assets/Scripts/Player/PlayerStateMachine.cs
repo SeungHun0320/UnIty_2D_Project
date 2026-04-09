@@ -146,9 +146,22 @@ public class PlayerStateMachine : MonoBehaviour
         _currentState?.OnMoveInput(this, move, movingThreshold);
     }
 
-    private void OnEnable()  => EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
-    private void OnDisable() => EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+    private void OnEnable()
+    {
+        EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+        EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawnEvent);
+    }
+    private void OnDisable()
+    {
+        EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+        EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawnEvent);
+    }
     private void OnPlayerDeadEvent(PlayerDeadEvent _) => OnDead();
+    private void OnPlayerRespawnEvent(PlayerRespawnEvent _)
+    {
+        animationDriverComponent?.ResetState();
+        ChangeState(IdleState);
+    }
 
     public void OnJumpInput()
     {

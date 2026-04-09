@@ -8,16 +8,19 @@ public class ParallaxBackground : MonoBehaviour
     public class ParallaxLayer
     {
         public SpriteRenderer spriteRenderer;
-        [Range(0f, 1f), Tooltip("0 = 카메라 완전 추종 (먼 배경/하늘), 1 = 완전 고정 (가까운 전경)")]
+        [Range(0f, 1f), Tooltip("0 = 완전 고정 (먼 배경/하늘), 1 = 카메라 완전 추종 (가까운 전경)")]
         public float parallaxFactor = 0.5f;
 
         // 런타임: 3장 타일 배열 (좌·중·우)
         [HideInInspector] public SpriteRenderer[] tiles;
         [HideInInspector] public float startY;
         [HideInInspector] public float textureWidth;
-        [HideInInspector] public float idealY;         // 스무딩 없이 카메라를 완전 추종했을 때의 Y
-        [HideInInspector] public float currentY;       // SmoothDamp 현재 Y
-        [HideInInspector] public float velocityY;      // SmoothDamp 내부 속도
+        [HideInInspector] public float idealX;         // X SmoothDamp 목표값
+        [HideInInspector] public float currentX;       // X SmoothDamp 현재값
+        [HideInInspector] public float velocityX;      // X SmoothDamp 내부 속도
+        [HideInInspector] public float idealY;         // Y SmoothDamp 목표값
+        [HideInInspector] public float currentY;       // Y SmoothDamp 현재값
+        [HideInInspector] public float velocityY;      // Y SmoothDamp 내부 속도
     }
 
     [Header("References")]
@@ -27,9 +30,9 @@ public class ParallaxBackground : MonoBehaviour
     [SerializeField] private ParallaxLayer[] layers;
 
     [Header("Smoothing")]
-    [SerializeField, Min(0f), Tooltip("X축 이동 스무딩. 높을수록 빠르게 따라옴. 0이면 즉시 이동.")]
-    private float smoothSpeed = 8f;
-    [SerializeField, Min(0f), Tooltip("Y축 SmoothDamp 시간. 낮을수록 빠르게 따라옴.")]
+    [SerializeField, Min(0.01f), Tooltip("X축 SmoothDamp 시간. 낮을수록 빠르게 따라옴.")]
+    private float smoothTimeX = 0.15f;
+    [SerializeField, Min(0.01f), Tooltip("Y축 SmoothDamp 시간. 낮을수록 빠르게 따라옴.")]
     private float smoothTimeY = 0.15f;
 
     private float _previousCameraX;
@@ -48,6 +51,8 @@ public class ParallaxBackground : MonoBehaviour
             if (layer.spriteRenderer == null) continue;
 
             layer.startY   = layer.spriteRenderer.transform.position.y;
+            layer.idealX   = layer.spriteRenderer.transform.position.x;
+            layer.currentX = layer.spriteRenderer.transform.position.x;
             layer.idealY   = layer.spriteRenderer.transform.position.y;
             layer.currentY = layer.spriteRenderer.transform.position.y;
             layer.textureWidth = layer.spriteRenderer.bounds.size.x;
@@ -84,12 +89,14 @@ public class ParallaxBackground : MonoBehaviour
         {
             if (layer.tiles == null) continue;
 
-            // X 이동량 (시차 적용, Lerp 스무딩)
-            float rawMoveX    = cameraDeltaX * (1f - layer.parallaxFactor);
-            float smoothMoveX = smoothSpeed > 0f
-                ? Mathf.Lerp(0f, rawMoveX, smoothSpeed * Time.deltaTime)
-                : rawMoveX;
-            // idealY: 스무딩 없이 카메라를 완전 추종했을 때의 Y (정확한 목표값)
+            // X: parallaxFactor만큼 카메라를 추종 (0 = 고정, 1 = 완전 추종)
+            float targetDeltaX = cameraDeltaX * layer.parallaxFactor;
+            layer.idealX  += targetDeltaX;
+            float smoothedDeltaX = Mathf.SmoothDamp(
+                layer.currentX, layer.idealX, ref layer.velocityX, smoothTimeX) - layer.currentX;
+            layer.currentX += smoothedDeltaX;
+
+            // Y: 카메라를 완전 추종 (SmoothDamp로 부드럽게)
             layer.idealY += cameraDeltaY;
             layer.currentY = Mathf.SmoothDamp(
                 layer.currentY, layer.idealY, ref layer.velocityY, smoothTimeY);
@@ -98,7 +105,7 @@ public class ParallaxBackground : MonoBehaviour
             {
                 if (tile == null) continue;
                 Vector3 pos = tile.transform.position;
-                pos.x += smoothMoveX;
+                pos.x += smoothedDeltaX;
                 pos.y  = layer.currentY;
                 tile.transform.position = pos;
             }

@@ -15,6 +15,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerStats playerStatsComponent;
     [SerializeField] private EnemyStats enemyStatsComponent;
 
+    [Header("Stage")]
+    [SerializeField] private Transform startPoint;
+    [SerializeField] private Transform playerTransform;
+
     private ICharacterStats _playerStats;
     private ICharacterStats _enemyStats;
 
@@ -54,7 +58,13 @@ public class GameManager : MonoBehaviour
         _playerStats = playerStatsComponent;
         _enemyStats = enemyStatsComponent;
 
+        if (playerTransform == null && playerStatsComponent != null)
+            playerTransform = playerStatsComponent.transform;
+
+        EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+
         SetGameState(GameState.Playing);
+        RespawnPlayer();
     }
 
     /// <summary> 게임 상태를 변경하고 이벤트를 발생시킵니다. </summary>
@@ -68,6 +78,42 @@ public class GameManager : MonoBehaviour
         EventBus.Publish(new GameStateChangedEvent(_currentGameState));
 
         Debug.Log($"[GameManager] Game State Changed: {_currentGameState}");
+    }
+
+    private void OnDestroy()
+    {
+        EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+    }
+
+    /// <summary> PlayerDeadEvent 구독 핸들러 — 리스폰 처리. </summary>
+    private void OnPlayerDeadEvent(PlayerDeadEvent _)
+    {
+        // 사망 즉시 리스폰하지 않습니다. E키 입력 후 SpineInputController가 RespawnPlayer()를 호출합니다.
+    }
+
+    /// <summary> 플레이어를 StartPoint로 이동시키고 체력을 회복합니다. </summary>
+    public void RespawnPlayer()
+    {
+        if (playerTransform == null || startPoint == null)
+        {
+            Debug.LogWarning("[GameManager] RespawnPlayer: playerTransform 또는 startPoint가 없습니다.");
+            return;
+        }
+
+        playerStatsComponent?.ResetHealthToMax();
+        playerTransform.position = startPoint.position;
+        SetGameState(GameState.Playing);
+        EventBus.Publish(new PlayerRespawnEvent(startPoint.position));
+        Debug.Log("[GameManager] Player respawned at StartPoint.");
+    }
+
+    /// <summary> 스테이지 클리어 처리. </summary>
+    public void OnStageClear()
+    {
+        if (_currentGameState == GameState.StageClear) return;
+        SetGameState(GameState.StageClear);
+        EventBus.Publish(new StageClearEvent());
+        Debug.Log("[GameManager] Stage Clear!");
     }
 
     /// <summary> 플레이어 사망 처리. </summary>
@@ -108,5 +154,6 @@ public enum GameState
     Initializing,
     Playing,
     Paused,
-    GameOver
+    GameOver,
+    StageClear
 }

@@ -14,22 +14,18 @@ public class RustBlackboard : MonoBehaviour
     [SerializeField] private EnemyAttackHitbox attackHitboxComponent;
     public IAttackHitbox AttackHitbox => attackHitboxComponent;
 
-    [Header("Combat Settings")]
-    public float sightRange = 8f;
-    public float chaseRange = 10f;
-    public float attackRange = 1.5f;
-    public float moveSpeed = 2f;
+    [Header("AI Settings")]
+    [SerializeField] private EnemyAISO aiSettings;
 
-    [Header("Attack Timing")]
-    [Tooltip("한 번의 공격 애니메이션이 유지되는 시간(초)입니다.")]
-    public float attackDuration = 0.5f;
-
-    [Header("Ground / Wall Detection")]
-    public LayerMask groundLayers;
-    [Tooltip("발 앞쪽 낙하 감지 Raycast 거리")]
-    public float ledgeCheckDistance = 0.5f;
-    [Tooltip("앞쪽 벽 감지 Raycast 거리")]
-    public float wallCheckDistance = 0.3f;
+    // SO에서 값을 읽는 프로퍼티들 — 노드는 기존과 동일하게 Blackboard.xxx로 접근합니다.
+    public float sightRange         => aiSettings != null ? aiSettings.sightRange         : 8f;
+    public float chaseRange         => aiSettings != null ? aiSettings.chaseRange         : 10f;
+    public float attackRange        => aiSettings != null ? aiSettings.attackRange        : 1.5f;
+    public float moveSpeed          => aiSettings != null ? aiSettings.moveSpeed          : 2f;
+    public float attackDuration     => aiSettings != null ? aiSettings.attackDuration     : 0.5f;
+    public LayerMask groundLayers   => aiSettings != null ? aiSettings.groundLayers       : default;
+    public float ledgeCheckDistance => aiSettings != null ? aiSettings.ledgeCheckDistance : 0.5f;
+    public float wallCheckDistance  => aiSettings != null ? aiSettings.wallCheckDistance  : 0.3f;
 
     [Header("State")]
     public float currentHealth = 10f;

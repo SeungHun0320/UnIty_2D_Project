@@ -61,6 +61,8 @@ public class SpineInputController : MonoBehaviour
 
         InputAction jump = GetJumpAction();
         if (jump != null) { jump.performed += OnJumpPerformed; jump.Enable(); }
+
+        EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
     }
 
     private void OnDisable()
@@ -71,7 +73,11 @@ public class SpineInputController : MonoBehaviour
         InputAction jump = GetJumpAction();
         if (jump != null) jump.performed -= OnJumpPerformed;
 
+        EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
     }
+
+    // 사망 시 이 컴포넌트를 비활성화해 모든 입력을 차단합니다.
+    private void OnPlayerDead(PlayerDeadEvent _) => enabled = false;
 
     private void Update()
     {

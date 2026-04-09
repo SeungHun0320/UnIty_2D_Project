@@ -19,6 +19,7 @@ public class EnemyHitReceiver : MonoBehaviour
     {
         _enemyStats = GetComponentInParent<EnemyStats>();
         _animationDriver = GetComponentInParent<SpineAnimationDriver>();
+        _playerAttackLayer = LayerMask.NameToLayer("PlayerAttackHitbox");
 
         var col = GetComponent<Collider2D>();
         col.isTrigger = true;
@@ -30,9 +31,14 @@ public class EnemyHitReceiver : MonoBehaviour
             _invincibilityTimer -= Time.deltaTime;
     }
 
+    private int _playerAttackLayer;
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (IsInvincible) return;
+
+        // PlayerAttackHitbox 레이어만 처리 — 플레이어 몸 접촉은 무시합니다.
+        if (other.gameObject.layer != _playerAttackLayer) return;
 
         var playerStats = other.GetComponentInParent<PlayerStats>();
         if (playerStats == null) return;

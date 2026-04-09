@@ -11,4 +11,7 @@ public class PlayerStats : CharacterStats
 
     // 총 공격력을 계산할 때 사용할 수 있는 프로퍼티입니다.
     public float TotalAttackPower => AttackPower + bonusAttackPower;
+
+    // 사망 시 GameManager에 알려 게임 오버를 처리합니다.
+    protected override void OnDead() => GameManager.Instance?.OnPlayerDead();
 }

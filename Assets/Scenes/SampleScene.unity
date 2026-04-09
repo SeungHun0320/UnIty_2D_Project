@@ -4030,52 +4030,83 @@ MonoBehaviour:
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 1706561357}
     parallaxFactor: 0.1
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 9916587}
     parallaxFactor: 0.2
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 1521457255}
     parallaxFactor: 0.3
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 857731834}
     parallaxFactor: 0.4
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 1285897703}
     parallaxFactor: 0.45
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 560951722}
     parallaxFactor: 0.5
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 1379364301}
     parallaxFactor: 0.55
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 895046540}
     parallaxFactor: 0.7
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   - spriteRenderer: {fileID: 287278881}
     parallaxFactor: 0.9
     tiles: []
     startY: 0
     textureWidth: 0
+    idealY: 0
+    currentY: 0
+    velocityY: 0
   smoothSpeed: 8
+  smoothTimeY: 0.05
 --- !u!1 &1285897701
 GameObject:
   m_ObjectHideFlags: 0
@@ -5130,16 +5161,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   col: {fileID: 0}
   attackHitboxComponent: {fileID: 2066900000}
-  sightRange: 15
-  chaseRange: 5
-  attackRange: 2
-  moveSpeed: 2
-  attackDuration: 0.5
-  groundLayers:
-    serializedVersion: 2
-    m_Bits: 1
-  ledgeCheckDistance: 0.5
-  wallCheckDistance: 0.3
+  aiSettings: {fileID: 11400000, guid: 73ed87dc35caee746acf13888ba71dbd, type: 2}
   currentHealth: 10
   maxHealth: 10
 --- !u!114 &1940328969

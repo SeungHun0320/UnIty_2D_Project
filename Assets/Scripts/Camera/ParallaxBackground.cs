@@ -15,6 +15,9 @@ public class ParallaxBackground : MonoBehaviour
         [HideInInspector] public SpriteRenderer[] tiles;
         [HideInInspector] public float startY;
         [HideInInspector] public float textureWidth;
+        [HideInInspector] public float idealY;         // 스무딩 없이 카메라를 완전 추종했을 때의 Y
+        [HideInInspector] public float currentY;       // SmoothDamp 현재 Y
+        [HideInInspector] public float velocityY;      // SmoothDamp 내부 속도
     }
 
     [Header("References")]
@@ -26,6 +29,8 @@ public class ParallaxBackground : MonoBehaviour
     [Header("Smoothing")]
     [SerializeField, Min(0f), Tooltip("X축 이동 스무딩. 높을수록 빠르게 따라옴. 0이면 즉시 이동.")]
     private float smoothSpeed = 8f;
+    [SerializeField, Min(0f), Tooltip("Y축 SmoothDamp 시간. 낮을수록 빠르게 따라옴.")]
+    private float smoothTimeY = 0.15f;
 
     private float _previousCameraX;
     private float _previousCameraY;
@@ -42,7 +47,9 @@ public class ParallaxBackground : MonoBehaviour
         {
             if (layer.spriteRenderer == null) continue;
 
-            layer.startY      = layer.spriteRenderer.transform.position.y;
+            layer.startY   = layer.spriteRenderer.transform.position.y;
+            layer.idealY   = layer.spriteRenderer.transform.position.y;
+            layer.currentY = layer.spriteRenderer.transform.position.y;
             layer.textureWidth = layer.spriteRenderer.bounds.size.x;
 
             // 중앙·좌·우 3장 생성
@@ -82,15 +89,17 @@ public class ParallaxBackground : MonoBehaviour
             float smoothMoveX = smoothSpeed > 0f
                 ? Mathf.Lerp(0f, rawMoveX, smoothSpeed * Time.deltaTime)
                 : rawMoveX;
-            // Y는 카메라 완전 추종
-            float moveY = cameraDeltaY;
+            // idealY: 스무딩 없이 카메라를 완전 추종했을 때의 Y (정확한 목표값)
+            layer.idealY += cameraDeltaY;
+            layer.currentY = Mathf.SmoothDamp(
+                layer.currentY, layer.idealY, ref layer.velocityY, smoothTimeY);
 
             foreach (var tile in layer.tiles)
             {
                 if (tile == null) continue;
                 Vector3 pos = tile.transform.position;
                 pos.x += smoothMoveX;
-                pos.y += moveY;
+                pos.y  = layer.currentY;
                 tile.transform.position = pos;
             }
 

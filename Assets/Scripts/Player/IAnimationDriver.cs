@@ -7,6 +7,7 @@ public interface IAnimationDriver
     void PlayJump();
     void PlayAttack();
     void PlayHit();
+    void PlayDead();
     void NotifyLanded();
 
     // 공격 애니메이션 완료 시 발행됩니다.

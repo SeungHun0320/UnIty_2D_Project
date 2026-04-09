@@ -65,9 +65,21 @@ public class HitState : IPlayerState
     }
 }
 
+public class DeadState : IPlayerState
+{
+    public void Enter(PlayerStateMachine sm)
+    {
+        sm.AnimationDriver?.PlayDead();
+        sm.AttackHitbox?.Deactivate();
+    }
+    public void Exit(PlayerStateMachine sm) { }
+    // 사망 후 모든 입력 무시
+    public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }
+}
+
 // ---------- 상태머신 ----------
 
-public enum PlayerState { Idle, Moving, Attacking, Jumping, Hit }
+public enum PlayerState { Idle, Moving, Attacking, Jumping, Hit, Dead }
 [RequireComponent(typeof(SpineAnimationDriver))]
 public class PlayerStateMachine : MonoBehaviour
 {
@@ -77,11 +89,12 @@ public class PlayerStateMachine : MonoBehaviour
     public IAttackHitbox AttackHitbox { get; private set; }
 
     // 상태 싱글턴 인스턴스 (할당 최소화)
-    public readonly IdleState IdleState = new IdleState();
-    public readonly MovingState MovingState = new MovingState();
-    public readonly AttackingState AttackingState = new AttackingState();
-    public readonly JumpingState JumpingState = new JumpingState();
-    public readonly HitState HitState = new HitState();
+    public readonly IdleState IdleState = new();
+    public readonly MovingState MovingState = new();
+    public readonly AttackingState AttackingState = new();
+    public readonly JumpingState JumpingState = new();
+    public readonly HitState HitState = new();
+    public readonly DeadState DeadState = new();
 
     private IPlayerState _currentState;
 
@@ -92,8 +105,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     private void Awake()
     {
-        if (animationDriverComponent == null)
-            animationDriverComponent = GetComponent<SpineAnimationDriver>();
+        animationDriverComponent ??= GetComponent<SpineAnimationDriver>();
         AnimationDriver = animationDriverComponent;
         AttackHitbox = attackHitboxComponent;
 
@@ -106,13 +118,19 @@ public class PlayerStateMachine : MonoBehaviour
         _currentState?.OnMoveInput(this, move, movingThreshold);
     }
 
+    private void OnEnable()  => EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+    private void OnDisable() => EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
+    private void OnPlayerDeadEvent(PlayerDeadEvent _) => OnDead();
+
     public void OnJumpInput()
     {
+        if (CurrentState == PlayerState.Dead) return;
         ChangeState(JumpingState);
     }
 
     public void OnLanded()
     {
+        if (CurrentState == PlayerState.Dead) return;
         // 착지 시점의 이동 입력에 따라 Idle/Moving으로 복귀
         if (LastMoveInput.sqrMagnitude > MovingThreshold * MovingThreshold)
             ChangeState(MovingState);
@@ -122,20 +140,26 @@ public class PlayerStateMachine : MonoBehaviour
 
     public void OnAttackInput()
     {
+        if (CurrentState == PlayerState.Dead) return;
         ChangeState(AttackingState);
     }
 
     // SpineAnimationDriver.OnAttackComplete 이벤트를 SpineInputController가 전달합니다.
     public void OnAttackComplete()
     {
+        if (CurrentState == PlayerState.Dead) return;
         ChangeState(IdleState);
     }
 
     // PlayerHitReceiver가 피격 시 호출합니다.
     public void OnHit()
     {
+        if (CurrentState == PlayerState.Dead) return;
         ChangeState(HitState);
     }
+
+    // PlayerDeadEvent 수신 시 사망 상태로 전환합니다.
+    public void OnDead() => ChangeState(DeadState);
 
     public void ChangeState(IPlayerState newState)
     {
@@ -148,6 +172,7 @@ public class PlayerStateMachine : MonoBehaviour
         else if (newState is AttackingState) CurrentState = PlayerState.Attacking;
         else if (newState is JumpingState) CurrentState = PlayerState.Jumping;
         else if (newState is HitState) CurrentState = PlayerState.Hit;
+        else if (newState is DeadState) CurrentState = PlayerState.Dead;
 
         _currentState.Enter(this);
     }

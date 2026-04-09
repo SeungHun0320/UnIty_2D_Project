@@ -36,10 +36,14 @@ public abstract class CharacterStats : MonoBehaviour, ICharacterStats, IDamageab
     // 데미지를 적용하는 기본 로직입니다.
     public virtual void TakeDamage(float damage)
     {
-        if (damage <= 0f) return;
+        if (damage <= 0f || IsDead) return;
         currentHealth = Mathf.Clamp(currentHealth - damage, 0f, maxHealth);
         RaiseHealthChanged();
+        if (IsDead) OnDead();
     }
+
+    // 사망 시 서브클래스에서 처리를 정의합니다. (OCP)
+    protected virtual void OnDead() { }
 
     // 회복 로직의 기본 구현입니다.
     public virtual void Heal(float amount)

@@ -33,6 +33,15 @@ public class EnemyHitReceiver : MonoBehaviour
 
     private int _playerAttackLayer;
 
+    // 투사체 등 외부에서 직접 데미지를 줄 때 호출합니다.
+    public void ReceiveHit(float damage)
+    {
+        if (IsInvincible) return;
+        _enemyStats?.TakeDamage(damage);
+        _animationDriver?.PlayHit();
+        _invincibilityTimer = invincibilityDuration;
+    }
+
     // 히트박스 활성화 시점에 이미 겹쳐있는 경우도 처리합니다.
     private void OnTriggerStay2D(Collider2D other) => OnTriggerEnter2D(other);
 

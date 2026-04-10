@@ -1,5 +1,5 @@
-using System.Collections;
 using UnityEngine;
+
 // 플레이어 상태를 나타내는 인터페이스입니다. (OCP)
 // 새 상태를 추가할 때 기존 코드를 수정하지 않고 새 클래스를 추가하기만 합니다.
 public interface IPlayerState
@@ -33,33 +33,24 @@ public class MovingState : IPlayerState
     }
 }
 
-public class AttackingState : IPlayerState
+// 스킬 실행 상태입니다. CurrentSkill.Execute()를 실행하며 타입을 알 필요가 없습니다.
+public class SkillState : IPlayerState
 {
-    private Coroutine _hitboxCoroutine;
+    private Coroutine _routine;
 
     public void Enter(PlayerStateMachine sm)
     {
-        sm.AnimationDriver?.PlayAttack();
-        _hitboxCoroutine = sm.StartCoroutine(HitboxRoutine(sm));
+        _routine = sm.StartCoroutine(sm.CurrentSkill.Execute(sm.SkillContext));
     }
 
     public void Exit(PlayerStateMachine sm)
     {
-        if (_hitboxCoroutine != null)
+        if (_routine != null)
         {
-            sm.StopCoroutine(_hitboxCoroutine);
-            _hitboxCoroutine = null;
+            sm.StopCoroutine(_routine);
+            _routine = null;
         }
-        sm.AttackHitbox?.Deactivate();
-    }
-
-    // 딜레이 후 히트박스를 활성화하고 지정 시간 후 비활성화합니다.
-    private IEnumerator HitboxRoutine(PlayerStateMachine sm)
-    {
-        yield return new WaitForSeconds(sm.AttackHitboxDelay);
-        sm.AttackHitbox?.Activate();
-        yield return new WaitForSeconds(sm.AttackHitboxDuration);
-        sm.AttackHitbox?.Deactivate();
+        sm.SkillContext.Hitbox?.Deactivate();
     }
 
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }
@@ -92,7 +83,7 @@ public class DeadState : IPlayerState
     public void Enter(PlayerStateMachine sm)
     {
         sm.AnimationDriver?.PlayDead();
-        sm.AttackHitbox?.Deactivate();
+        sm.SkillContext.Hitbox?.Deactivate();
     }
     public void Exit(PlayerStateMachine sm) { }
     // 사망 후 모든 입력 무시
@@ -101,28 +92,30 @@ public class DeadState : IPlayerState
 
 // ---------- 상태머신 ----------
 
-public enum PlayerState { Idle, Moving, Attacking, Jumping, Hit, Dead }
+public enum PlayerState { Idle, Moving, Skill, Jumping, Hit, Dead }
+
 [RequireComponent(typeof(PlayerAnimationDriver))]
 public class PlayerStateMachine : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriverComponent;
     [SerializeField] private PlayerAttackHitbox attackHitboxComponent;
+    [SerializeField] private PlayerMover playerMoverComponent;
+    [SerializeField] private PlayerStats playerStatsComponent;
 
-    [Header("Attack Timing")]
-    [SerializeField, Min(0f)] private float attackHitboxDelay    = 0.8f;
-    [SerializeField, Min(0f)] private float attackHitboxDuration = 0.4f;  // 0.8 ~ 1.2초
-    public float AttackHitboxDelay    => attackHitboxDelay;
-    public float AttackHitboxDuration => attackHitboxDuration;
-    public IAttackHitbox AttackHitbox { get; private set; }
+    // 현재 실행 중인 스킬 데이터입니다. SkillState가 Execute() 호출 시 사용합니다.
+    public SkillData CurrentSkill { get; private set; }
+
+    // 스킬 실행에 필요한 참조 묶음입니다. Awake에서 한 번 생성됩니다.
+    public SkillContext SkillContext { get; private set; }
 
     // 상태 싱글턴 인스턴스 (할당 최소화)
-    public readonly IdleState IdleState = new();
-    public readonly MovingState MovingState = new();
-    public readonly AttackingState AttackingState = new();
+    public readonly IdleState    IdleState    = new();
+    public readonly MovingState  MovingState  = new();
+    public readonly SkillState   SkillState   = new();
     public readonly JumpingState JumpingState = new();
-    public readonly HitState HitState = new();
-    public readonly DeadState DeadState = new();
+    public readonly HitState     HitState     = new();
+    public readonly DeadState    DeadState    = new();
 
     private IPlayerState _currentState;
 
@@ -134,8 +127,19 @@ public class PlayerStateMachine : MonoBehaviour
     private void Awake()
     {
         animationDriverComponent ??= GetComponent<SpineAnimationDriver>();
+        playerMoverComponent     ??= GetComponent<PlayerMover>();
+        playerStatsComponent     ??= GetComponent<PlayerStats>();
+
         AnimationDriver = animationDriverComponent;
-        AttackHitbox = attackHitboxComponent;
+
+        SkillContext = new SkillContext
+        {
+            Hitbox  = attackHitboxComponent,
+            Anim    = animationDriverComponent,
+            Mover   = playerMoverComponent,
+            Stats   = playerStatsComponent,
+            Origin  = transform,
+        };
 
         ChangeState(IdleState);
     }
@@ -172,17 +176,18 @@ public class PlayerStateMachine : MonoBehaviour
     public void OnLanded()
     {
         if (CurrentState == PlayerState.Dead) return;
-        // 착지 시점의 이동 입력에 따라 Idle/Moving으로 복귀
         if (LastMoveInput.sqrMagnitude > MovingThreshold * MovingThreshold)
             ChangeState(MovingState);
         else
             ChangeState(IdleState);
     }
 
-    public void OnAttackInput()
+    // PlayerSkillController가 쿨다운 검증 후 호출합니다.
+    public void OnSkillInput(SkillData skill)
     {
         if (CurrentState == PlayerState.Dead) return;
-        ChangeState(AttackingState);
+        CurrentSkill = skill;
+        ChangeState(SkillState);
     }
 
     // SpineAnimationDriver.OnAttackComplete 이벤트를 SpineInputController가 전달합니다.
@@ -208,12 +213,12 @@ public class PlayerStateMachine : MonoBehaviour
         _currentState = newState;
 
         // 열거형 동기화 (인스펙터 표시용)
-        if (newState is IdleState) CurrentState = PlayerState.Idle;
-        else if (newState is MovingState) CurrentState = PlayerState.Moving;
-        else if (newState is AttackingState) CurrentState = PlayerState.Attacking;
+        if      (newState is IdleState)    CurrentState = PlayerState.Idle;
+        else if (newState is MovingState)  CurrentState = PlayerState.Moving;
+        else if (newState is SkillState)   CurrentState = PlayerState.Skill;
         else if (newState is JumpingState) CurrentState = PlayerState.Jumping;
-        else if (newState is HitState) CurrentState = PlayerState.Hit;
-        else if (newState is DeadState) CurrentState = PlayerState.Dead;
+        else if (newState is HitState)     CurrentState = PlayerState.Hit;
+        else if (newState is DeadState)    CurrentState = PlayerState.Dead;
 
         _currentState.Enter(this);
     }
@@ -223,6 +228,10 @@ public class PlayerStateMachine : MonoBehaviour
     {
         if (animationDriverComponent == null)
             animationDriverComponent = GetComponent<SpineAnimationDriver>();
+        if (playerMoverComponent == null)
+            playerMoverComponent = GetComponent<PlayerMover>();
+        if (playerStatsComponent == null)
+            playerStatsComponent = GetComponent<PlayerStats>();
     }
 #endif
 }

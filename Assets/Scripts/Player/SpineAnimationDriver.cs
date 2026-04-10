@@ -32,7 +32,7 @@ public abstract class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
         Dead   = "death",
     };
 
-    public abstract event Action OnAttackComplete;
+    public abstract event Action OnActionComplete;
 
     protected bool _lockMove;
     protected bool _isMoving;
@@ -104,6 +104,7 @@ public abstract class SpineAnimationDriver : MonoBehaviour, IAnimationDriver
     }
 
     public abstract void PlayAttack();
+    public abstract void PlayAnimation(string animationKey);
 
     public void PlayHit()
     {

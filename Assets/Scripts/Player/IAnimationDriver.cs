@@ -10,6 +10,9 @@ public interface IAnimationDriver
     void PlayDead();
     void NotifyLanded();
 
-    // 공격 애니메이션 완료 시 발행됩니다.
-    event System.Action OnAttackComplete;
+    // 애니메이션 키를 직접 지정해 재생합니다. 완료 시 OnActionComplete가 발행됩니다.
+    void PlayAnimation(string animationKey);
+
+    // 공격/스킬 애니메이션 완료 시 발행됩니다.
+    event System.Action OnActionComplete;
 }

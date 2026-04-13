@@ -2935,8 +2935,8 @@ TextureImporter:
         y: 1147
         width: 75
         height: 145
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.64}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -4035,8 +4035,8 @@ TextureImporter:
         y: 999
         width: 75
         height: 145
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.59}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -5637,8 +5637,8 @@ TextureImporter:
       name: HP_Hit_0
       rect:
         serializedVersion: 2
-        x: 1845
-        y: 686
+        x: 1848
+        y: 690
         width: 70
         height: 145
       alignment: 0
@@ -5905,8 +5905,8 @@ TextureImporter:
         y: 705
         width: 75
         height: 130
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.55}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -7727,12 +7727,12 @@ TextureImporter:
       name: HP_Hit_2
       rect:
         serializedVersion: 2
-        x: 381
-        y: 838
+        x: 382
+        y: 840
         width: 75
         height: 130
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.45}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

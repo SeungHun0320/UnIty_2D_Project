@@ -42,11 +42,9 @@ public class GameHUD : MonoBehaviour
     public void SetHealth(int current, int max, int previousHealth = -1)
     {
         if (maskUI == null) return;
-        bool tookDamage = previousHealth >= 0 && current < previousHealth;
         maskUI.SetMaxHealth(max);
         maskUI.SetHealth(current, previousHealth);
-        if (tookDamage && hitFlashUI != null)
-            hitFlashUI.PlayHit(current);
+        // Hit 애니메이션은 MaskUI 내부에서 해당 슬롯 Animator가 직접 처리합니다.
     }
 
     public void SetSoul(int current, int max = -1)
@@ -72,10 +70,9 @@ public class GameHUD : MonoBehaviour
     public void Show() => _wantsVisible = true;
     public void Hide() => _wantsVisible = false;
 
-    /// <summary> Hit 연출 재생 (피격 시). slotIndex = 방금 빈칸이 된 마스크 슬롯 인덱스. </summary>
+    /// <summary> 외부에서 Hit 연출 직접 요청 시 MaskUI를 통해 처리합니다. </summary>
     public void PlayHitFlash(int slotIndex = 0)
     {
-        if (hitFlashUI != null)
-            hitFlashUI.PlayHit(slotIndex);
+        maskUI?.SetHealth(maskUI.GetCurrentHealth(), slotIndex + 1);
     }
 }

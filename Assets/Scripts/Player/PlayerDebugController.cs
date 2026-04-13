@@ -11,9 +11,9 @@ public class PlayerDebugController : MonoBehaviour
 
     [Header("Debug Steps")]
     [Tooltip("F3/F4 한 번에 증감할 체력 양입니다.")]
-    [SerializeField] private float healthStep = 10f;
+    [SerializeField] private float healthStep = 1f;
     [Tooltip("F5 한 번에 증감할 최대 체력 양입니다.")]
-    [SerializeField] private float maxHealthStep = 10f;
+    [SerializeField] private float maxHealthStep = 1f;
 
     private void Awake()
     {

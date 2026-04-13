@@ -12,8 +12,19 @@ public abstract class SkillData : ScriptableObject
     [Header("Hitbox")]
     public HitboxConfig hitbox = new();
 
+    [Header("Effects")]
+    public SkillEffect[] effects;
+
     // 서브클래스가 스킬 행동을 직접 구현합니다.
     public abstract IEnumerator Execute(SkillContext ctx);
+
+    // 등록된 모든 이펙트를 재생합니다. 서브클래스의 Execute()에서 호출합니다.
+    protected void PlayEffects(SkillContext ctx)
+    {
+        if (effects == null) return;
+        foreach (var effect in effects)
+            effect?.Play(ctx);
+    }
 
     // 히트박스 활성화/비활성화 공통 루틴입니다. 서브클래스에서 재사용합니다.
     protected IEnumerator ActivateHitbox(SkillContext ctx)

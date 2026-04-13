@@ -15,8 +15,9 @@ public class ShieldAttackData : SkillData
 
     public override IEnumerator Execute(SkillContext ctx)
     {
-        // 1. 애니메이션 재생
+        // 1. 애니메이션 + 이펙트 재생
         ctx.Anim.PlayAnimation(animationKey);
+        PlayEffects(ctx);
 
         // 2. hitbox.delay 후 투사체 발사
         yield return new WaitForSeconds(hitbox.delay);

@@ -16,6 +16,8 @@ MonoBehaviour:
   hitbox:
     delay: 0.3
     duration: 0
+  effects:
+  - {fileID: 11400000, guid: 8374be90e4384c847b6d12a10f326c58, type: 2}
   projectilePrefab: {fileID: 579045054228330265, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
   damageMultiplier: 1.5
   spawnOffset: {x: 0.5, y: 0}

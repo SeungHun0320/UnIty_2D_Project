@@ -523,12 +523,12 @@ TextureImporter:
       name: Vengeful Spirit_Aura_4
       rect:
         serializedVersion: 2
-        x: 529
-        y: 1818
-        width: 302
-        height: 229
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        x: 548
+        y: 1875
+        width: 283
+        height: 172
+      alignment: 9
+      pivot: {x: 0.5, y: 0.1}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -549,8 +549,8 @@ TextureImporter:
         y: 1864
         width: 251
         height: 180
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.53}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1275,8 +1275,8 @@ TextureImporter:
         y: 271
         width: 205
         height: 278
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.57, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2463,8 +2463,8 @@ TextureImporter:
         y: 549
         width: 276
         height: 183
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.13}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

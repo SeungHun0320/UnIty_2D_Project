@@ -33,10 +33,14 @@ public class ShieldAttackData : SkillData
 
         // localScale.x 부호로 바라보는 방향 판별
         float dirX = Mathf.Sign(ctx.Origin.localScale.x);
-        Vector2 spawnPos = (Vector2)ctx.Origin.position
-            + new Vector2(spawnOffset.x * dirX, spawnOffset.y);
+        // SpawnPoint가 지정된 경우 해당 위치 사용, 없으면 Origin + offset으로 폴백
+        Vector2 spawnPos = ctx.SpawnPoint != null
+            ? (Vector2)ctx.SpawnPoint.position
+            : (Vector2)ctx.Origin.position + new Vector2(spawnOffset.x * dirX, spawnOffset.y);
 
         GameObject go = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+        // localScale.x로 방향을 잡으면 애니메이션 flipX가 방향과 무관하게 동작합니다.
+        go.transform.localScale = new Vector3(dirX, 1f, 1f);
         Projectile proj = go.GetComponent<Projectile>();
 
         float damage = ctx.Stats != null

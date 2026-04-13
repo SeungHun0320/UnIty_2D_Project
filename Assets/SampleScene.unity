@@ -8227,6 +8227,37 @@ MonoBehaviour:
   m_FlexibleWidth: 0
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!1 &573588697
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 573588698}
+  m_Layer: 0
+  m_Name: ProjectileSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &573588698
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 573588697}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 39.125, y: -16.074999, z: 0}
+  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2121868733}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -12557,6 +12588,7 @@ Transform:
   m_Children:
   - {fileID: 300570737}
   - {fileID: 916286919}
+  - {fileID: 573588698}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2121868734
@@ -12647,6 +12679,7 @@ MonoBehaviour:
   attackHitboxComponent: {fileID: 916286920}
   playerMoverComponent: {fileID: 2121868741}
   playerStatsComponent: {fileID: 2121868737}
+  projectileSpawnPoint: {fileID: 573588698}
 --- !u!114 &2121868737
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17862,63 +17895,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6309599117248494912}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!1001 &5140528067850126098
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 579045054228330265, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_Name
-      value: ProjectilePrefab
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6883381869005758182, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 0045e937336270248b2fc6b5b2854156, type: 3}
 --- !u!4 &5260572382996233984
 Transform:
   m_ObjectHideFlags: 0
@@ -33691,4 +33667,3 @@ SceneRoots:
   - {fileID: 2121868733}
   - {fileID: 1940328964}
   - {fileID: 215581992}
-  - {fileID: 5140528067850126098}

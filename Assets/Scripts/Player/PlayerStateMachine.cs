@@ -100,8 +100,9 @@ public class PlayerStateMachine : MonoBehaviour
     [Header("References")]
     [SerializeField] private SpineAnimationDriver animationDriverComponent;
     [SerializeField] private PlayerAttackHitbox attackHitboxComponent;
-    [SerializeField] private PlayerMover playerMoverComponent;
-    [SerializeField] private PlayerStats playerStatsComponent;
+    [SerializeField] private PlayerMover  playerMoverComponent;
+    [SerializeField] private PlayerStats  playerStatsComponent;
+    [SerializeField] private Transform    projectileSpawnPoint;
 
     // 현재 실행 중인 스킬 데이터입니다. SkillState가 Execute() 호출 시 사용합니다.
     public SkillData CurrentSkill { get; private set; }
@@ -134,11 +135,12 @@ public class PlayerStateMachine : MonoBehaviour
 
         SkillContext = new SkillContext
         {
-            Hitbox  = attackHitboxComponent,
-            Anim    = animationDriverComponent,
-            Mover   = playerMoverComponent,
-            Stats   = playerStatsComponent,
-            Origin  = transform,
+            Hitbox      = attackHitboxComponent,
+            Anim        = animationDriverComponent,
+            Mover       = playerMoverComponent,
+            Stats       = playerStatsComponent,
+            Origin      = transform,
+            SpawnPoint  = projectileSpawnPoint != null ? projectileSpawnPoint : transform,
         };
 
         ChangeState(IdleState);

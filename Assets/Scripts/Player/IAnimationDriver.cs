@@ -15,4 +15,7 @@ public interface IAnimationDriver
 
     // 공격/스킬 애니메이션 완료 시 발행됩니다.
     event System.Action OnActionComplete;
+
+    // 현재 트랙 0의 TimeScale을 반환합니다. ActivateHitbox 타이밍 보정에 사용합니다.
+    float CurrentTrackTimeScale { get; }
 }

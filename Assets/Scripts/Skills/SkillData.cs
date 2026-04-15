@@ -31,11 +31,13 @@ public abstract class SkillData : ScriptableObject
     }
 
     // 히트박스 활성화/비활성화 공통 루틴입니다. 서브클래스에서 재사용합니다.
+    // 애니메이션 재생 속도(CurrentTrackTimeScale)로 타이밍을 자동 보정합니다.
     protected IEnumerator ActivateHitbox(SkillContext ctx)
     {
-        yield return new UnityEngine.WaitForSeconds(hitbox.delay);
+        float s = ctx.Anim?.CurrentTrackTimeScale ?? 1f;
+        yield return new UnityEngine.WaitForSeconds(hitbox.delay / s);
         ctx.Hitbox?.Activate();
-        yield return new UnityEngine.WaitForSeconds(hitbox.duration);
+        yield return new UnityEngine.WaitForSeconds(hitbox.duration / s);
         ctx.Hitbox?.Deactivate();
     }
 }

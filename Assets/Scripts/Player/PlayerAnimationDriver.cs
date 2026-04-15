@@ -14,7 +14,7 @@ public class PlayerAnimationDriver : SpineAnimationDriver
     {
         if (_isDead) return;
         if (!CanPlay(Animations.Attack)) return;
-        var entry = SkeletonAnimation.AnimationState.SetAnimation(0, Animations.Attack, false);
+        var entry = SetAnim(0, Animations.Attack, false, Speeds.Attack);
         entry.Complete += _ => OnActionComplete?.Invoke();
         if (CanPlay(Animations.Idle))
             SkeletonAnimation.AnimationState.AddAnimation(0, Animations.Idle, true, attackToIdleDelay);
@@ -26,14 +26,15 @@ public class PlayerAnimationDriver : SpineAnimationDriver
         if (_isDead) return;
         if (!CanPlay(animationKey)) return;
         _lockMove = true;
-        var entry = SkeletonAnimation.AnimationState.SetAnimation(0, animationKey, false);
+        // 스킬 전용 커스텀 키는 Attack 속도를 기본으로 사용합니다.
+        var entry = SetAnim(0, animationKey, false, Speeds.Attack);
         entry.Complete += _ =>
         {
             _lockMove = false;
             OnActionComplete?.Invoke();
             string next = _isMoving ? Animations.Move : Animations.Idle;
             if (CanPlay(next))
-                SkeletonAnimation.AnimationState.SetAnimation(0, next, true);
+                SetAnim(0, next, true, next == Animations.Move ? Speeds.Move : Speeds.Idle);
         };
     }
 }

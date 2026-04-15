@@ -39,9 +39,39 @@ public class ParallaxBackground : MonoBehaviour
     private float _previousCameraY;
     private bool _frozen;
 
-    private void OnEnable()  => EventBus.Subscribe<StageClearEvent>(OnStageClear);
-    private void OnDisable() => EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
+    private void OnEnable()
+    {
+        EventBus.Subscribe<StageClearEvent>(OnStageClear);
+        EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
+    }
+
+    private void OnDisable()
+    {
+        EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
+        EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
+    }
+
     private void OnStageClear(StageClearEvent _) => _frozen = true;
+
+    private void OnStageRestart(StageRestartEvent _)
+    {
+        _frozen = false;
+        if (targetCamera == null) return;
+
+        _previousCameraX = targetCamera.transform.position.x;
+        _previousCameraY = targetCamera.transform.position.y;
+
+        // 리스폰 후 카메라 Y가 순간이동하면 SmoothDamp 지연으로 배경이 슬라이드합니다.
+        // 각 레이어의 Y 기준값을 현재 타일 위치로 스냅해 즉시 동기화합니다.
+        foreach (var layer in layers)
+        {
+            if (layer.tiles == null || layer.tiles[0] == null) continue;
+            float snapY = layer.tiles[0].transform.position.y;
+            layer.idealY    = snapY;
+            layer.currentY  = snapY;
+            layer.velocityY = 0f;
+        }
+    }
 
     private void Awake()
     {

@@ -47,9 +47,6 @@ public class EnemyHitReceiver : MonoBehaviour
             _hitState?.Enter(sourcePosition);
 
         _invincibilityTimer = invincibilityDuration;
-
-        // 플레이어 발사체 적중 — 소울 충전 이벤트 발행
-        EventBus.Publish(new EnemyHitByPlayerEvent());
     }
 
     // 히트박스 활성화 시점에 이미 겹쳐있는 경우도 처리합니다.

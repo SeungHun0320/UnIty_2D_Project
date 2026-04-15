@@ -48,7 +48,7 @@ public class PlayerHitReceiver : MonoBehaviour
         if (IsInvincible) return;
 
         var enemyStats = other.GetComponentInParent<EnemyStats>();
-        if (enemyStats == null) return;
+        if (enemyStats == null || enemyStats.IsDead) return;
 
         // 데미지 적용
         _playerStats?.TakeDamage(enemyStats.AttackPower);

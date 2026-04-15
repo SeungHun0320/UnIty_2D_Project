@@ -47,20 +47,14 @@ public class BTSequence : BTComposite
 
 public class BTSelector : BTComposite
 {
-    private int _currentIndex;
-
     public BTSelector(IEnumerable<BTNode> children) : base(children) { }
 
-    protected override void OnStart()
-    {
-        _currentIndex = 0;
-    }
-
+    // 매 Tick마다 처음부터 재평가합니다. (Reactive Priority Selector)
+    // 높은 우선순위 브랜치가 언제든 끼어들 수 있도록 index를 유지하지 않습니다.
     protected override BTNodeState OnUpdate()
     {
-        while (_currentIndex < children.Count)
+        foreach (var child in children)
         {
-            BTNode child = children[_currentIndex];
             BTNodeState result = child.Tick();
 
             if (result == BTNodeState.Running)
@@ -68,8 +62,6 @@ public class BTSelector : BTComposite
 
             if (result == BTNodeState.Success)
                 return BTNodeState.Success;
-
-            _currentIndex++;
         }
 
         return BTNodeState.Failure;

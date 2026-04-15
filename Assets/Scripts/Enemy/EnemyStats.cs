@@ -5,14 +5,23 @@ using UnityEngine;
 public class EnemyStats : CharacterStats
 {
     [Header("Enemy Only")]
-    [Tooltip("플레이어가 처치 시 얻는 경험치 양입니다.")]
-    public int rewardExp = 0;
+    [Tooltip("플레이어가 처치 시 얻는 경험치 범위입니다. (최소, 최대) 랜덤 지급됩니다.")]
+    public Vector2Int rewardExpRange = new Vector2Int(0, 0);
+    [Tooltip("플레이어가 처치 시 획득하는 지오(골드) 범위입니다. (최소, 최대)")]
+    public Vector2Int geoRewardRange = new Vector2Int(0, 0);
+
+    // 범위 내 랜덤 지오 보상을 반환합니다.
+    public int RollGeoReward() => Random.Range(geoRewardRange.x, geoRewardRange.y + 1);
 
     protected override void OnDead()
     {
-        base.OnDead(); // OnDeadEvent 발행
+        base.OnDead();
+        // 사망 시 물리 충돌 및 공격 히트박스를 비활성화합니다.
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+        GetComponentInChildren<EnemyAttackHitbox>()?.Deactivate();
+        // EnemyDeadEvent는 GameManager.OnEnemyDead() 내부에서 발행합니다. 중복 발행 방지.
         GameManager.Instance?.OnEnemyDead(gameObject);
-        EventBus.Publish(new EnemyDeadEvent(gameObject));
     }
 }
 

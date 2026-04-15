@@ -108,6 +108,15 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] Player respawned at StartPoint.");
     }
 
+    /// <summary> 스테이지를 재시작합니다. 플레이어 리셋 + 적 재생성. </summary>
+    public void RestartStage()
+    {
+        if (_currentGameState != GameState.StageClear) return;
+        RespawnPlayer();
+        EventBus.Publish(new StageRestartEvent());
+        Debug.Log("[GameManager] Stage Restarted.");
+    }
+
     /// <summary> 스테이지 클리어 처리. </summary>
     public void OnStageClear()
     {

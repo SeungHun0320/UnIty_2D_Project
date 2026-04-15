@@ -80,3 +80,6 @@ public readonly struct PlayerRespawnEvent
 
 // 플레이어 공격이 적에게 적중할 때 발행됩니다. (근접/투사체 공통)
 public readonly struct EnemyHitByPlayerEvent { }
+
+// 스테이지 재시작 시 발행됩니다. EnemySpawner가 구독해 적을 재생성합니다.
+public readonly struct StageRestartEvent { }

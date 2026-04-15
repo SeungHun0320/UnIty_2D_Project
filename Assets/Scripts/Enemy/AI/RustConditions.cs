@@ -27,14 +27,19 @@ public class IsPlayerInSightNode : RustConditionNode
 {
     public IsPlayerInSightNode(RustBlackboard blackboard) : base(blackboard) { }
 
+    // X 거리가 sightRange 이내이고 Y 차이가 maxYDistance 이내일 때만 감지합니다.
     protected override BTNodeState OnUpdate()
     {
         if (Blackboard.playerTransform == null)
             return BTNodeState.Failure;
 
-        return Blackboard.DistanceToPlayer <= Blackboard.sightRange
-            ? BTNodeState.Success
-            : BTNodeState.Failure;
+        if (Blackboard.DistanceToPlayer > Blackboard.sightRange)
+            return BTNodeState.Failure;
+
+        if (Blackboard.VerticalDistanceToPlayer > Blackboard.maxYDistance)
+            return BTNodeState.Failure;
+
+        return BTNodeState.Success;
     }
 }
 
@@ -42,12 +47,14 @@ public class IsPlayerInAttackRangeNode : RustConditionNode
 {
     public IsPlayerInAttackRangeNode(RustBlackboard blackboard) : base(blackboard) { }
 
+    // stopChaseRange 기준으로 판단합니다.
+    // 추격 정지 거리와 공격 시작 거리를 일치시켜 데드존을 방지합니다.
     protected override BTNodeState OnUpdate()
     {
         if (Blackboard.playerTransform == null)
             return BTNodeState.Failure;
 
-        return Blackboard.DistanceToPlayer <= Blackboard.attackRange
+        return Blackboard.DistanceToPlayer <= Blackboard.stopChaseRange
             ? BTNodeState.Success
             : BTNodeState.Failure;
     }

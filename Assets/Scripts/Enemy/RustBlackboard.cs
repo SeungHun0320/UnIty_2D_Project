@@ -23,7 +23,9 @@ public class RustBlackboard : MonoBehaviour
     // SO에서 값을 읽는 프로퍼티들 — 노드는 기존과 동일하게 Blackboard.xxx로 접근합니다.
     public float sightRange         => aiSettings != null ? aiSettings.sightRange         : 8f;
     public float chaseRange         => aiSettings != null ? aiSettings.chaseRange         : 10f;
+    public float maxYDistance       => aiSettings != null ? aiSettings.maxYDistance       : 4f;
     public float attackRange        => aiSettings != null ? aiSettings.attackRange        : 1.5f;
+    public float stopChaseRange     => aiSettings != null ? aiSettings.stopChaseRange     : 2f;
     public float moveSpeed          => aiSettings != null ? aiSettings.moveSpeed          : 2f;
     public float attackDuration     => aiSettings != null ? aiSettings.attackDuration     : 0.5f;
     public float attackCooldown     => aiSettings != null ? aiSettings.attackCooldown     : 1.0f;
@@ -35,6 +37,13 @@ public class RustBlackboard : MonoBehaviour
     {
         if (selfTransform == null)
             selfTransform = transform;
+
+        // 프리팹으로 인스턴스화 시 씬 참조가 소실되므로 런타임에 자동 탐색합니다.
+        if (playerTransform == null)
+        {
+            var player = FindObjectOfType<PlayerStats>();
+            if (player != null) playerTransform = player.transform;
+        }
 
         if (enemyStats == null)
             enemyStats = GetComponent<EnemyStats>();
@@ -54,14 +63,23 @@ public class RustBlackboard : MonoBehaviour
 
     public bool IsDead => enemyStats != null && enemyStats.IsDead;
 
+    // 수평 거리 — 이동/범위 판단에 사용합니다.
     public float DistanceToPlayer
     {
         get
         {
-            if (playerTransform == null || selfTransform == null)
-                return float.PositiveInfinity;
+            if (playerTransform == null || selfTransform == null) return float.PositiveInfinity;
+            return Mathf.Abs(playerTransform.position.x - selfTransform.position.x);
+        }
+    }
 
-            return Vector2.Distance(selfTransform.position, playerTransform.position);
+    // 수직 거리 — 층 판단(시야 차단)에 사용합니다.
+    public float VerticalDistanceToPlayer
+    {
+        get
+        {
+            if (playerTransform == null || selfTransform == null) return float.PositiveInfinity;
+            return Mathf.Abs(playerTransform.position.y - selfTransform.position.y);
         }
     }
 

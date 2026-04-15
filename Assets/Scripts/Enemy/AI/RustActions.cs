@@ -39,12 +39,23 @@ public class RustChasePlayerActionNode : RustActionNode
         float targetX = Blackboard.playerTransform.position.x;
         float dirX = Mathf.Sign(targetX - selfX);
 
-        // 공격 사거리 안이면 멈춥니다.
-        if (Blackboard.DistanceToPlayer <= Blackboard.attackRange)
+        // chaseRange 초과 또는 Y 거리 초과 시 추적 포기 → idle로 복귀합니다.
+        if (Blackboard.DistanceToPlayer > Blackboard.chaseRange ||
+            Blackboard.VerticalDistanceToPlayer > Blackboard.maxYDistance)
         {
             Blackboard.rb.linearVelocity = new Vector2(0f, Blackboard.rb.linearVelocity.y);
             Blackboard.animationDriver?.SetMoving(false);
-            return BTNodeState.Success;
+            return BTNodeState.Failure;
+        }
+
+        // stopChaseRange 이하로 접근하면 멈추고 Running을 유지합니다.
+        // Success를 반환하면 시퀀스가 종료되어 다음 틱에 IsPlayerInSight부터 재평가해야 하므로
+        // Running을 반환해 시퀀스를 살려두고 플레이어가 멀어지면 즉시 추적 재개합니다.
+        if (Blackboard.DistanceToPlayer <= Blackboard.stopChaseRange)
+        {
+            Blackboard.rb.linearVelocity = new Vector2(0f, Blackboard.rb.linearVelocity.y);
+            Blackboard.animationDriver?.SetMoving(false);
+            return BTNodeState.Running;
         }
 
         // 벽 감지: 진행 방향 앞에 벽이 있으면 멈춥니다.
@@ -66,10 +77,14 @@ public class RustChasePlayerActionNode : RustActionNode
         // X축만 이동, Y는 Rigidbody2D Physics(중력)에 맡깁니다.
         Blackboard.rb.linearVelocity = new Vector2(dirX * Blackboard.moveSpeed, Blackboard.rb.linearVelocity.y);
 
-        // 좌우 방향에 따라 스케일 반전
-        Vector3 scale = Blackboard.selfTransform.localScale;
-        scale.x = Mathf.Abs(scale.x) * dirX;
-        Blackboard.selfTransform.localScale = scale;
+        // 플레이어와 충분히 떨어져 있을 때만 스케일 반전합니다.
+        // 너무 가까울 때 부호 진동으로 깜빡이는 현상을 방지합니다.
+        if (Mathf.Abs(targetX - selfX) > 0.15f)
+        {
+            Vector3 scale = Blackboard.selfTransform.localScale;
+            scale.x = Mathf.Abs(scale.x) * dirX;
+            Blackboard.selfTransform.localScale = scale;
+        }
 
         Blackboard.animationDriver?.SetMoving(true);
         return BTNodeState.Running;

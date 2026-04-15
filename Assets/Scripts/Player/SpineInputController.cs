@@ -28,7 +28,9 @@ public class SpineInputController : MonoBehaviour
 
     private Vector2 _moveInput;
     private bool _waitingForRespawn;
+    private bool _waitingForRestart;
     private InputAction _runtimeRespawnAction;
+    private InputAction _runtimeRestartAction;
 
     private void Awake()
     {
@@ -51,6 +53,10 @@ public class SpineInputController : MonoBehaviour
         _runtimeRespawnAction = new InputAction(name: "Respawn", type: InputActionType.Button);
         _runtimeRespawnAction.AddBinding("<Keyboard>/e");
         _runtimeRespawnAction.AddBinding("<Gamepad>/buttonEast");
+
+        _runtimeRestartAction = new InputAction(name: "Restart", type: InputActionType.Button);
+        _runtimeRestartAction.AddBinding("<Keyboard>/r");
+        _runtimeRestartAction.AddBinding("<Gamepad>/start");
 
         EnsureActions();
     }
@@ -79,6 +85,7 @@ public class SpineInputController : MonoBehaviour
 
         EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
+        EventBus.Subscribe<StageClearEvent>(OnStageClear);
     }
 
     private void OnDisable()
@@ -101,8 +108,15 @@ public class SpineInputController : MonoBehaviour
             _runtimeRespawnAction.Disable();
         }
 
+        if (_runtimeRestartAction != null)
+        {
+            _runtimeRestartAction.performed -= OnRestartPerformed;
+            _runtimeRestartAction.Disable();
+        }
+
         EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
+        EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
     }
 
     // 사망 시 일반 입력을 차단하고 E키 리스폰 대기 모드로 전환합니다.
@@ -125,6 +139,24 @@ public class SpineInputController : MonoBehaviour
         _waitingForRespawn = false;
         _runtimeRespawnAction.performed -= OnRespawnPerformed;
         _runtimeRespawnAction.Disable();
+    }
+
+    // 스테이지 클리어 시 R키 재시작 대기 모드로 전환합니다.
+    private void OnStageClear(StageClearEvent _)
+    {
+        if (_waitingForRestart) return;
+        _waitingForRestart = true;
+        _runtimeRestartAction.performed += OnRestartPerformed;
+        _runtimeRestartAction.Enable();
+    }
+
+    private void OnRestartPerformed(InputAction.CallbackContext _)
+    {
+        if (!_waitingForRestart) return;
+        _waitingForRestart = false;
+        _runtimeRestartAction.performed -= OnRestartPerformed;
+        _runtimeRestartAction.Disable();
+        GameManager.Instance?.RestartStage();
     }
 
     private void Update()

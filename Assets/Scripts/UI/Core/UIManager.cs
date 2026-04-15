@@ -27,6 +27,7 @@ public class UIManager : MonoBehaviour
         EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Subscribe<StageClearEvent>(OnStageClear);
+        EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
     }
 
     private void OnDisable()
@@ -34,11 +35,14 @@ public class UIManager : MonoBehaviour
         EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
+        EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
     }
 
     private void OnPlayerDead(PlayerDeadEvent _)       => Show<DeathPanel>();
     private void OnPlayerRespawn(PlayerRespawnEvent _) => Hide<DeathPanel>();
     private void OnStageClear(StageClearEvent _)       => Show<StageClearPanel>();
+    // 스테이지 재시작 시 스테이지 클리어 패널을 숨깁니다.
+    private void OnStageRestart(StageRestartEvent _)   => Hide<StageClearPanel>();
 
     public void Register(BasePanel panel)
     {

@@ -793,8 +793,8 @@ MonoBehaviour:
   - {fileID: 5134478655319758955, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   - {fileID: 2640488292589471653, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   frameDuration: 0.09
-  slotWidth: 120
-  slotHeight: 120
+  slotWidth: 80
+  slotHeight: 80
   positionOffset: {x: 0, y: 0}
   preserveAspect: 1
   hitImage: {fileID: 0}
@@ -8579,7 +8579,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949d882eb6a7d07418f3e387f6db70ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MaskUI
-  maskFull: {fileID: -8479188032628673678, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
+  maskAnimatorController: {fileID: 9100000, guid: 0fddb1c140940904483e6d42ee1b2634, type: 2}
   maskFullSprites:
   - {fileID: -4889145574749973945, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   - {fileID: -4125395782797335298, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
@@ -8587,22 +8587,12 @@ MonoBehaviour:
   - {fileID: -1990067674, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   - {fileID: 2469425562861789562, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   - {fileID: -8479188032628673678, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  spriteFrameDuration: 0.05
+  maskEmpty: {fileID: -646315487, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
+  maskImages: []
   animatePeriodically: 1
   animationIntervalSeconds: 3.5
-  animationBurstSeconds: 0
-  maskFullRotations:
-  - {x: 0, y: 180, z: 90}
-  - {x: 0, y: 180, z: 90}
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 180, z: 90}
-  - {x: 0, y: 180, z: 90}
-  - {x: 0, y: 180, z: 90}
-  maskEmpty: {fileID: -646315487, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  maskCracked: {fileID: 3849913500247431889, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  maskImages: []
+  animatorSpeed: 1
   maxMasks: 5
-  useCrackedSprite: 0
   preserveSpriteAspect: 1
   useFixedSlotSize: 1
   slotWidth: 70
@@ -12887,7 +12877,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameHUD
   maskUI: {fileID: 793387183}
-  hitFlashUI: {fileID: 311129902}
+  hitFlashUI: {fileID: 0}
   soulUI: {fileID: 1226311343}
   geoUI: {fileID: 2013401127}
   hudCanvasGroup: {fileID: 2134996390}

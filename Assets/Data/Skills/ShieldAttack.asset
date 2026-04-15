@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac77952684f0d7c4993a0864c1b46f60, type: 3}
   m_Name: ShieldAttack
   m_EditorClassIdentifier: Assembly-CSharp::ShieldAttackData
-  cooldown: 3
+  cooldown: 0.5
   hitbox:
     delay: 0.3
     duration: 0

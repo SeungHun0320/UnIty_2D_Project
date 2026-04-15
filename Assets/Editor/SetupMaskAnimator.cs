@@ -12,6 +12,7 @@ public class SetupMaskAnimator
 
     // MaskUI에서 spriteFrameDuration 필드가 제거됐으므로 여기서 직접 관리합니다.
     private const float DefaultFrameDuration = 0.12f;
+    private const string ConfigPath = "Assets/Animations/UI/Mask/MaskAnimatorConfig.asset";
 
     public static void Execute()
     {
@@ -40,10 +41,14 @@ public class SetupMaskAnimator
         // 4. 출력 폴더 생성
         EnsureFolderPath(OutputFolder);
 
-        // 5. 애니메이션 클립 생성
+        // 5. MaskAnimatorConfig SO 로드 (없으면 스케일 커브 스킵)
+        MaskAnimatorConfig config = AssetDatabase.LoadAssetAtPath<MaskAnimatorConfig>(ConfigPath);
+        float[] hitFrameScales = config?.hitFrameScales;
+
+        // 6. 애니메이션 클립 생성
         AnimationClip fullClip  = CreateFullClip(fullSprites, rotations, frameDuration);
         AnimationClip hitClip   = hitSprites != null && hitSprites.Length > 0
-                                  ? CreateHitClip(hitSprites, hitFrameDur) : null;
+                                  ? CreateHitClip(hitSprites, hitFrameDur, hitFrameScales) : null;
         AnimationClip emptyClip = CreateEmptyClip(emptySprite);
 
         SaveClip(fullClip,  $"{OutputFolder}/MaskFull.anim");
@@ -114,8 +119,8 @@ public class SetupMaskAnimator
         return clip;
     }
 
-    // MaskHit: 피격 스프라이트 시퀀스 (1회 재생)
-    private static AnimationClip CreateHitClip(Sprite[] sprites, float frameDur)
+    // MaskHit: 피격 스프라이트 시퀀스 (1회 재생) + 프레임별 스케일 커브 (Constant 스텝)
+    private static AnimationClip CreateHitClip(Sprite[] sprites, float frameDur, float[] frameScales)
     {
         AnimationClip clip = new AnimationClip { name = "MaskHit" };
         clip.frameRate = Mathf.Max(1f, Mathf.Round(1f / Mathf.Max(frameDur, 0.001f)));
@@ -126,6 +131,26 @@ public class SetupMaskAnimator
 
         var binding = EditorCurveBinding.PPtrCurve("Icon", typeof(UnityEngine.UI.Image), "m_Sprite");
         AnimationUtility.SetObjectReferenceCurve(clip, binding, keys);
+
+        // 슬롯 루트에 프레임별 Constant 스케일 커브 추가 (config SO가 있을 때만)
+        if (frameScales != null && frameScales.Length > 0)
+        {
+            AnimationCurve scaleXY = new AnimationCurve();
+            for (int i = 0; i < sprites.Length; i++)
+            {
+                float s = i < frameScales.Length ? frameScales[i] : 1f;
+                int ki = scaleXY.AddKey(new Keyframe(i * frameDur, s));
+                AnimationUtility.SetKeyLeftTangentMode(scaleXY,  ki, AnimationUtility.TangentMode.Constant);
+                AnimationUtility.SetKeyRightTangentMode(scaleXY, ki, AnimationUtility.TangentMode.Constant);
+            }
+            // 마지막 프레임 이후 1.0으로 복귀
+            int last = scaleXY.AddKey(new Keyframe(sprites.Length * frameDur, 1f));
+            AnimationUtility.SetKeyLeftTangentMode(scaleXY,  last, AnimationUtility.TangentMode.Constant);
+            AnimationUtility.SetKeyRightTangentMode(scaleXY, last, AnimationUtility.TangentMode.Constant);
+
+            clip.SetCurve("", typeof(RectTransform), "m_LocalScale.x", scaleXY);
+            clip.SetCurve("", typeof(RectTransform), "m_LocalScale.y", scaleXY);
+        }
 
         var settings = AnimationUtility.GetAnimationClipSettings(clip);
         settings.loopTime = false;

@@ -256,7 +256,15 @@ public class MaskUI : MonoBehaviour
 
         if (!useFixedSlotSize)
         {
-            void Consider(Sprite s) { if (s == null) return; if (s.rect.width > maxW) maxW = s.rect.width; if (s.rect.height > maxH) maxH = s.rect.height; }
+            void Consider(Sprite s)
+            {
+                if (s == null)
+                    return;
+                if (s.rect.width > maxW)
+                    maxW = s.rect.width;
+                if (s.rect.height > maxH)
+                    maxH = s.rect.height; 
+            }
             if (maskFullSprites != null) foreach (var s in maskFullSprites) Consider(s);
             Consider(maskEmpty);
             maxW = Mathf.Max(1f, maxW); maxH = Mathf.Max(1f, maxH);
@@ -265,7 +273,8 @@ public class MaskUI : MonoBehaviour
         var slotSize = new Vector2(maxW, maxH);
         foreach (var img in maskImages)
         {
-            if (img == null) continue;
+            if (img == null) 
+                continue;
             img.preserveAspect = preserveSpriteAspect;
             var slot = img.transform.parent?.GetComponent<RectTransform>() ?? img.rectTransform;
             if (slot != null)

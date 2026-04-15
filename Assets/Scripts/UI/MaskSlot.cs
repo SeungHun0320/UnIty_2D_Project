@@ -89,9 +89,7 @@ public class MaskSlot : MonoBehaviour
                 yield return new WaitForSecondsRealtime(frameDur);
             }
 
-            if (!_fullConfig.animatePeriodically) continue;
-
-            // 첫 프레임에서 정지 후 대기
+            // 첫 프레임에서 정지 후 intervalSeconds 대기
             _icon.sprite         = _fullConfig.sprites[0];
             _rt.localEulerAngles = GetFrameRotation(0);
             yield return new WaitForSecondsRealtime(_fullConfig.intervalSeconds);
@@ -145,6 +143,7 @@ public class MaskSlot : MonoBehaviour
         if (sprite == null) return Vector2.zero;
         float slotW = _rt.rect.width;
         float slotH = _rt.rect.height;
+        if (slotW <= 0f || slotH <= 0f) return Vector2.zero;   // 레이아웃 미계산 시 보정 생략
         float sprW  = sprite.rect.width;
         float sprH  = sprite.rect.height;
         if (sprW <= 0f || sprH <= 0f) return Vector2.zero;
@@ -178,5 +177,11 @@ public class MaskSlot : MonoBehaviour
         _hitRoutine          = null;
         _rt.localScale       = Vector3.one;     // 스케일 항상 복원
         _rt.localEulerAngles = Vector3.zero;
+        // 피벗 보정 offset도 복원 — 코루틴 중단 시 틀어진 위치 방지
+        if (_icon != null)
+        {
+            _icon.rectTransform.offsetMin = Vector2.zero;
+            _icon.rectTransform.offsetMax = Vector2.zero;
+        }
     }
 }

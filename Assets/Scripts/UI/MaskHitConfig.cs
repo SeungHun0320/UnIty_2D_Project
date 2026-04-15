@@ -18,4 +18,12 @@ public class MaskHitConfig : ScriptableObject
     [Tooltip("피격 임팩트 스케일 펀치. 비어 있으면 스케일 고정 1.")]
     public float[] scalePerFrame;
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        // 길이 불일치 시 Inspector에서 즉시 경고 — 조용한 폴백 방지
+        if (sprites != null && scalePerFrame != null && sprites.Length != scalePerFrame.Length)
+            Debug.LogWarning($"[MaskHitConfig] '{name}': sprites({sprites.Length})와 scalePerFrame({scalePerFrame.Length}) 길이가 다릅니다. 길이를 맞춰주세요.", this);
+    }
+#endif
 }

@@ -17,8 +17,6 @@ public class MaskFullConfig : ScriptableObject
     public Vector3[] rotations;
 
     [Header("주기적 재생")]
-    [Tooltip("켜면 한 사이클 재생 후 intervalSeconds 대기 후 반복합니다.")]
-    public bool animatePeriodically = true;
-    [Tooltip("주기 모드에서 다음 재생까지 대기 시간(초).")]
+    [Tooltip("한 사이클 재생 후 다음 재생까지 대기 시간(초). 0이면 즉시 반복.")]
     public float intervalSeconds = 2f;
 }

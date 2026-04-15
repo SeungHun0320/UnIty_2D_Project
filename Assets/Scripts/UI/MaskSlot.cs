@@ -109,26 +109,53 @@ public class MaskSlot : MonoBehaviour
             yield break;
         }
 
-        float frameDur = 1f / Mathf.Max(_hitConfig.frameRate * speed, 0.01f);
+        float frameDur = 1f / Mathf.Max(_hitConfig.frameRate * _hitConfig.speed * speed, 0.01f);
 
         for (int i = 0; i < _hitConfig.sprites.Length; i++)
         {
             _icon.sprite   = _hitConfig.sprites[i];
+
             float scale    = (_hitConfig.scalePerFrame != null && i < _hitConfig.scalePerFrame.Length)
                              ? _hitConfig.scalePerFrame[i] : 1f;
             _rt.localScale = new Vector3(scale, scale, 1f);
+
+            // 피벗 기반 위치 보정 — 스프라이트별 피벗이 슬롯 중앙에 오도록 offsetMin/Max 이동
+            Vector2 pos = CalcPivotOffset(_hitConfig.sprites[i]);
+            _icon.rectTransform.offsetMin = pos;
+            _icon.rectTransform.offsetMax = pos;
+
             yield return new WaitForSecondsRealtime(frameDur);
         }
 
-        // 스케일·회전 복원
-        _rt.localScale       = Vector3.one;
-        _rt.localEulerAngles = Vector3.zero;
+        // 스케일·회전·위치 복원
+        _rt.localScale                   = Vector3.one;
+        _rt.localEulerAngles             = Vector3.zero;
+        _icon.rectTransform.offsetMin    = Vector2.zero;
+        _icon.rectTransform.offsetMax    = Vector2.zero;
 
         _hitRoutine = null;
         onDone?.Invoke();
     }
 
     // ── 헬퍼 ──────────────────────────────────────────────────────────────────
+
+    // 피벗이 슬롯 중앙에 정렬되도록 오프셋 계산 (preserveAspect 기준 표시 크기 사용)
+    private Vector2 CalcPivotOffset(Sprite sprite)
+    {
+        if (sprite == null) return Vector2.zero;
+        float slotW = _rt.rect.width;
+        float slotH = _rt.rect.height;
+        float sprW  = sprite.rect.width;
+        float sprH  = sprite.rect.height;
+        if (sprW <= 0f || sprH <= 0f) return Vector2.zero;
+
+        float scale            = Mathf.Min(slotW / sprW, slotH / sprH);
+        Vector2 displayedSize  = new Vector2(sprW * scale, sprH * scale);
+        Vector2 normalizedPivot = sprite.pivot / new Vector2(sprW, sprH);
+        Vector2 offset = (new Vector2(0.5f, 0.5f) - normalizedPivot) * displayedSize;
+
+        return offset;
+    }
 
     private Vector3 GetFrameRotation(int frameIndex)
     {

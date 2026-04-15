@@ -40,7 +40,8 @@ public class SkillState : IPlayerState
 
     public void Enter(PlayerStateMachine sm)
     {
-        _routine = sm.StartCoroutine(sm.CurrentSkill.Execute(sm.SkillContext));
+        // 코루틴 완료 후 자동으로 OnAttackComplete 호출 — Spine 이벤트 누락 대비 안전망
+        _routine = sm.StartCoroutine(ExecuteAndReturn(sm));
     }
 
     public void Exit(PlayerStateMachine sm)
@@ -54,6 +55,14 @@ public class SkillState : IPlayerState
     }
 
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }
+
+    private System.Collections.IEnumerator ExecuteAndReturn(PlayerStateMachine sm)
+    {
+        yield return sm.CurrentSkill.Execute(sm.SkillContext);
+        // Spine 이벤트가 이미 전환했다면 Skill 상태가 아니므로 중복 호출 무해
+        if (sm.CurrentState == PlayerState.Skill)
+            sm.OnAttackComplete();
+    }
 }
 
 public class JumpingState : IPlayerState

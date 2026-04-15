@@ -36,6 +36,13 @@ public class RustBehaviourTree : MonoBehaviour
             new RustIdleActionNode(blackboard) // 추후 사망 전용 애니메이션 노드로 교체 가능
         });
 
+        // 피격 경직 브랜치: 피격 상태 동안 Running을 반환해 이후 브랜치를 차단합니다.
+        var hitStateBranch = new BTSequence(new BTNode[]
+        {
+            new IsEnemyInHitStateNode(blackboard),
+            new RustHitStateActionNode(blackboard)
+        });
+
         // 공격 브랜치: 시야 안 + 공격 거리 안일 때 공격 시도.
         var attackBranch = new BTSequence(new BTNode[]
         {
@@ -61,10 +68,11 @@ public class RustBehaviourTree : MonoBehaviour
         // 평상시 브랜치: 아무 조건도 맞지 않으면 Idle.
         var idleBranch = new RustIdleActionNode(blackboard);
 
-        // 루트 셀렉터: Dead > Combat > Idle 순으로 평가.
+        // 루트 셀렉터: Dead > HitState > Combat > Idle 순으로 평가.
         _root = new BTSelector(new List<BTNode>
         {
             deadBranch,
+            hitStateBranch,
             combatSelector,
             idleBranch
         });

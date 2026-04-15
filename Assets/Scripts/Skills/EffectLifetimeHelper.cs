@@ -10,18 +10,19 @@ public class EffectLifetimeHelper : MonoBehaviour
         // Animator 초기화 대기 (1프레임)
         yield return null;
 
+        // Wrapper 구조일 경우 부모까지 함께 제거 — 모든 경로에서 동일하게 적용
+        GameObject target = transform.parent != null ? transform.parent.gameObject : gameObject;
+
         Animator anim = GetComponent<Animator>();
         if (anim != null)
         {
             AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
             float duration = info.length / Mathf.Max(anim.speed, 0.01f);
-            // Wrapper 구조일 경우 부모까지 함께 제거합니다.
-            GameObject target = transform.parent != null ? transform.parent.gameObject : gameObject;
             Destroy(target, duration);
         }
         else
         {
-            Destroy(gameObject, 3f); // 폴백
+            Destroy(target, 3f); // 폴백 — wrapper 포함 제거
         }
     }
 }

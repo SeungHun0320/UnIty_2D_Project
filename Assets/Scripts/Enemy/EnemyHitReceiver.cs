@@ -11,6 +11,7 @@ public class EnemyHitReceiver : MonoBehaviour
 
     private EnemyStats _enemyStats;
     private SpineAnimationDriver _animationDriver;
+    private EnemyHitState _hitState;
     private float _invincibilityTimer;
 
     public bool IsInvincible => _invincibilityTimer > 0f;
@@ -19,6 +20,7 @@ public class EnemyHitReceiver : MonoBehaviour
     {
         _enemyStats = GetComponentInParent<EnemyStats>();
         _animationDriver = GetComponentInParent<SpineAnimationDriver>();
+        _hitState = GetComponentInParent<EnemyHitState>();
         _playerAttackLayer = LayerMask.NameToLayer("PlayerAttackHitbox");
 
         var col = GetComponent<Collider2D>();
@@ -34,12 +36,20 @@ public class EnemyHitReceiver : MonoBehaviour
     private int _playerAttackLayer;
 
     // 투사체 등 외부에서 직접 데미지를 줄 때 호출합니다.
-    public void ReceiveHit(float damage)
+    // sourcePosition : 공격 발생 위치 (넉백 방향 계산용, 생략 시 정면 넉백)
+    public void ReceiveHit(float damage, Vector2 sourcePosition = default)
     {
         if (IsInvincible) return;
         _enemyStats?.TakeDamage(damage);
         _animationDriver?.PlayHit();
+
+        if (_enemyStats == null || !_enemyStats.IsDead)
+            _hitState?.Enter(sourcePosition);
+
         _invincibilityTimer = invincibilityDuration;
+
+        // 플레이어 발사체 적중 — 소울 충전 이벤트 발행
+        EventBus.Publish(new EnemyHitByPlayerEvent());
     }
 
     // 히트박스 활성화 시점에 이미 겹쳐있는 경우도 처리합니다.
@@ -58,6 +68,14 @@ public class EnemyHitReceiver : MonoBehaviour
         _enemyStats?.TakeDamage(playerStats.TotalAttackPower);
         Debug.Log($"[EnemyHitReceiver] {transform.parent?.name} HP: {_enemyStats?.CurrentHealth} / {_enemyStats?.MaxHealth}");
         _animationDriver?.PlayHit();
+
+        // 사망 시 히트 스테이트 적용 안 함 — 사망 처리에 맡깁니다.
+        if (_enemyStats == null || !_enemyStats.IsDead)
+            _hitState?.Enter(other.transform.position);
+
         _invincibilityTimer = invincibilityDuration;
+
+        // 근접 공격 적중 — 소울 충전 이벤트 발행
+        EventBus.Publish(new EnemyHitByPlayerEvent());
     }
 }

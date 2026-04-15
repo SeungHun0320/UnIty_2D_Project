@@ -9,6 +9,10 @@ public abstract class SkillData : ScriptableObject
     [Header("Skill Settings")]
     [Min(0f)] public float cooldown = 0f;
 
+    [Header("Soul")]
+    [Tooltip("스킬 사용 시 소모할 소울입니다. 0이면 소울 소모 없음.")]
+    [Min(0)] public int soulCost = 0;
+
     [Header("Hitbox")]
     public HitboxConfig hitbox = new();
 

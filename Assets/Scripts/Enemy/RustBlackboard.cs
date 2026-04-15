@@ -13,7 +13,9 @@ public class RustBlackboard : MonoBehaviour
     public Rigidbody2D rb;
     public Collider2D col;
     [SerializeField] private EnemyAttackHitbox attackHitboxComponent;
+    [SerializeField] private EnemyHitState hitStateComponent;
     public IAttackHitbox AttackHitbox => attackHitboxComponent;
+    public bool IsInHitState => hitStateComponent != null && hitStateComponent.IsActive;
 
     [Header("AI Settings")]
     [SerializeField] private EnemyAISO aiSettings;
@@ -45,6 +47,9 @@ public class RustBlackboard : MonoBehaviour
 
         if (col == null)
             col = GetComponent<Collider2D>();
+
+        if (hitStateComponent == null)
+            hitStateComponent = GetComponent<EnemyHitState>();
     }
 
     public bool IsDead => enemyStats != null && enemyStats.IsDead;

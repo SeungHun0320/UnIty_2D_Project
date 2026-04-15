@@ -9,11 +9,15 @@ public class PlayerDebugController : MonoBehaviour
     [Header("Target Stats")]
     [SerializeField] private PlayerStats playerStats;
 
-    [Header("Debug Steps")]
+    [Header("HP Debug (F3/F4/F5)")]
     [Tooltip("F3/F4 한 번에 증감할 체력 양입니다.")]
     [SerializeField] private float healthStep = 1f;
     [Tooltip("F5 한 번에 증감할 최대 체력 양입니다.")]
     [SerializeField] private float maxHealthStep = 1f;
+
+    [Header("Soul Debug (F1/F2)")]
+    [Tooltip("F1/F2 한 번에 증감할 소울 양입니다.")]
+    [SerializeField] private int soulStep = 10;
 
     private void Awake()
     {
@@ -27,6 +31,14 @@ public class PlayerDebugController : MonoBehaviour
 
         var keyboard = Keyboard.current;
         if (keyboard == null || playerStats == null) return;
+
+        // F1: 소울 증가
+        if (keyboard.f1Key.wasPressedThisFrame)
+            playerStats.AddSoul(soulStep);
+
+        // F2: 소울 감소
+        if (keyboard.f2Key.wasPressedThisFrame)
+            playerStats.UseSoul(soulStep);
 
         // F3: 체력 감소 (데미지 테스트)
         if (keyboard.f3Key.wasPressedThisFrame)

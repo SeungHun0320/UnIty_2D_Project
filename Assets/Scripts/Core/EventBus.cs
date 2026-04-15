@@ -77,3 +77,6 @@ public readonly struct PlayerRespawnEvent
     public readonly UnityEngine.Vector3 Position;
     public PlayerRespawnEvent(UnityEngine.Vector3 pos) { Position = pos; }
 }
+
+// 플레이어 공격이 적에게 적중할 때 발행됩니다. (근접/투사체 공통)
+public readonly struct EnemyHitByPlayerEvent { }

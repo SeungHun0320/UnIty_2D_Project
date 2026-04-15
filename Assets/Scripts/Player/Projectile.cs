@@ -27,6 +27,11 @@ public class Projectile : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody2D>();
         _enemyHurtboxLayer = LayerMask.NameToLayer("EnemyHurtbox");
+
+        // PlayerAttackHitbox 레이어로 고정 — EnemyHurtbox와 충돌 매트릭스가 이미 설정되어 있습니다.
+        gameObject.layer = LayerMask.NameToLayer("PlayerAttackHitbox");
+        // 투사체 콜라이더는 반드시 트리거여야 OnTriggerEnter2D가 발동됩니다.
+        GetComponent<Collider2D>().isTrigger = true;
     }
 
     // Init() 호출 전까지 이동하지 않도록 _initialized 플래그로 보호합니다.

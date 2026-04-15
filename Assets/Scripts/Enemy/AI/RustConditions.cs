@@ -53,6 +53,17 @@ public class IsPlayerInAttackRangeNode : RustConditionNode
     }
 }
 
+// 피격 상태 여부를 검사합니다. hitStateBranch 최상위 조건 노드로 사용됩니다.
+public class IsEnemyInHitStateNode : RustConditionNode
+{
+    public IsEnemyInHitStateNode(RustBlackboard blackboard) : base(blackboard) { }
+
+    protected override BTNodeState OnUpdate()
+    {
+        return Blackboard.IsInHitState ? BTNodeState.Success : BTNodeState.Failure;
+    }
+}
+
 // 테스트 체크리스트:
 // - 체력이 0 이하일 때 IsRustDeadNode가 Success를 반환하는지 확인
 // - 플레이어 거리 변화에 따라 Sight/AttackRange 조건 결과가 바뀌는지 확인

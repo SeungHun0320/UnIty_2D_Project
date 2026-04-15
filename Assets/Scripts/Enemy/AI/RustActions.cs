@@ -159,6 +159,18 @@ public class RustAttackActionNode : RustActionNode
     }
 }
 
+// 피격 경직 중 BT를 차단합니다. IsActive 동안 Running을 반환해 combat 브랜치를 막습니다.
+public class RustHitStateActionNode : RustActionNode
+{
+    public RustHitStateActionNode(RustBlackboard blackboard) : base(blackboard) { }
+
+    protected override BTNodeState OnUpdate()
+    {
+        // 피격 상태가 끝나면 Failure → Sequence Failure → BT 정상 복귀
+        return Blackboard.IsInHitState ? BTNodeState.Running : BTNodeState.Failure;
+    }
+}
+
 // 테스트 체크리스트:
 // - 추격 노드가 플레이어 방향으로 연속 이동하는지 확인
 // - 공격 노드가 첫 Tick에서만 PlayAttack을 호출하는지 확인

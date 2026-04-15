@@ -20,11 +20,11 @@ MonoBehaviour:
   - {fileID: 5134478655319758955, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   - {fileID: 2640488292589471653, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
   frameRate: 11
-  speed: 0.1
+  speed: 1
   scalePerFrame:
-  - 2.3
-  - 2.3
   - 2
-  - 2.3
   - 2.1
+  - 2
+  - 2
+  - 2
   - 2

@@ -16,6 +16,7 @@ public class PlayerHitReceiver : MonoBehaviour
     private PlayerStats _playerStats;
     private PlayerMover _playerMover;
     private PlayerStateMachine _playerStateMachine;
+    private HitScaleEffect _scaleEffect;
     private float _invincibilityTimer;
 
     public bool IsInvincible => _invincibilityTimer > 0f;
@@ -23,9 +24,10 @@ public class PlayerHitReceiver : MonoBehaviour
     private void Awake()
     {
         // 부모 오브젝트에서 컴포넌트를 가져옵니다.
-        _playerStats = GetComponentInParent<PlayerStats>();
-        _playerMover = GetComponentInParent<PlayerMover>();
+        _playerStats        = GetComponentInParent<PlayerStats>();
+        _playerMover        = GetComponentInParent<PlayerMover>();
         _playerStateMachine = GetComponentInParent<PlayerStateMachine>();
+        _scaleEffect        = GetComponentInParent<HitScaleEffect>();
 
         // Collider2D가 Trigger인지 보정합니다.
         var col = GetComponent<Collider2D>();
@@ -57,6 +59,9 @@ public class PlayerHitReceiver : MonoBehaviour
         // 넉백 방향: 적 → 플레이어 (수평) + 위쪽
         float dirX = Mathf.Sign(transform.position.x - other.transform.position.x);
         _playerMover?.ApplyKnockback(new Vector2(dirX * knockbackSpeedX, knockbackSpeedY));
+
+        // 스케일 사인파 — knockback 지속시간에 맞춥니다.
+        _scaleEffect?.Play(invincibilityDuration * 0.4f);
 
         _invincibilityTimer = invincibilityDuration;
     }

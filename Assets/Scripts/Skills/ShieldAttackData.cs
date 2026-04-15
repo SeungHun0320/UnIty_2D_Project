@@ -19,9 +19,12 @@ public class ShieldAttackData : SkillData
         ctx.Anim.PlayAnimation(animationKey);
         PlayEffects(ctx);
 
-        // 2. hitbox.delay 후 투사체 발사
-        yield return new WaitForSeconds(hitbox.delay);
+        // 2. 투사체 즉시 발사 — yield 이전에 spawn해야 피격으로 스킬이 취소돼도 투사체가 보장됩니다.
+        //    발사 직후 정지 구간은 speedCurve 초기값(0)이 담당합니다.
         SpawnProjectile(ctx);
+
+        // 3. hitbox.delay 동안 스킬 상태 유지 (연속 사용 방지)
+        yield return new WaitForSeconds(hitbox.delay);
     }
 
     private void SpawnProjectile(SkillContext ctx)

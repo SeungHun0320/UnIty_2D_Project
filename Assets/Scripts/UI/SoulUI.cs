@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using System.Collections;
 
 public class SoulUI : MonoBehaviour
@@ -55,14 +54,7 @@ public class SoulUI : MonoBehaviour
     private static readonly int MaskTexId = Shader.PropertyToID("_MaskTex");
     private static readonly int MaskUVRectId = Shader.PropertyToID("_MaskUVRect");
 
-    [Header("디버그 (플레이 중에만 동작)")]
-    [Tooltip("플레이 중 F1/F2로 소울을 증감합니다.")]
-    [SerializeField] private bool enableDebugKeys = true;
-    [Tooltip("F1/F2 한 번에 증감할 소울 양")]
-    [SerializeField] private int debugStep = 10;
-
     private float _fullViewportHeight = -1f;
-    private DebugKeyHandler _debugKeyHandler;
     private string _lastSpriteBindLog;
     private string _lastShaderStateLog;
 
@@ -91,7 +83,6 @@ public class SoulUI : MonoBehaviour
         EnsureViewportAnchors();
         CacheFullViewportHeight();
         Refresh(immediate: true);
-        _debugKeyHandler = new DebugKeyHandler(this);
     }
 
     private IEnumerator Start()
@@ -100,11 +91,6 @@ public class SoulUI : MonoBehaviour
         yield return null;
         CacheFullViewportHeight();
         Refresh(immediate: true);
-    }
-
-    private void Update()
-    {
-        _debugKeyHandler?.Tick(enableDebugKeys, debugStep);
     }
 
     private bool HasRequiredReferences()
@@ -474,37 +460,6 @@ public class SoulUI : MonoBehaviour
         if (_lastShaderStateLog == msg) return;
         _lastShaderStateLog = msg;
         Debug.Log(msg);
-    }
-
-    private sealed class DebugKeyHandler
-    {
-        private readonly SoulUI _owner;
-
-        public DebugKeyHandler(SoulUI owner) => _owner = owner;
-
-        public void Tick(bool enabled, int step)
-        {
-            if (!enabled) return;
-
-            var keyboard = Keyboard.current;
-            if (keyboard == null) return;
-
-            if (keyboard.f1Key.wasPressedThisFrame)
-            {
-                _owner.SetSoul(_owner.GetSoul() + step);
-#if UNITY_EDITOR
-                Debug.Log($"[SoulUI] F1 +{step} => {_owner.GetSoul()}/{_owner.GetMaxSoul()}");
-#endif
-            }
-
-            if (keyboard.f2Key.wasPressedThisFrame)
-            {
-                _owner.SetSoul(_owner.GetSoul() - step);
-#if UNITY_EDITOR
-                Debug.Log($"[SoulUI] F2 -{step} => {_owner.GetSoul()}/{_owner.GetMaxSoul()}");
-#endif
-            }
-        }
     }
 
 }

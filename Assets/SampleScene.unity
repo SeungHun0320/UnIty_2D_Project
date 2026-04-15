@@ -798,6 +798,8 @@ MonoBehaviour:
   positionOffset: {x: 0, y: 0}
   preserveAspect: 1
   hitImage: {fileID: 0}
+  _slotRect: {fileID: 0}
+  _isPlaying: 0
 --- !u!114 &311129903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8579,24 +8581,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949d882eb6a7d07418f3e387f6db70ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MaskUI
-  maskAnimatorController: {fileID: 9100000, guid: 0fddb1c140940904483e6d42ee1b2634, type: 2}
-  maskFullSprites:
-  - {fileID: -4889145574749973945, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  - {fileID: -4125395782797335298, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  - {fileID: 2679537141883003477, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  - {fileID: -1990067674, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  - {fileID: 2469425562861789562, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  - {fileID: -8479188032628673678, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  maskEmpty: {fileID: -646315487, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
-  maskImages: []
-  animatePeriodically: 1
-  animationIntervalSeconds: 3.5
-  animatorSpeed: 1
+  fullConfig: {fileID: 11400000, guid: 7cf21c94db55fe745bc10718c12b6588, type: 2}
+  hitConfig: {fileID: 11400000, guid: 53b6ccf3c6d4806418f3adb5beb5f344, type: 2}
+  emptySprite: {fileID: -646315487, guid: 32d52be58e554f24e99fcf2c0f01075a, type: 3}
+  fullSpeed: 1
+  hitSpeed: 1
   maxMasks: 5
-  preserveSpriteAspect: 1
   useFixedSlotSize: 1
   slotWidth: 70
   slotHeight: 70
+  preserveSpriteAspect: 1
 --- !u!114 &793387184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12877,7 +12871,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameHUD
   maskUI: {fileID: 793387183}
-  hitFlashUI: {fileID: 0}
   soulUI: {fileID: 1226311343}
   geoUI: {fileID: 2013401127}
   hudCanvasGroup: {fileID: 2134996390}

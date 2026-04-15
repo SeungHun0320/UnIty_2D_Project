@@ -10,7 +10,6 @@ public class GameHUD : MonoBehaviour
 {
     [Header("UI 참조")]
     [SerializeField] private MaskUI maskUI;
-    [SerializeField] private HitFlashUI hitFlashUI;
     [SerializeField] private SoulUI soulUI;
     [SerializeField] private GeoUI geoUI;
 
@@ -70,9 +69,4 @@ public class GameHUD : MonoBehaviour
     public void Show() => _wantsVisible = true;
     public void Hide() => _wantsVisible = false;
 
-    /// <summary> 외부에서 Hit 연출 직접 요청 시 MaskUI를 통해 처리합니다. </summary>
-    public void PlayHitFlash(int slotIndex = 0)
-    {
-        maskUI?.SetHealth(maskUI.GetCurrentHealth(), slotIndex + 1);
-    }
 }

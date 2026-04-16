@@ -52,11 +52,9 @@ public class GameManager : MonoBehaviour
         if (playerStatsComponent == null)
             playerStatsComponent = FindObjectOfType<PlayerStats>();
 
-        if (enemyStatsComponent == null)
-            enemyStatsComponent = FindObjectOfType<EnemyStats>();
-
+        // EnemyStats는 런타임에 스폰되므로 Awake에서 탐색하지 않습니다.
         _playerStats = playerStatsComponent;
-        _enemyStats = enemyStatsComponent;
+        _enemyStats  = enemyStatsComponent;
 
         if (playerTransform == null && playerStatsComponent != null)
             playerTransform = playerStatsComponent.transform;

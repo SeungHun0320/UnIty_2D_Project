@@ -18,13 +18,13 @@ public class EnemyHitReceiver : MonoBehaviour
 
     private void Awake()
     {
-        _enemyStats = GetComponentInParent<EnemyStats>();
+        _enemyStats      = GetComponentInParent<EnemyStats>();
         _animationDriver = GetComponentInParent<SpineAnimationDriver>();
-        _hitState = GetComponentInParent<EnemyHitState>();
+        _hitState        = GetComponentInParent<EnemyHitState>();
         _playerAttackLayer = LayerMask.NameToLayer("PlayerAttackHitbox");
 
         var col = GetComponent<Collider2D>();
-        col.isTrigger = true;
+        if (col != null) col.isTrigger = true;
     }
 
     private void Update()

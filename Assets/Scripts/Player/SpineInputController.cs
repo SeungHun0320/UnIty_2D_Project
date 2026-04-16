@@ -8,7 +8,8 @@ using UnityEngine.InputSystem;
 public class SpineInputController : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SpineAnimationDriver animationDriverComponent;
+    // abstract 타입 직렬화 시 Unity 6 빌드에서 역직렬화 실패 → 구체 타입으로 선언합니다.
+    [SerializeField] private PlayerAnimationDriver animationDriverComponent;
     [SerializeField] private PlayerStateMachine playerStateMachine;
     [SerializeField] private PlayerMover playerMover;
     [SerializeField] private PlayerSkillController skillController;
@@ -35,7 +36,7 @@ public class SpineInputController : MonoBehaviour
     private void Awake()
     {
         if (animationDriverComponent == null)
-            animationDriverComponent = GetComponent<SpineAnimationDriver>();
+            animationDriverComponent = GetComponent<PlayerAnimationDriver>();
         animationDriver = animationDriverComponent;
 
         if (playerStateMachine == null)
@@ -47,8 +48,10 @@ public class SpineInputController : MonoBehaviour
         if (skillController == null)
             skillController = GetComponent<PlayerSkillController>();
 
-        playerMover.OnLanded += HandleLanded;
-        animationDriverComponent.OnActionComplete += HandleAttackComplete;
+        if (playerMover != null)
+            playerMover.OnLanded += HandleLanded;
+        if (animationDriverComponent != null)
+            animationDriverComponent.OnActionComplete += HandleAttackComplete;
 
         _runtimeRespawnAction = new InputAction(name: "Respawn", type: InputActionType.Button);
         _runtimeRespawnAction.AddBinding("<Keyboard>/e");
@@ -281,7 +284,7 @@ public class SpineInputController : MonoBehaviour
     private void OnValidate()
     {
         if (animationDriverComponent == null)
-            animationDriverComponent = GetComponent<SpineAnimationDriver>();
+            animationDriverComponent = GetComponent<PlayerAnimationDriver>();
 
         if (playerStateMachine == null)
             playerStateMachine = GetComponent<PlayerStateMachine>();

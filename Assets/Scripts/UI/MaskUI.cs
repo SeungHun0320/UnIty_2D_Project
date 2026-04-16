@@ -166,7 +166,8 @@ public class MaskUI : MonoBehaviour
 
         foreach (var slot in _slots)
         {
-            if (slot == null) continue;
+            if (slot == null) 
+                continue;
             var rt = slot.GetComponent<RectTransform>();
             if (rt != null)
             {

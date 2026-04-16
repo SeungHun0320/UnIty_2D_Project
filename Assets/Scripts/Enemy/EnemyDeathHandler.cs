@@ -27,8 +27,8 @@ public class EnemyDeathHandler : MonoBehaviour
             rb = GetComponent<Rigidbody2D>();
     }
 
-    private void OnEnable()  => _stats.OnDeadEvent += HandleDeath;
-    private void OnDisable() => _stats.OnDeadEvent -= HandleDeath;
+    private void OnEnable()  { if (_stats != null) _stats.OnDeadEvent += HandleDeath; }
+    private void OnDisable() { if (_stats != null) _stats.OnDeadEvent -= HandleDeath; }
 
     private void HandleDeath()
     {

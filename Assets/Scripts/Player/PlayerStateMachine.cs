@@ -107,7 +107,8 @@ public enum PlayerState { Idle, Moving, Skill, Jumping, Hit, Dead }
 public class PlayerStateMachine : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SpineAnimationDriver animationDriverComponent;
+    // abstract 타입 직렬화 시 Unity 6 빌드에서 역직렬화 실패 → 구체 타입으로 선언합니다.
+    [SerializeField] private PlayerAnimationDriver animationDriverComponent;
     [SerializeField] private PlayerAttackHitbox attackHitboxComponent;
     [SerializeField] private PlayerMover  playerMoverComponent;
     [SerializeField] private PlayerStats  playerStatsComponent;
@@ -136,7 +137,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     private void Awake()
     {
-        animationDriverComponent ??= GetComponent<SpineAnimationDriver>();
+        animationDriverComponent ??= GetComponent<PlayerAnimationDriver>();
         playerMoverComponent     ??= GetComponent<PlayerMover>();
         playerStatsComponent     ??= GetComponent<PlayerStats>();
 
@@ -238,7 +239,7 @@ public class PlayerStateMachine : MonoBehaviour
     private void OnValidate()
     {
         if (animationDriverComponent == null)
-            animationDriverComponent = GetComponent<SpineAnimationDriver>();
+            animationDriverComponent = GetComponent<PlayerAnimationDriver>();
         if (playerMoverComponent == null)
             playerMoverComponent = GetComponent<PlayerMover>();
         if (playerStatsComponent == null)

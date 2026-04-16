@@ -1,12 +1,9 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// 게임 전체 생명주기를 관리하는 싱글톤입니다. (DIP 적용)
-/// - 게임 상태 (Initializing, Playing, Paused, GameOver)
-/// - Player/Enemy 참조는 ICharacterStats 인터페이스로 접근
-/// - 게임 차원 이벤트 발생 (OnGameStateChanged + EventBus)
-/// </summary>
+// GameManager는 모든 스크립트보다 먼저 Awake/Start가 실행되어야 합니다.
+// -100으로 설정해 플레이어/적 컴포넌트보다 우선 초기화됩니다.
+[DefaultExecutionOrder(-100)]
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -35,6 +32,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        // DontDestroyOnLoad 인스턴스가 이미 있으면 씬의 새 인스턴스를 제거합니다.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -60,6 +58,13 @@ public class GameManager : MonoBehaviour
             playerTransform = playerStatsComponent.transform;
 
         SetGameState(GameState.Playing);
+    }
+
+    private void Start()
+    {
+        // Start에서 이동 — 모든 컴포넌트 Awake 완료 후 Rigidbody2D가 Kinematic으로 설정된 뒤 실행됩니다.
+        if (playerTransform != null && startPoint != null)
+            playerTransform.position = startPoint.position;
     }
 
     private void OnEnable()  => EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);

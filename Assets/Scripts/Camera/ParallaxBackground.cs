@@ -37,32 +37,23 @@ public class ParallaxBackground : MonoBehaviour
 
     private float _previousCameraX;
     private float _previousCameraY;
-    private bool _frozen;
+    // 재시작 직후 N프레임 동안 SmoothDamp를 건너뛰고 즉시 Y 추종합니다.
+    private int _instantYSnapFrames;
 
-    private void OnEnable()
-    {
-        EventBus.Subscribe<StageClearEvent>(OnStageClear);
-        EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
-    }
-
-    private void OnDisable()
-    {
-        EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
-        EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
-    }
-
-    private void OnStageClear(StageClearEvent _) => _frozen = true;
+    private void OnEnable()  => EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
+    private void OnDisable() => EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
 
     private void OnStageRestart(StageRestartEvent _)
     {
-        _frozen = false;
         if (targetCamera == null) return;
 
         _previousCameraX = targetCamera.transform.position.x;
         _previousCameraY = targetCamera.transform.position.y;
 
-        // 리스폰 후 카메라 Y가 순간이동하면 SmoothDamp 지연으로 배경이 슬라이드합니다.
-        // 각 레이어의 Y 기준값을 현재 타일 위치로 스냅해 즉시 동기화합니다.
+        // 재시작 후 카메라가 스타트포인트로 이동하는 동안
+        // SmoothDamp 지연 없이 즉시 Y를 추종합니다. (8프레임 ≈ 0.13s)
+        _instantYSnapFrames = 8;
+
         foreach (var layer in layers)
         {
             if (layer.tiles == null || layer.tiles[0] == null) continue;
@@ -118,8 +109,6 @@ public class ParallaxBackground : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_frozen) return;
-
         float cameraDeltaX = targetCamera.transform.position.x - _previousCameraX;
         float cameraDeltaY = targetCamera.transform.position.y - _previousCameraY;
         float camX         = targetCamera.transform.position.x;
@@ -136,10 +125,19 @@ public class ParallaxBackground : MonoBehaviour
                 layer.currentX, layer.idealX, ref layer.velocityX, smoothTimeX) - layer.currentX;
             layer.currentX += smoothedDeltaX;
 
-            // Y: 카메라를 완전 추종 (SmoothDamp로 부드럽게)
+            // Y: 카메라를 완전 추종
+            // 재시작 직후에는 즉시 스냅, 이후에는 SmoothDamp로 부드럽게 추종합니다.
             layer.idealY += cameraDeltaY;
-            layer.currentY = Mathf.SmoothDamp(
-                layer.currentY, layer.idealY, ref layer.velocityY, smoothTimeY);
+            if (_instantYSnapFrames > 0)
+            {
+                layer.currentY  = layer.idealY;
+                layer.velocityY = 0f;
+            }
+            else
+            {
+                layer.currentY = Mathf.SmoothDamp(
+                    layer.currentY, layer.idealY, ref layer.velocityY, smoothTimeY);
+            }
 
             foreach (var tile in layer.tiles)
             {
@@ -174,6 +172,9 @@ public class ParallaxBackground : MonoBehaviour
                 }
             }
         }
+
+        if (_instantYSnapFrames > 0)
+            _instantYSnapFrames--;
 
         _previousCameraX = camX;
         _previousCameraY = camY;

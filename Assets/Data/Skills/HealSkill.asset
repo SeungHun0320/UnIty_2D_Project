@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HealSkill
   m_EditorClassIdentifier: Assembly-CSharp::HealSkillData
   cooldown: 3
-  soulCost: 33
+  soulCost: 30
   activationType: 1
   holdDuration: 1.5
   effects: []

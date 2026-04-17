@@ -23,7 +23,7 @@ public abstract class PlayerStatsBinder : MonoBehaviour
     protected void EnsureStats()
     {
         if (playerStats == null)
-            playerStats = FindObjectOfType<PlayerStats>();
+            playerStats = FindAnyObjectByType<PlayerStats>();
     }
 
     // Model 이벤트에 구독합니다. OnEnable 시 호출됩니다.

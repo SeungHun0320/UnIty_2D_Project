@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour
     private void Initialize()
     {
         if (playerStatsComponent == null)
-            playerStatsComponent = FindObjectOfType<PlayerStats>();
+            playerStatsComponent = FindAnyObjectByType<PlayerStats>();
 
         // EnemyStats는 런타임에 스폰되므로 Awake에서 탐색하지 않습니다.
         _playerStats = playerStatsComponent;

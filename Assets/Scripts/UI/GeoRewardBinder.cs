@@ -9,7 +9,7 @@ public class GeoRewardBinder : MonoBehaviour
     private void Awake()
     {
         if (geoUI == null)
-            geoUI = FindObjectOfType<GeoUI>();
+            geoUI = FindAnyObjectByType<GeoUI>();
     }
 
     private void OnEnable()  => EventBus.Subscribe<EnemyDeadEvent>(OnEnemyDead);

@@ -11,7 +11,7 @@ public class DeathPanel : BasePanel
 
     [Header("텍스트 내용")]
     [SerializeField] private string titleString = "YOU DIED";
-    [SerializeField] private string guideString = "E 키를 눌러 부활";
+    [SerializeField] private string guideString = "Press E to Respawn";
 
     protected override void Awake()
     {

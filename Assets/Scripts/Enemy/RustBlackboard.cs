@@ -41,7 +41,7 @@ public class RustBlackboard : MonoBehaviour
         // 프리팹으로 인스턴스화 시 씬 참조가 소실되므로 런타임에 자동 탐색합니다.
         if (playerTransform == null)
         {
-            var player = FindObjectOfType<PlayerStats>();
+            var player = FindAnyObjectByType<PlayerStats>();
             if (player != null) playerTransform = player.transform;
         }
 

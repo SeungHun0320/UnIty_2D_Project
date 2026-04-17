@@ -1,3 +1,4 @@
+#pragma warning disable CS0618
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -210,3 +211,4 @@ namespace Cainos.LucidEditor.Experimental
         }
     }
 }
+#pragma warning restore CS0618

@@ -8,7 +8,7 @@
         "com.unity.inputsystem": "1.1.1",
         "com.unity.cloud.gltfast": "6.12.1"
       },
-      "hash": "7d4ecbd3bf148efbb6c9c07b28fdedd5c44855e8"
+      "hash": "583caccaad86551b4b9ab95b91aa8526ec80545e"
     },
     "com.coplaydev.unity-mcp": {
       "version": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#beta",
@@ -18,7 +18,7 @@
         "com.unity.nuget.newtonsoft-json": "3.0.2",
         "com.unity.test-framework": "1.1.31"
       },
-      "hash": "2b547fa256dc6f5cb812e22864b5632a690a28ae"
+      "hash": "e64a71770adc78d7cdc97fc95e8188726f81a138"
     },
     "com.unity.2d.animation": {
       "version": "13.0.2",

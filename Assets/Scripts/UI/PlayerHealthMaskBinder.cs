@@ -14,7 +14,7 @@ public class PlayerHealthMaskBinder : PlayerStatsBinder
     {
         base.Awake();
         if (maskUI == null)
-            maskUI = FindObjectOfType<MaskUI>();
+            maskUI = FindAnyObjectByType<MaskUI>();
     }
 
     protected override void Subscribe()

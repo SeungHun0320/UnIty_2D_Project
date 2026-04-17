@@ -11,7 +11,7 @@ public class PlayerSoulBinder : PlayerStatsBinder
     {
         base.Awake();
         if (soulUI == null)
-            soulUI = FindObjectOfType<SoulUI>();
+            soulUI = FindAnyObjectByType<SoulUI>();
     }
 
     protected override void Subscribe()

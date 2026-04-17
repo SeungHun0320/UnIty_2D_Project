@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 7467372013070387307}
   - component: {fileID: 2305896278114237297}
   - component: {fileID: 5607855830111994027}
+  - component: {fileID: 8179816499084066028}
   m_Layer: 7
   m_Name: Monster
   m_TagString: Untagged
@@ -189,7 +190,6 @@ MonoBehaviour:
   currentHealth: 30
   attackPower: 1
   rewardExpRange: {x: 0, y: 0}
-  geoRewardRange: {x: 5, y: 15}
 --- !u!50 &2256880139415338030
 Rigidbody2D:
   serializedVersion: 5
@@ -327,6 +327,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HitScaleEffect
   squashFrequency: 4
   squashAmplitude: 0.25
+--- !u!114 &8179816499084066028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4910205235468272921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18179b05758ace94796351fa023b5a3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropper
+  dropTable:
+  - prefab: {fileID: 558180943386532336, guid: 3effda0722ee0a445a4421b2748bdd43, type: 3}
+    chance: 1
+    countRange: {x: 1, y: 1}
 --- !u!1 &5787104992686422879
 GameObject:
   m_ObjectHideFlags: 0

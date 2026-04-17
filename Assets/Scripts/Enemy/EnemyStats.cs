@@ -7,11 +7,7 @@ public class EnemyStats : CharacterStats
     [Header("Enemy Only")]
     [Tooltip("플레이어가 처치 시 얻는 경험치 범위입니다. (최소, 최대) 랜덤 지급됩니다.")]
     public Vector2Int rewardExpRange = new Vector2Int(0, 0);
-    [Tooltip("플레이어가 처치 시 획득하는 지오(골드) 범위입니다. (최소, 최대)")]
-    public Vector2Int geoRewardRange = new Vector2Int(0, 0);
-
-    // 범위 내 랜덤 지오 보상을 반환합니다.
-    public int RollGeoReward() => Random.Range(geoRewardRange.x, geoRewardRange.y + 1);
+    // 지오 보상은 ItemDropper 컴포넌트의 dropTable로 관리합니다.
 
     protected override void OnDead()
     {

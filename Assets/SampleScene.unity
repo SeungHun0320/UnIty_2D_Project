@@ -735,9 +735,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d1b342437188a04bbe445ba973ab215, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHitReceiver
+  invincibilityDuration: 2
   knockbackSpeedX: 6
   knockbackSpeedY: 10
-  invincibilityDuration: 2
 --- !u!61 &300570739
 BoxCollider2D:
   m_ObjectHideFlags: 0

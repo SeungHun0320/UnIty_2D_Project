@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c351483ac66fb4428ce089ba63aff2c, type: 3}
+  m_Name: GeoItemData
+  m_EditorClassIdentifier: Assembly-CSharp::GeoItemDataSO
+  itemName: Geo Coin
+  icon: {fileID: 0}
+  geoRange: {x: 5, y: 15}

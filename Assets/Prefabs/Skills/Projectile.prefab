@@ -111,7 +111,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf5393c4f8e4c194fa67a2b0924205ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
-  lifeTime: 3
+  lifeTime: 1.5
   speedCurve:
     serializedVersion: 2
     m_Curve:

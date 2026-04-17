@@ -17,4 +17,5 @@ MonoBehaviour:
   activationType: 1
   holdDuration: 1.5
   effects: []
+  animationKey: buff_2
   healAmount: 1

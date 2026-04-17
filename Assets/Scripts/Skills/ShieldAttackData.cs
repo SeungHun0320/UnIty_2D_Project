@@ -5,6 +5,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ShieldAttack", menuName = "Game/Skills/ShieldAttack")]
 public class ShieldAttackData : SkillData
 {
+    [Header("Hitbox")]
+    public HitboxConfig hitbox = new();
+
     [Header("Projectile")]
     public GameObject projectilePrefab;
     public float      damageMultiplier = 1.5f;

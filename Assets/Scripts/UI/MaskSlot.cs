@@ -78,21 +78,28 @@ public class MaskSlot : MonoBehaviour
 
         int   count    = _fullConfig.sprites.Length;
         float frameDur = 1f / Mathf.Max(_fullConfig.frameRate * speed, 0.01f);
+        float animDur  = frameDur * count;
+        float cycleDur = animDur + Mathf.Max(0f, _fullConfig.intervalSeconds);
 
         while (true)
         {
-            // 한 사이클 재생
-            for (int i = 0; i < count; i++)
+            // Time.time 기반 글로벌 위상 계산 — 슬롯이 언제 시작해도 나머지 슬롯들과 동기화됩니다.
+            float phase = Time.time % cycleDur;
+
+            if (phase < animDur)
             {
-                _icon.sprite         = _fullConfig.sprites[i];
-                _rt.localEulerAngles = GetFrameRotation(i);
-                yield return new WaitForSeconds(frameDur);
+                int frameIdx         = Mathf.Clamp(Mathf.FloorToInt(phase / frameDur), 0, count - 1);
+                _icon.sprite         = _fullConfig.sprites[frameIdx];
+                _rt.localEulerAngles = GetFrameRotation(frameIdx);
+            }
+            else
+            {
+                // interval 구간 — 첫 프레임 고정
+                _icon.sprite         = _fullConfig.sprites[0];
+                _rt.localEulerAngles = GetFrameRotation(0);
             }
 
-            // 첫 프레임에서 정지 후 intervalSeconds 대기
-            _icon.sprite         = _fullConfig.sprites[0];
-            _rt.localEulerAngles = GetFrameRotation(0);
-            yield return new WaitForSeconds(_fullConfig.intervalSeconds);
+            yield return null;
         }
     }
 

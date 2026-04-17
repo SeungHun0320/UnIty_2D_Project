@@ -5,9 +5,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BasicAttack", menuName = "Game/Skills/BasicAttack")]
 public class BasicAttackData : SkillData
 {
+    [Header("Hitbox")]
+    public HitboxConfig hitbox = new();
+
     public override IEnumerator Execute(SkillContext ctx)
     {
         ctx.Anim?.PlayAttack();
-        yield return ActivateHitbox(ctx);
+        yield return ActivateHitbox(ctx, hitbox);
     }
 }

@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // 플레이어 입력을 받아 PlayerMover(물리)와 PlayerSkillController(스킬)에 위임합니다. (SRP)
-// 이 클래스는 입력 처리만 담당합니다.
+// skillInputActions 배열이 슬롯과 1:1 대응합니다 — Inspector에서 키를 추가하면 슬롯도 늘어납니다.
+// 각 슬롯의 activationType(Instant/Hold)에 따라 started/canceled/performed를 자동으로 분기합니다.
 [RequireComponent(typeof(PlayerAnimationDriver))]
 [RequireComponent(typeof(PlayerMover))]
 public class SpineInputController : MonoBehaviour
@@ -16,16 +17,15 @@ public class SpineInputController : MonoBehaviour
 
     [Header("Input Actions (Input System)")]
     [SerializeField] private InputActionProperty moveAction;
-    [SerializeField] private InputActionProperty attackAction;
-    [SerializeField] private InputActionProperty skillAction;
+    [Tooltip("슬롯 0, 1, 2… 순서대로 대응합니다. 슬롯 수만큼 추가하세요.")]
+    [SerializeField] private InputActionProperty[] skillInputActions;
     [SerializeField] private InputActionProperty jumpAction;
 
     private IAnimationDriver animationDriver;
 
-    private InputAction _runtimeMoveAction;
-    private InputAction _runtimeAttackAction;
-    private InputAction _runtimeSkillAction;
-    private InputAction _runtimeJumpAction;
+    private InputAction   _runtimeMoveAction;
+    private InputAction[] _runtimeSkillActions;
+    private InputAction   _runtimeJumpAction;
 
     private Vector2 _moveInput;
     private bool _waitingForRespawn;
@@ -74,14 +74,20 @@ public class SpineInputController : MonoBehaviour
 
     private void OnEnable()
     {
-        InputAction move = GetMoveAction();
-        if (move != null) move.Enable();
+        GetMoveAction()?.Enable();
 
-        InputAction attack = GetAttackAction();
-        if (attack != null) { attack.performed += OnAttackPerformed; attack.Enable(); }
+        // 슬롯별로 3종 이벤트 등록 — 해석은 PlayerSkillController가 담당합니다.
+        for (int i = 0; i < GetSkillActionCount(); i++)
+        {
+            int captured = i;   // 클로저 캡처 방지
+            InputAction action = GetSkillAction(i);
+            if (action == null) continue;
 
-        InputAction skill = GetSkillAction();
-        if (skill != null) { skill.performed += OnSkillPerformed; skill.Enable(); }
+            action.started   += _ => skillController?.OnSlotPressed(captured);
+            action.canceled  += _ => skillController?.OnSlotReleased(captured);
+            action.performed += _ => skillController?.OnSlotPerformed(captured);
+            action.Enable();
+        }
 
         InputAction jump = GetJumpAction();
         if (jump != null) { jump.performed += OnJumpPerformed; jump.Enable(); }
@@ -93,17 +99,16 @@ public class SpineInputController : MonoBehaviour
 
     private void OnDisable()
     {
-        InputAction move = GetMoveAction();
-        if (move != null) move.Disable();
+        GetMoveAction()?.Disable();
 
-        InputAction attack = GetAttackAction();
-        if (attack != null) { attack.performed -= OnAttackPerformed; attack.Disable(); }
+        for (int i = 0; i < GetSkillActionCount(); i++)
+        {
+            InputAction action = GetSkillAction(i);
+            action?.Disable();
+        }
 
-        InputAction skill = GetSkillAction();
-        if (skill != null) { skill.performed -= OnSkillPerformed; skill.Disable(); }
-
-        InputAction jump = GetJumpAction();
-        if (jump != null) { jump.performed -= OnJumpPerformed; jump.Disable(); }
+        InputAction jumpOff = GetJumpAction();
+        if (jumpOff != null) { jumpOff.performed -= OnJumpPerformed; jumpOff.Disable(); }
 
         if (_runtimeRespawnAction != null)
         {
@@ -167,8 +172,8 @@ public class SpineInputController : MonoBehaviour
         if (playerStateMachine == null) return;
         if (_waitingForRespawn) { _moveInput = Vector2.zero; return; }
 
-        InputAction action = GetMoveAction();
-        _moveInput = action != null ? action.ReadValue<Vector2>() : Vector2.zero;
+        InputAction move = GetMoveAction();
+        _moveInput = move != null ? move.ReadValue<Vector2>() : Vector2.zero;
 
         playerStateMachine.OnMoveInput(_moveInput, playerMover != null ? playerMover.MovingThreshold : 0.05f);
         playerMover?.FlipByInput(_moveInput.x);
@@ -190,18 +195,6 @@ public class SpineInputController : MonoBehaviour
         playerStateMachine?.OnAttackComplete();
     }
 
-    // J키 - 슬롯 0 (기본 공격)
-    private void OnAttackPerformed(InputAction.CallbackContext _)
-    {
-        skillController?.TryUse(0);
-    }
-
-    // K키 - 슬롯 1 (스킬)
-    private void OnSkillPerformed(InputAction.CallbackContext _)
-    {
-        skillController?.TryUse(1);
-    }
-
     private void OnJumpPerformed(InputAction.CallbackContext _)
     {
         if (playerMover == null) return;
@@ -212,16 +205,22 @@ public class SpineInputController : MonoBehaviour
         playerMover.Jump();
     }
 
+    // ── 액션 해석 헬퍼 ───────────────────────────────────────────────────────
+
     private void EnsureActions()
     {
         if (!HasUsableBindings(moveAction.action))
             _runtimeMoveAction = CreateDefaultMoveAction();
 
-        if (!HasUsableBindings(attackAction.action))
-            _runtimeAttackAction = CreateDefaultAttackAction();
+        int count = skillInputActions != null ? skillInputActions.Length : 0;
+        _runtimeSkillActions = new InputAction[Mathf.Max(count, 3)];
 
-        if (!HasUsableBindings(skillAction.action))
-            _runtimeSkillAction = CreateDefaultSkillAction();
+        for (int i = 0; i < _runtimeSkillActions.Length; i++)
+        {
+            bool hasBinding = i < count && HasUsableBindings(skillInputActions[i].action);
+            if (!hasBinding)
+                _runtimeSkillActions[i] = CreateDefaultSkillAction(i);
+        }
 
         if (!HasUsableBindings(jumpAction.action))
             _runtimeJumpAction = CreateDefaultJumpAction();
@@ -230,17 +229,32 @@ public class SpineInputController : MonoBehaviour
     private InputAction GetMoveAction() =>
         HasUsableBindings(moveAction.action) ? moveAction.action : _runtimeMoveAction;
 
-    private InputAction GetAttackAction() =>
-        HasUsableBindings(attackAction.action) ? attackAction.action : _runtimeAttackAction;
+    private InputAction GetSkillAction(int index)
+    {
+        bool hasBinding = skillInputActions != null
+                       && index < skillInputActions.Length
+                       && HasUsableBindings(skillInputActions[index].action);
 
-    private InputAction GetSkillAction() =>
-        HasUsableBindings(skillAction.action) ? skillAction.action : _runtimeSkillAction;
+        if (hasBinding) return skillInputActions[index].action;
+        if (_runtimeSkillActions != null && index < _runtimeSkillActions.Length)
+            return _runtimeSkillActions[index];
+        return null;
+    }
+
+    private int GetSkillActionCount()
+    {
+        int inspector = skillInputActions != null ? skillInputActions.Length : 0;
+        int runtime   = _runtimeSkillActions != null ? _runtimeSkillActions.Length : 0;
+        return Mathf.Max(inspector, runtime);
+    }
 
     private InputAction GetJumpAction() =>
         HasUsableBindings(jumpAction.action) ? jumpAction.action : _runtimeJumpAction;
 
     private static bool HasUsableBindings(InputAction action) =>
         action != null && action.bindings.Count > 0;
+
+    // ── 기본 바인딩 ──────────────────────────────────────────────────────────
 
     private static InputAction CreateDefaultMoveAction()
     {
@@ -255,20 +269,30 @@ public class SpineInputController : MonoBehaviour
         return action;
     }
 
-    private static InputAction CreateDefaultAttackAction()
+    // 슬롯 인덱스에 따라 기본 키를 할당합니다.
+    // slot 0 → J (기본 공격), slot 1 → K (스킬), slot 2 → L (힐)
+    private static InputAction CreateDefaultSkillAction(int slotIndex)
     {
-        var action = new InputAction(name: "Attack", type: InputActionType.Button);
-        action.AddBinding("<Keyboard>/j");
-        action.AddBinding("<Mouse>/leftButton");
-        action.AddBinding("<Gamepad>/buttonSouth");
-        return action;
-    }
-
-    private static InputAction CreateDefaultSkillAction()
-    {
-        var action = new InputAction(name: "Skill", type: InputActionType.Button);
-        action.AddBinding("<Keyboard>/k");
-        action.AddBinding("<Gamepad>/buttonWest");
+        var action = new InputAction(name: $"Skill_{slotIndex}", type: InputActionType.Button);
+        switch (slotIndex)
+        {
+            case 0:
+                action.AddBinding("<Keyboard>/j");
+                action.AddBinding("<Mouse>/leftButton");
+                action.AddBinding("<Gamepad>/buttonSouth");
+                break;
+            case 1:
+                action.AddBinding("<Keyboard>/k");
+                action.AddBinding("<Gamepad>/buttonWest");
+                break;
+            case 2:
+                action.AddBinding("<Keyboard>/l");
+                action.AddBinding("<Gamepad>/buttonNorth");
+                break;
+            default:
+                // 슬롯 3 이상은 키 없음 — Inspector에서 직접 할당하세요.
+                break;
+        }
         return action;
     }
 

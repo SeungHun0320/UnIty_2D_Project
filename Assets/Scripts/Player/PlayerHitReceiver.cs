@@ -50,14 +50,19 @@ public class PlayerHitReceiver : MonoBehaviour
         var enemyStats = other.GetComponentInParent<EnemyStats>();
         if (enemyStats == null || enemyStats.IsDead) return;
 
-        // 데미지 적용
+        // 넉백 방향 계산 (이벤트에도 사용)
+        float dirX = Mathf.Sign(transform.position.x - other.transform.position.x);
+
+        // 히트렉·카메라 셰이크를 먼저 발동 — 이후 데미지/Flash가 hitstop 안에서 시작되도록
+        EventBus.Publish(new PlayerHitByEnemyEvent(new Vector2(dirX, 0f)));
+
+        // 데미지 적용 (hitstop 시작 후이므로 HitFlashUI도 timeScale=0 상태에서 시작)
         _playerStats?.TakeDamage(enemyStats.AttackPower);
 
         // 히트 상태 전환 → 애니메이션 재생
         _playerStateMachine?.OnHit();
 
-        // 넉백 방향: 적 → 플레이어 (수평) + 위쪽
-        float dirX = Mathf.Sign(transform.position.x - other.transform.position.x);
+        // 넉백 적용
         _playerMover?.ApplyKnockback(new Vector2(dirX * knockbackSpeedX, knockbackSpeedY));
 
         // 스케일 사인파 — knockback 지속시간에 맞춥니다.

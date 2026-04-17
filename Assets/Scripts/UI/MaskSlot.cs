@@ -86,13 +86,13 @@ public class MaskSlot : MonoBehaviour
             {
                 _icon.sprite         = _fullConfig.sprites[i];
                 _rt.localEulerAngles = GetFrameRotation(i);
-                yield return new WaitForSecondsRealtime(frameDur);
+                yield return new WaitForSeconds(frameDur);
             }
 
             // 첫 프레임에서 정지 후 intervalSeconds 대기
             _icon.sprite         = _fullConfig.sprites[0];
             _rt.localEulerAngles = GetFrameRotation(0);
-            yield return new WaitForSecondsRealtime(_fullConfig.intervalSeconds);
+            yield return new WaitForSeconds(_fullConfig.intervalSeconds);
         }
     }
 
@@ -122,7 +122,7 @@ public class MaskSlot : MonoBehaviour
             _icon.rectTransform.offsetMin = pos;
             _icon.rectTransform.offsetMax = pos;
 
-            yield return new WaitForSecondsRealtime(frameDur);
+            yield return new WaitForSeconds(frameDur);
         }
 
         // 스케일·회전·위치 복원

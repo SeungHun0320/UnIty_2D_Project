@@ -45,6 +45,7 @@ public class HitFlashUI : MonoBehaviour
     }
 
     // hitSprites를 1프레임씩 순서대로 표시 후 숨깁니다.
+    // 히트렉(timeScale=0) 중에는 현재 스프라이트를 유지하고 복구 후 진행합니다.
     private IEnumerator PlayFlash()
     {
         if (_image == null || hitSprites == null || hitSprites.Length == 0) yield break;
@@ -53,6 +54,7 @@ public class HitFlashUI : MonoBehaviour
         foreach (var sprite in hitSprites)
         {
             _image.sprite = sprite;
+            while (Time.timeScale <= 0f) yield return null; // 히트렉 대기
             yield return null;
         }
         _image.enabled = false;

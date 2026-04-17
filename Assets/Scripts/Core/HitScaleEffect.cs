@@ -19,18 +19,19 @@ public class HitScaleEffect : MonoBehaviour
         _baseScaleAbs = new Vector3(Mathf.Abs(s.x), Mathf.Abs(s.y), s.z);
     }
 
-    // 피격 시 외부에서 호출합니다. duration 동안 사인파를 재생 후 원본 복원합니다.
-    public void Play(float duration)
+    // 피격/사망 시 외부에서 호출합니다. duration 동안 사인파를 재생 후 원본 복원합니다.
+    // amplitudeScale : 진폭 배율 (기본 1.0 = 풀 강도, 0.5 = 반 강도)
+    public void Play(float duration, float amplitudeScale = 1f)
     {
         if (duration <= 0f) return;
 
         if (_routine != null)
             StopCoroutine(_routine);
-        _routine = StartCoroutine(ScaleSineWave(duration));
+        _routine = StartCoroutine(ScaleSineWave(duration, amplitudeScale));
     }
 
     // 감쇠 사인파로 Y를 늘렸다 줄였다 합니다. X는 역수로 면적을 보존합니다.
-    private IEnumerator ScaleSineWave(float duration)
+    private IEnumerator ScaleSineWave(float duration, float amplitudeScale)
     {
         float elapsed = 0f;
 
@@ -38,7 +39,7 @@ public class HitScaleEffect : MonoBehaviour
         {
             float envelope = 1f - (elapsed / duration);
             float sine     = Mathf.Sin(elapsed * squashFrequency * Mathf.PI * 2f);
-            float scaleY   = 1f + sine * squashAmplitude * envelope;
+            float scaleY   = 1f + sine * squashAmplitude * amplitudeScale * envelope;
             float scaleX   = scaleY > 0.001f ? 1f / scaleY : 1f;
 
             // flip 부호(localScale.x 음수 방향)를 유지합니다.

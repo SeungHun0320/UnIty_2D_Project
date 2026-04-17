@@ -13,11 +13,13 @@ public class EnemyDeathHandler : MonoBehaviour
     [Header("Settings")]
     [SerializeField, Min(0f)] private float destroyDelay = 2f;
 
-    private EnemyStats _stats;
+    private EnemyStats     _stats;
+    private HitScaleEffect _scaleEffect;
 
     private void Awake()
     {
-        _stats = GetComponent<EnemyStats>();
+        _stats       = GetComponent<EnemyStats>();
+        _scaleEffect = GetComponent<HitScaleEffect>();
 
         if (behaviourTree == null)
             behaviourTree = GetComponent<RustBehaviourTree>();
@@ -45,6 +47,9 @@ public class EnemyDeathHandler : MonoBehaviour
 
         // 사망 애니메이션
         animationDriver?.PlayDead();
+
+        // 피격의 절반 강도로 squash & stretch 재생
+        _scaleEffect?.Play(destroyDelay * 0.5f, 0.5f);
 
         // 사망 애니메이션 완료 후 제거
         Destroy(gameObject, destroyDelay);

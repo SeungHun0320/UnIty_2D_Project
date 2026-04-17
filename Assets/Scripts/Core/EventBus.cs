@@ -81,5 +81,12 @@ public readonly struct PlayerRespawnEvent
 // 플레이어 공격이 적에게 적중할 때 발행됩니다. (근접/투사체 공통)
 public readonly struct EnemyHitByPlayerEvent { }
 
+// 적 공격이 플레이어에게 적중할 때 발행됩니다. 히트렉·카메라 셰이크 트리거용
+public readonly struct PlayerHitByEnemyEvent
+{
+    public readonly UnityEngine.Vector2 HitDirection; // 피격 방향 (적→플레이어)
+    public PlayerHitByEnemyEvent(UnityEngine.Vector2 hitDirection) { HitDirection = hitDirection; }
+}
+
 // 스테이지 재시작 시 발행됩니다. EnemySpawner가 구독해 적을 재생성합니다.
 public readonly struct StageRestartEvent { }

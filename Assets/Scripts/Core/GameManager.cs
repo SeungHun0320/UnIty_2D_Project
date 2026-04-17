@@ -72,8 +72,10 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // DontDestroyOnLoad 오브젝트가 씬 종료 시 파괴될 때 정리합니다.
-        EventBus.Clear();
+        // 실제 싱글톤 인스턴스일 때만 정리합니다.
+        // 중복 인스턴스가 Destroy될 때 EventBus를 실수로 비우지 않도록 합니다.
+        if (Instance == this)
+            EventBus.Clear();
     }
 
     /// <summary> 게임 상태를 변경하고 이벤트를 발생시킵니다. </summary>

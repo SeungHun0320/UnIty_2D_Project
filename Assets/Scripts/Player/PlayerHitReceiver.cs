@@ -3,47 +3,28 @@ using UnityEngine;
 // 플레이어 피격을 감지하고 데미지 + 넉백을 처리합니다. (SRP)
 // Player GameObject의 자식 "Hurtbox" 오브젝트에 부착합니다.
 // 해당 자식 오브젝트는 isTrigger = true인 Collider2D와 PlayerHurtbox 레이어를 가져야 합니다.
-[RequireComponent(typeof(Collider2D))]
-public class PlayerHitReceiver : MonoBehaviour
+public class PlayerHitReceiver : HitReceiverBase
 {
     [Header("Knockback")]
     [SerializeField] private float knockbackSpeedX = 6f;
     [SerializeField] private float knockbackSpeedY = 4f;
 
-    [Header("Invincibility")]
-    [SerializeField] private float invincibilityDuration = 0.8f;
-
     private PlayerStats _playerStats;
     private PlayerMover _playerMover;
     private PlayerStateMachine _playerStateMachine;
     private HitScaleEffect _scaleEffect;
-    private float _invincibilityTimer;
 
-    public bool IsInvincible => _invincibilityTimer > 0f;
-
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         // 부모 오브젝트에서 컴포넌트를 가져옵니다.
         _playerStats        = GetComponentInParent<PlayerStats>();
         _playerMover        = GetComponentInParent<PlayerMover>();
         _playerStateMachine = GetComponentInParent<PlayerStateMachine>();
         _scaleEffect        = GetComponentInParent<HitScaleEffect>();
-
-        // Collider2D가 Trigger인지 보정합니다.
-        var col = GetComponent<Collider2D>();
-        col.isTrigger = true;
     }
 
-    private void Update()
-    {
-        if (_invincibilityTimer > 0f)
-            _invincibilityTimer -= Time.deltaTime;
-    }
-
-    // 무적시간이 끝난 뒤 몬스터에 계속 닿아있어도 재발동되도록 Stay도 처리합니다.
-    private void OnTriggerStay2D(Collider2D other) => OnTriggerEnter2D(other);
-
-    private void OnTriggerEnter2D(Collider2D other)
+    protected override void OnTriggerEnter2D(Collider2D other)
     {
         if (IsInvincible) return;
 
@@ -65,9 +46,9 @@ public class PlayerHitReceiver : MonoBehaviour
         // 넉백 적용
         _playerMover?.ApplyKnockback(new Vector2(dirX * knockbackSpeedX, knockbackSpeedY));
 
-        // 스케일 사인파 — knockback 지속시간에 맞춥니다.
+        // 스케일 사인파 — invincibilityDuration 기준으로 재생합니다.
         _scaleEffect?.Play(invincibilityDuration * 0.4f);
 
-        _invincibilityTimer = invincibilityDuration;
+        StartInvincibility();
     }
 }

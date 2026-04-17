@@ -14,6 +14,10 @@ public class HealSkillData : SkillData
     [Tooltip("한 번에 회복할 체력 양입니다. 1 = 마스크 1칸")]
     [Min(1f)] public float healAmount = 1f;
 
+    // 이미 체력이 최대라면 힐 불가 — SkillData.CanActivate 오버라이드로 Controller를 수정하지 않습니다.
+    public override bool CanActivate(ICharacterStats stats)
+        => stats == null || stats.CurrentHealth < stats.MaxHealth;
+
     public override IEnumerator Execute(SkillContext ctx)
     {
         if (!string.IsNullOrEmpty(animationKey))

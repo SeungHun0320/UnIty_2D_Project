@@ -29,6 +29,10 @@ public abstract class SkillData : ScriptableObject
     // 서브클래스가 스킬 행동을 직접 구현합니다.
     public abstract IEnumerator Execute(SkillContext ctx);
 
+    // 발동 가능 여부를 스킬 자신이 판단합니다. (OCP)
+    // 기본값은 항상 true — 조건이 있는 스킬만 오버라이드합니다.
+    public virtual bool CanActivate(ICharacterStats stats) => true;
+
     // 등록된 모든 이펙트를 재생합니다. 서브클래스의 Execute()에서 호출합니다.
     protected void PlayEffects(SkillContext ctx)
     {

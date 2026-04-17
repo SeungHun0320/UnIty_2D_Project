@@ -3,37 +3,21 @@ using UnityEngine;
 // 몬스터 피격을 감지하고 데미지를 처리합니다. (SRP)
 // Enemy GameObject의 자식 "Hurtbox" 오브젝트에 부착합니다.
 // 레이어는 EnemyHurtbox로 설정해야 합니다.
-[RequireComponent(typeof(Collider2D))]
-public class EnemyHitReceiver : MonoBehaviour
+public class EnemyHitReceiver : HitReceiverBase
 {
-    [Header("Invincibility")]
-    [SerializeField] private float invincibilityDuration = 0.2f;
-
     private EnemyStats _enemyStats;
     private SpineAnimationDriver _animationDriver;
     private EnemyHitState _hitState;
-    private float _invincibilityTimer;
-
-    public bool IsInvincible => _invincibilityTimer > 0f;
-
-    private void Awake()
-    {
-        _enemyStats      = GetComponentInParent<EnemyStats>();
-        _animationDriver = GetComponentInParent<SpineAnimationDriver>();
-        _hitState        = GetComponentInParent<EnemyHitState>();
-        _playerAttackLayer = LayerMask.NameToLayer("PlayerAttackHitbox");
-
-        var col = GetComponent<Collider2D>();
-        if (col != null) col.isTrigger = true;
-    }
-
-    private void Update()
-    {
-        if (_invincibilityTimer > 0f)
-            _invincibilityTimer -= Time.deltaTime;
-    }
-
     private int _playerAttackLayer;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        _enemyStats        = GetComponentInParent<EnemyStats>();
+        _animationDriver   = GetComponentInParent<SpineAnimationDriver>();
+        _hitState          = GetComponentInParent<EnemyHitState>();
+        _playerAttackLayer = LayerMask.NameToLayer("PlayerAttackHitbox");
+    }
 
     // 투사체 등 외부에서 직접 데미지를 줄 때 호출합니다.
     // sourcePosition : 공격 발생 위치 (넉백 방향 계산용, 생략 시 정면 넉백)
@@ -46,16 +30,13 @@ public class EnemyHitReceiver : MonoBehaviour
         if (_enemyStats == null || !_enemyStats.IsDead)
             _hitState?.Enter(sourcePosition);
 
-        _invincibilityTimer = invincibilityDuration;
+        StartInvincibility();
 
         // 원거리/스킬 공격 적중 — 히트렉·카메라 셰이크 이벤트 발행
         EventBus.Publish(new EnemyHitByPlayerEvent());
     }
 
-    // 히트박스 활성화 시점에 이미 겹쳐있는 경우도 처리합니다.
-    private void OnTriggerStay2D(Collider2D other) => OnTriggerEnter2D(other);
-
-    private void OnTriggerEnter2D(Collider2D other)
+    protected override void OnTriggerEnter2D(Collider2D other)
     {
         if (IsInvincible) return;
 
@@ -73,7 +54,7 @@ public class EnemyHitReceiver : MonoBehaviour
         if (_enemyStats == null || !_enemyStats.IsDead)
             _hitState?.Enter(other.transform.position);
 
-        _invincibilityTimer = invincibilityDuration;
+        StartInvincibility();
 
         // 근접 공격 적중 — 소울 충전 이벤트 발행
         EventBus.Publish(new EnemyHitByPlayerEvent());

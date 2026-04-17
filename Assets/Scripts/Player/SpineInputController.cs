@@ -27,6 +27,11 @@ public class SpineInputController : MonoBehaviour
     private InputAction[] _runtimeSkillActions;
     private InputAction   _runtimeJumpAction;
 
+    // 람다 핸들러 레퍼런스 저장 — OnDisable에서 -= 해제에 필요합니다.
+    private System.Action<InputAction.CallbackContext>[] _skillStartedHandlers;
+    private System.Action<InputAction.CallbackContext>[] _skillCanceledHandlers;
+    private System.Action<InputAction.CallbackContext>[] _skillPerformedHandlers;
+
     private Vector2 _moveInput;
     private bool _waitingForRespawn;
     private bool _waitingForRestart;
@@ -76,16 +81,25 @@ public class SpineInputController : MonoBehaviour
     {
         GetMoveAction()?.Enable();
 
-        // 슬롯별로 3종 이벤트 등록 — 해석은 PlayerSkillController가 담당합니다.
-        for (int i = 0; i < GetSkillActionCount(); i++)
+        // 슬롯별로 3종 이벤트 등록 — 핸들러를 배열에 저장해 OnDisable에서 해제합니다.
+        int skillCount = GetSkillActionCount();
+        _skillStartedHandlers   = new System.Action<InputAction.CallbackContext>[skillCount];
+        _skillCanceledHandlers  = new System.Action<InputAction.CallbackContext>[skillCount];
+        _skillPerformedHandlers = new System.Action<InputAction.CallbackContext>[skillCount];
+
+        for (int i = 0; i < skillCount; i++)
         {
             int captured = i;   // 클로저 캡처 방지
             InputAction action = GetSkillAction(i);
             if (action == null) continue;
 
-            action.started   += _ => skillController?.OnSlotPressed(captured);
-            action.canceled  += _ => skillController?.OnSlotReleased(captured);
-            action.performed += _ => skillController?.OnSlotPerformed(captured);
+            _skillStartedHandlers[i]   = _ => skillController?.OnSlotPressed(captured);
+            _skillCanceledHandlers[i]  = _ => skillController?.OnSlotReleased(captured);
+            _skillPerformedHandlers[i] = _ => skillController?.OnSlotPerformed(captured);
+
+            action.started   += _skillStartedHandlers[i];
+            action.canceled  += _skillCanceledHandlers[i];
+            action.performed += _skillPerformedHandlers[i];
             action.Enable();
         }
 
@@ -104,8 +118,16 @@ public class SpineInputController : MonoBehaviour
         for (int i = 0; i < GetSkillActionCount(); i++)
         {
             InputAction action = GetSkillAction(i);
-            action?.Disable();
+            if (action == null) continue;
+
+            if (_skillStartedHandlers?[i]   != null) action.started   -= _skillStartedHandlers[i];
+            if (_skillCanceledHandlers?[i]  != null) action.canceled  -= _skillCanceledHandlers[i];
+            if (_skillPerformedHandlers?[i] != null) action.performed -= _skillPerformedHandlers[i];
+            action.Disable();
         }
+        _skillStartedHandlers   = null;
+        _skillCanceledHandlers  = null;
+        _skillPerformedHandlers = null;
 
         InputAction jumpOff = GetJumpAction();
         if (jumpOff != null) { jumpOff.performed -= OnJumpPerformed; jumpOff.Disable(); }

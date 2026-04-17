@@ -19,7 +19,7 @@ public class ShieldAttackData : SkillData
     public override IEnumerator Execute(SkillContext ctx)
     {
         // 1. 애니메이션 + 이펙트 재생
-        ctx.Anim.PlayAnimation(animationKey);
+        ctx.Anim?.PlayAnimation(animationKey);
         PlayEffects(ctx);
 
         // 2. 투사체 즉시 발사 — yield 이전에 spawn해야 피격으로 스킬이 취소돼도 투사체가 보장됩니다.

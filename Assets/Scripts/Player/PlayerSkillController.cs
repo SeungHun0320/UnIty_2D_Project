@@ -7,11 +7,18 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerStats))]
 public class PlayerSkillController : MonoBehaviour
 {
+    // 슬롯별 상태를 하나의 구조체로 묶어 배열 인덱스 동기화 오류를 방지합니다.
+    private struct SkillSlot
+    {
+        public SkillData data;
+        public float     cooldownTimer;
+        public float     holdTimer;
+        public bool      holdActive;
+    }
+
     [SerializeField] private SkillData[] slots;
 
-    private float[]            _cooldownTimers;
-    private float[]            _holdTimers;
-    private bool[]             _holdActive;       // 해당 슬롯의 키가 현재 눌려있는지
+    private SkillSlot[]        _slots;
     private PlayerStateMachine _sm;
     private PlayerStats        _stats;
 
@@ -21,30 +28,27 @@ public class PlayerSkillController : MonoBehaviour
         _stats = GetComponent<PlayerStats>();
 
         int count = slots != null ? slots.Length : 0;
-        _cooldownTimers = new float[count];
-        _holdTimers     = new float[count];
-        _holdActive     = new bool[count];
+        _slots = new SkillSlot[count];
+        for (int i = 0; i < count; i++)
+            _slots[i].data = slots[i];
     }
 
     private void Update()
     {
-        for (int i = 0; i < _cooldownTimers.Length; i++)
+        for (int i = 0; i < _slots.Length; i++)
         {
-            if (_cooldownTimers[i] > 0f)
-                _cooldownTimers[i] -= Time.deltaTime;
-        }
+            if (_slots[i].cooldownTimer > 0f)
+                _slots[i].cooldownTimer -= Time.deltaTime;
 
-        // Hold 타이머 틱 — 눌리는 동안 누적, holdDuration 초과 시 발동
-        for (int i = 0; i < _holdActive.Length; i++)
-        {
-            if (!_holdActive[i]) continue;
+            // Hold 타이머 틱 — 눌리는 동안 누적, holdDuration 초과 시 발동
+            if (!_slots[i].holdActive) continue;
 
-            _holdTimers[i] += Time.deltaTime;
+            _slots[i].holdTimer += Time.deltaTime;
 
-            if (slots[i] != null && _holdTimers[i] >= slots[i].holdDuration)
+            if (_slots[i].data != null && _slots[i].holdTimer >= _slots[i].data.holdDuration)
             {
-                _holdActive[i]  = false;
-                _holdTimers[i]  = 0f;
+                _slots[i].holdActive = false;
+                _slots[i].holdTimer  = 0f;
                 ExecuteSlot(i);
             }
         }
@@ -56,7 +60,7 @@ public class PlayerSkillController : MonoBehaviour
     public void OnSlotPerformed(int slotIndex)
     {
         if (!IsSlotValid(slotIndex)) return;
-        if (slots[slotIndex].activationType != SkillActivationType.Instant) return;
+        if (_slots[slotIndex].data.activationType != SkillActivationType.Instant) return;
         ExecuteSlot(slotIndex);
     }
 
@@ -64,19 +68,19 @@ public class PlayerSkillController : MonoBehaviour
     public void OnSlotPressed(int slotIndex)
     {
         if (!IsSlotValid(slotIndex)) return;
-        if (slots[slotIndex].activationType != SkillActivationType.Hold) return;
+        if (_slots[slotIndex].data.activationType != SkillActivationType.Hold) return;
         if (!CanUse(slotIndex)) return;
 
-        _holdActive[slotIndex] = true;
-        _holdTimers[slotIndex] = 0f;
+        _slots[slotIndex].holdActive = true;
+        _slots[slotIndex].holdTimer  = 0f;
     }
 
     // Hold 슬롯: 키를 떼면 차징 취소
     public void OnSlotReleased(int slotIndex)
     {
-        if (slotIndex < 0 || slotIndex >= _holdActive.Length) return;
-        _holdActive[slotIndex] = false;
-        _holdTimers[slotIndex] = 0f;
+        if (slotIndex < 0 || slotIndex >= _slots.Length) return;
+        _slots[slotIndex].holdActive = false;
+        _slots[slotIndex].holdTimer  = 0f;
     }
 
     // ── UI 연동 ───────────────────────────────────────────────────────────────
@@ -84,17 +88,17 @@ public class PlayerSkillController : MonoBehaviour
     // 0 ~ 1 범위의 쿨다운 잔여 비율을 반환합니다.
     public float GetCooldownRatio(int slotIndex)
     {
-        if (slots == null || slotIndex >= slots.Length) return 0f;
-        if (slots[slotIndex] == null || slots[slotIndex].cooldown <= 0f) return 0f;
-        return Mathf.Clamp01(_cooldownTimers[slotIndex] / slots[slotIndex].cooldown);
+        if (!IsSlotValid(slotIndex)) return 0f;
+        if (_slots[slotIndex].data.cooldown <= 0f) return 0f;
+        return Mathf.Clamp01(_slots[slotIndex].cooldownTimer / _slots[slotIndex].data.cooldown);
     }
 
     // Hold 슬롯의 차징 진행도를 0 ~ 1로 반환합니다. (UI 피드백용)
     public float GetHoldRatio(int slotIndex)
     {
-        if (slots == null || slotIndex >= slots.Length) return 0f;
-        if (slots[slotIndex] == null || slots[slotIndex].holdDuration <= 0f) return 0f;
-        return Mathf.Clamp01(_holdTimers[slotIndex] / slots[slotIndex].holdDuration);
+        if (!IsSlotValid(slotIndex)) return 0f;
+        if (_slots[slotIndex].data.holdDuration <= 0f) return 0f;
+        return Mathf.Clamp01(_slots[slotIndex].holdTimer / _slots[slotIndex].data.holdDuration);
     }
 
     // ── 내부 헬퍼 ────────────────────────────────────────────────────────────
@@ -104,30 +108,29 @@ public class PlayerSkillController : MonoBehaviour
     {
         if (!CanUse(slotIndex)) return;
 
-        _cooldownTimers[slotIndex] = slots[slotIndex].cooldown;
-        _stats.UseSoul(slots[slotIndex].soulCost);
-        _sm.OnSkillInput(slots[slotIndex]);
+        _slots[slotIndex].cooldownTimer = _slots[slotIndex].data.cooldown;
+        _stats.UseSoul(_slots[slotIndex].data.soulCost);
+        _sm.OnSkillInput(_slots[slotIndex].data);
     }
 
-    // 발동 가능 여부 검사: 사망 / 쿨다운 / 소울 부족 / 최대 체력(힐 한정)
+    // 발동 가능 여부 검사: 사망 / 쿨다운 / 소울 부족 / 스킬 자체 조건
     private bool CanUse(int slotIndex)
     {
-        if (_sm.CurrentState == PlayerState.Dead)          return false;
-        if (_cooldownTimers[slotIndex] > 0f)               return false;
-        if (_stats.CurrentSoul < slots[slotIndex].soulCost) return false;
+        if (_sm.CurrentState == PlayerState.Dead)                    return false;
+        if (_slots[slotIndex].cooldownTimer > 0f)                    return false;
+        if (_stats.CurrentSoul < _slots[slotIndex].data.soulCost)    return false;
 
-        // 힐 스킬: 이미 체력이 최대면 소모 없이 차단
-        if (slots[slotIndex] is HealSkillData && _stats.CurrentHealth >= _stats.MaxHealth)
-            return false;
+        // 스킬 자체 조건 — HealSkillData 등이 SkillData.CanActivate()를 오버라이드합니다.
+        if (!_slots[slotIndex].data.CanActivate(_stats))             return false;
 
         return true;
     }
 
     private bool IsSlotValid(int slotIndex)
     {
-        return slots != null
+        return _slots != null
             && slotIndex >= 0
-            && slotIndex < slots.Length
-            && slots[slotIndex] != null;
+            && slotIndex < _slots.Length
+            && _slots[slotIndex].data != null;
     }
 }

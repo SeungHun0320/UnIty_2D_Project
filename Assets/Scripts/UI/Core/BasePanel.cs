@@ -37,6 +37,9 @@ public abstract class BasePanel : MonoBehaviour
 
     public void Hide()
     {
+        // 이미 비활성 상태라면 코루틴을 시작할 수 없으므로 즉시 반환합니다.
+        if (!gameObject.activeInHierarchy) return;
+
         _canvasGroup.interactable   = false;
         _canvasGroup.blocksRaycasts = false;
         if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);

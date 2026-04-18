@@ -782,7 +782,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2, y: 3.6}
+  m_Size: {x: 1.7, y: 3.6}
   m_EdgeRadius: 0
 --- !u!1 &312104093
 GameObject:
@@ -8812,7 +8812,7 @@ MonoBehaviour:
   m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
-  m_ApplyToSortingLayers: 5bfe2aad2bf2b773f172b0708d2b6dba9994236de7ac285e
+  m_ApplyToSortingLayers: 5bfe2aad2bf2b773f172b0708d2b6dba9994236de7ac285e1f682b7c
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -13988,7 +13988,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 1.7525895}
-  m_Size: {x: 2, y: 3.6}
+  m_Size: {x: 1.7, y: 3.6}
   m_Direction: 0
 --- !u!114 &2121868741
 MonoBehaviour:

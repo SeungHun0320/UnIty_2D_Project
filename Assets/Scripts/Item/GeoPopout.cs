@@ -16,16 +16,13 @@ public class GeoPopout : MonoBehaviour
     // static 공유 버퍼 제거 — 동시 실행 시 덮어쓰기 방지
     private readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[8];
 
-    private Collider2D    _collider;
     private SpriteRenderer _sr;
     private Vector2       _velocity;
     private int           _bounceCount;
 
     private void Start()
     {
-        _collider = GetComponent<Collider2D>();
-        _sr       = GetComponent<SpriteRenderer>();
-        if (_collider != null) _collider.enabled = false;
+        _sr = GetComponent<SpriteRenderer>();
 
         float angle = Random.Range(30f, 150f) * Mathf.Deg2Rad;
         float speed = Random.Range(launchSpeed * 0.7f, launchSpeed);
@@ -97,6 +94,5 @@ public class GeoPopout : MonoBehaviour
     private void Settle()
     {
         _velocity = Vector2.zero;
-        if (_collider != null) _collider.enabled = true;
     }
 }

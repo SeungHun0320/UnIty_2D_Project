@@ -9,6 +9,8 @@ public class GeoSpriteAnimator : MonoBehaviour
 {
     [SerializeField] private float fps = 12f;
     [SerializeField] private int maxFrameIndex = 7;
+    [SerializeField] private string resourcePath = "Geo";
+    [SerializeField] private string spriteNamePattern = @"^Geo_\d+$";
     public float Fps
     {
         get => fps;
@@ -31,8 +33,8 @@ public class GeoSpriteAnimator : MonoBehaviour
         }
 
         // maxFrameIndex까지만 사용 (Inspector에서 조절)
-        _frames = Resources.LoadAll<Sprite>("Geo")
-            .Where(s => System.Text.RegularExpressions.Regex.IsMatch(s.name, @"^Geo_\d+$"))
+        _frames = Resources.LoadAll<Sprite>(resourcePath)
+            .Where(s => System.Text.RegularExpressions.Regex.IsMatch(s.name, spriteNamePattern))
             .Select(s => (sprite: s, index: ExtractNumber(s.name)))
             .Where(t => t.index <= maxFrameIndex)
             .OrderBy(t => t.index)

@@ -34,10 +34,13 @@ public class ParallaxBackground : MonoBehaviour
     private float smoothTimeX = 0.15f;
     [SerializeField, Min(0.01f), Tooltip("Y축 SmoothDamp 시간. 낮을수록 빠르게 따라옴.")]
     private float smoothTimeY = 0.15f;
+    [SerializeField, Min(1), Tooltip("재시작 후 Y 즉시 스냅 유지 프레임 수.")]
+    private int instantYSnapFrameCount = 8;
+    [SerializeField, Min(1f), Tooltip("타일 순환 감지 임계값 배율. 낮추면 더 빨리 재배치됨.")]
+    private float cycleThresholdMultiplier = 1.5f;
 
     private float _previousCameraX;
     private float _previousCameraY;
-    // 재시작 직후 N프레임 동안 SmoothDamp를 건너뛰고 즉시 Y 추종합니다.
     private int _instantYSnapFrames;
 
     private void OnEnable()  => EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
@@ -52,7 +55,7 @@ public class ParallaxBackground : MonoBehaviour
 
         // 재시작 후 카메라가 스타트포인트로 이동하는 동안
         // SmoothDamp 지연 없이 즉시 Y를 추종합니다. (8프레임 ≈ 0.13s)
-        _instantYSnapFrames = 8;
+        _instantYSnapFrames = instantYSnapFrameCount;
 
         foreach (var layer in layers)
         {
@@ -152,7 +155,7 @@ public class ParallaxBackground : MonoBehaviour
             // 1W 기준이면 점프 후 즉시 반대 조건이 충족되어 무한 왕복이 발생합니다.
             if (layer.textureWidth > 0f)
             {
-                float threshold = layer.textureWidth * 1.5f;
+                float threshold = layer.textureWidth * cycleThresholdMultiplier;
                 foreach (var tile in layer.tiles)
                 {
                     if (tile == null) continue;

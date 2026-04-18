@@ -5,8 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class GeoPopout : MonoBehaviour
 {
-    [SerializeField] private float launchSpeed    = 5f;
-    [SerializeField] private float gravity        = 18f;
+    [SerializeField] private float launchSpeed      = 5f;
+    [SerializeField] private float gravity          = 18f;
+    [SerializeField] private float launchAngleMin   = 30f;
+    [SerializeField] private float launchAngleMax   = 150f;
+    [SerializeField, Range(0f, 1f)] private float launchSpeedMinRatio = 0.7f;
     [SerializeField] private float bounceDamping  = 0.45f;
     [SerializeField] private float wallDamping    = 0.6f;
     [SerializeField] private float settleThreshold = 0.8f;
@@ -24,8 +27,8 @@ public class GeoPopout : MonoBehaviour
     {
         _sr = GetComponent<SpriteRenderer>();
 
-        float angle = Random.Range(30f, 150f) * Mathf.Deg2Rad;
-        float speed = Random.Range(launchSpeed * 0.7f, launchSpeed);
+        float angle = Random.Range(launchAngleMin, launchAngleMax) * Mathf.Deg2Rad;
+        float speed = Random.Range(launchSpeed * launchSpeedMinRatio, launchSpeed);
         _velocity   = new Vector2(Mathf.Cos(angle) * speed, Mathf.Sin(angle) * speed);
 
         StartCoroutine(PopoutRoutine());

@@ -7,6 +7,7 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     [SerializeField] private float lifeTime = 3f;
+    [SerializeField] private LayerMask enemyHurtboxMask;
 
     [Tooltip("시간(초)에 따른 속도 배율 커브. X축=경과시간, Y축=속도(유닛/초)")]
     [SerializeField] private AnimationCurve speedCurve = new AnimationCurve(
@@ -21,15 +22,10 @@ public class Projectile : MonoBehaviour
     private Vector2     _direction;
     private float       _elapsed;
     private bool        _initialized;
-    private int         _enemyHurtboxLayer;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-        _enemyHurtboxLayer = LayerMask.NameToLayer("EnemyHurtbox");
-
-        // PlayerAttackHitbox 레이어로 고정 — EnemyHurtbox와 충돌 매트릭스가 이미 설정되어 있습니다.
-        gameObject.layer = LayerMask.NameToLayer("PlayerAttackHitbox");
         // 투사체 콜라이더는 반드시 트리거여야 OnTriggerEnter2D가 발동됩니다.
         GetComponent<Collider2D>().isTrigger = true;
     }
@@ -57,7 +53,7 @@ public class Projectile : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         // EnemyHurtbox 레이어만 처리합니다.
-        if (other.gameObject.layer != _enemyHurtboxLayer) return;
+        if ((enemyHurtboxMask.value & (1 << other.gameObject.layer)) == 0) return;
 
         EnemyHitReceiver enemy = other.GetComponent<EnemyHitReceiver>();
         if (enemy == null) return;

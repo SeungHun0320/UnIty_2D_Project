@@ -5,18 +5,18 @@ using UnityEngine;
 // 레이어는 EnemyHurtbox로 설정해야 합니다.
 public class EnemyHitReceiver : HitReceiverBase
 {
+    [SerializeField] private LayerMask playerAttackMask;
+
     private EnemyStats _enemyStats;
     private SpineAnimationDriver _animationDriver;
     private EnemyHitState _hitState;
-    private int _playerAttackLayer;
 
     protected override void Awake()
     {
         base.Awake();
-        _enemyStats        = GetComponentInParent<EnemyStats>();
-        _animationDriver   = GetComponentInParent<SpineAnimationDriver>();
-        _hitState          = GetComponentInParent<EnemyHitState>();
-        _playerAttackLayer = LayerMask.NameToLayer("PlayerAttackHitbox");
+        _enemyStats      = GetComponentInParent<EnemyStats>();
+        _animationDriver = GetComponentInParent<SpineAnimationDriver>();
+        _hitState        = GetComponentInParent<EnemyHitState>();
     }
 
     // 투사체 등 외부에서 직접 데미지를 줄 때 호출합니다.
@@ -41,7 +41,7 @@ public class EnemyHitReceiver : HitReceiverBase
         if (IsInvincible) return;
 
         // PlayerAttackHitbox 레이어만 처리 — 플레이어 몸 접촉은 무시합니다.
-        if (other.gameObject.layer != _playerAttackLayer) return;
+        if ((playerAttackMask.value & (1 << other.gameObject.layer)) == 0) return;
 
         var playerStats = other.GetComponentInParent<PlayerStats>();
         if (playerStats == null) return;

@@ -5,6 +5,9 @@ using UnityEngine;
 // Speed 변경에도 자동 대응합니다.
 public class EffectLifetimeHelper : MonoBehaviour
 {
+    [Tooltip("Animator 없을 때 사용하는 폴백 제거 시간(초)")]
+    [SerializeField] private float fallbackLifetime = 3f;
+
     private IEnumerator Start()
     {
         // Animator 초기화 대기 (1프레임)
@@ -22,7 +25,7 @@ public class EffectLifetimeHelper : MonoBehaviour
         }
         else
         {
-            Destroy(target, 3f); // 폴백 — wrapper 포함 제거
+            Destroy(target, fallbackLifetime);
         }
     }
 }

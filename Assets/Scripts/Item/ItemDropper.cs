@@ -41,8 +41,7 @@ public class ItemDropper : MonoBehaviour
             for (int i = 0; i < count; i++)
             {
                 // 여러 개 드랍 시 살짝 흩어지도록 오프셋 적용
-                Vector3 offset = new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(0f, 0.3f), 0f);
-                Instantiate(entry.prefab, position + offset, Quaternion.identity);
+                Instantiate(entry.prefab, position, Quaternion.identity);
             }
         }
     }

@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 8642485515677265876}
   - component: {fileID: 2927166131356354586}
   - component: {fileID: 558180943386532336}
+  - component: {fileID: 3926662282852632321}
+  - component: {fileID: 9094536122625465762}
   m_Layer: 0
   m_Name: GeoPickup
   m_TagString: Untagged
@@ -29,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -84,7 +86,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 1, g: 0.85, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -143,3 +145,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GeoPickup
   playerTag: Player
   data: {fileID: 11400000, guid: c5847383fa7b191478bf298867c6bab6, type: 2}
+--- !u!114 &3926662282852632321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 967899590355389527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3672da377b41f50419c02f4b7b9c9975, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GeoSpriteAnimator
+  fps: 10
+  frameRotations:
+  - 0
+  - 90
+  - 180
+  - 0
+  - 0
+  - 90
+  - 90
+  - 180
+  - 90
+--- !u!114 &9094536122625465762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 967899590355389527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e93b6e82e3c84f4a946850b5ea2fa0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GeoPopout
+  launchSpeed: 5
+  gravity: 18
+  bounceDamping: 0.8
+  maxBounces: 3
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1

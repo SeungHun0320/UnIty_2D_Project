@@ -39,7 +39,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -2.43, y: 3.61, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 227978103645671606}
@@ -342,7 +342,7 @@ MonoBehaviour:
   dropTable:
   - prefab: {fileID: 558180943386532336, guid: 3effda0722ee0a445a4421b2748bdd43, type: 3}
     chance: 1
-    countRange: {x: 1, y: 1}
+    countRange: {x: 1, y: 4}
 --- !u!1 &5787104992686422879
 GameObject:
   m_ObjectHideFlags: 0

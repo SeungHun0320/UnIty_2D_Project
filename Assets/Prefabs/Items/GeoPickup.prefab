@@ -203,4 +203,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be8f3d384188b1e4985ea0447aab8c35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeoPickupEffect
-  fps: 16
+  fps: 14
+  frameRotations:
+  - 0
+  - 90
+  - 0
+  - 0

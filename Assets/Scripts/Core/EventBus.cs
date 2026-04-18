@@ -78,8 +78,12 @@ public readonly struct PlayerRespawnEvent
     public PlayerRespawnEvent(UnityEngine.Vector3 pos) { Position = pos; }
 }
 
-// 플레이어 공격이 적에게 적중할 때 발행됩니다. (근접/투사체 공통)
-public readonly struct EnemyHitByPlayerEvent { }
+// 플레이어 공격이 적에게 적중할 때 발행됩니다. IsMelee=true면 근접 공격 (소울 충전 대상)
+public readonly struct EnemyHitByPlayerEvent
+{
+    public readonly bool IsMelee;
+    public EnemyHitByPlayerEvent(bool isMelee) { IsMelee = isMelee; }
+}
 
 // 적 공격이 플레이어에게 적중할 때 발행됩니다. 히트렉·카메라 셰이크 트리거용
 public readonly struct PlayerHitByEnemyEvent

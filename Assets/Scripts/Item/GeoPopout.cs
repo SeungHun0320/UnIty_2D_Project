@@ -5,18 +5,21 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class GeoPopout : MonoBehaviour
 {
-    [SerializeField] private float launchSpeed = 5f;
-    [SerializeField] private float gravity = 18f;
-    [SerializeField] private float bounceDamping = 0.45f;
-    [SerializeField] private int maxBounces = 2;
+    [SerializeField] private float launchSpeed    = 5f;
+    [SerializeField] private float gravity        = 18f;
+    [SerializeField] private float bounceDamping  = 0.45f;
+    [SerializeField] private float wallDamping    = 0.6f;
+    [SerializeField] private float settleThreshold = 0.8f;
+    [SerializeField] private int   maxBounces     = 2;
     [SerializeField] private LayerMask groundLayer;
 
-    private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[8];
+    // static 공유 버퍼 제거 — 동시 실행 시 덮어쓰기 방지
+    private readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[8];
 
-    private Collider2D _collider;
+    private Collider2D    _collider;
     private SpriteRenderer _sr;
-    private Vector2 _velocity;
-    private int _bounceCount;
+    private Vector2       _velocity;
+    private int           _bounceCount;
 
     private void Start()
     {
@@ -41,16 +44,18 @@ public class GeoPopout : MonoBehaviour
             // 바닥 감지 (하강 중에만)
             if (_velocity.y < 0f)
             {
+                // BottomPoint를 한 번만 캐시 — 두 번 호출 시 스프라이트 교체로 값이 달라지는 버그 방지
+                Vector2 bottom   = BottomPoint();
                 float checkDist  = Mathf.Abs(_velocity.y * dt) + 0.05f;
-                RaycastHit2D ground = NonTriggerRaycast(BottomPoint(), Vector2.down, checkDist);
+                RaycastHit2D ground = NonTriggerRaycast(bottom, Vector2.down, checkDist);
 
                 if (ground.collider != null)
                 {
-                    float bottomOffset = transform.position.y - BottomPoint().y;
+                    float bottomOffset = transform.position.y - bottom.y;
                     transform.position = new Vector3(transform.position.x, ground.point.y + bottomOffset, transform.position.z);
 
                     _bounceCount++;
-                    bool tooWeak = Mathf.Abs(_velocity.y) * bounceDamping < 0.8f;
+                    bool tooWeak = Mathf.Abs(_velocity.y) * bounceDamping < settleThreshold;
                     if (_bounceCount >= maxBounces || tooWeak)
                     {
                         Settle();
@@ -58,18 +63,18 @@ public class GeoPopout : MonoBehaviour
                     }
 
                     _velocity.y = -_velocity.y * bounceDamping;
-                    _velocity.x *= 0.6f;
+                    _velocity.x *= wallDamping;
                 }
             }
 
             // 벽 감지 (수평 이동 방향)
             if (_velocity.x != 0f)
             {
-                Vector2 dir      = _velocity.x > 0f ? Vector2.right : Vector2.left;
-                float checkDist  = Mathf.Abs(_velocity.x * dt) + 0.05f;
+                Vector2 dir     = _velocity.x > 0f ? Vector2.right : Vector2.left;
+                float checkDist = Mathf.Abs(_velocity.x * dt) + 0.05f;
                 RaycastHit2D wall = NonTriggerRaycast(transform.position, dir, checkDist);
                 if (wall.collider != null)
-                    _velocity.x = -_velocity.x * bounceDamping;
+                    _velocity.x = -_velocity.x * wallDamping;
             }
 
             transform.position += (Vector3)(_velocity * dt);
@@ -77,7 +82,6 @@ public class GeoPopout : MonoBehaviour
         }
     }
 
-    // Trigger 제외 Raycast — 정착 동전 Collider 오인 방지
     private RaycastHit2D NonTriggerRaycast(Vector2 origin, Vector2 dir, float dist)
     {
         int count = Physics2D.RaycastNonAlloc(origin, dir, _hitBuffer, dist, groundLayer);

@@ -13569,7 +13569,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d11098d1705af6488dc72b6ebcded59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeoRewardBinder
-  geoUI: {fileID: 2013401127}
 --- !u!1 &2057104626
 GameObject:
   m_ObjectHideFlags: 0

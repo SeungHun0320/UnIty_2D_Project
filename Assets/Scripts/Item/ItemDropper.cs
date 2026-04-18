@@ -40,7 +40,6 @@ public class ItemDropper : MonoBehaviour
             int count = Random.Range(entry.countRange.x, Mathf.Max(entry.countRange.x, entry.countRange.y) + 1);
             for (int i = 0; i < count; i++)
             {
-                // 여러 개 드랍 시 살짝 흩어지도록 오프셋 적용
                 Instantiate(entry.prefab, position, Quaternion.identity);
             }
         }

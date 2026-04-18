@@ -8,6 +8,7 @@ using UnityEngine;
 public class GeoSpriteAnimator : MonoBehaviour
 {
     [SerializeField] private float fps = 12f;
+    [SerializeField] private int maxFrameIndex = 7;
     public float Fps
     {
         get => fps;
@@ -29,11 +30,13 @@ public class GeoSpriteAnimator : MonoBehaviour
             return;
         }
 
-        // Geo_0~7 (8프레임) 사용
+        // maxFrameIndex까지만 사용 (Inspector에서 조절)
         _frames = Resources.LoadAll<Sprite>("Geo")
             .Where(s => System.Text.RegularExpressions.Regex.IsMatch(s.name, @"^Geo_\d+$"))
-            .OrderBy(s => ExtractNumber(s.name))
-            .Where(s => ExtractNumber(s.name) <= 7)
+            .Select(s => (sprite: s, index: ExtractNumber(s.name)))
+            .Where(t => t.index <= maxFrameIndex)
+            .OrderBy(t => t.index)
+            .Select(t => t.sprite)
             .ToArray();
 
         if (_frames == null || _frames.Length == 0)

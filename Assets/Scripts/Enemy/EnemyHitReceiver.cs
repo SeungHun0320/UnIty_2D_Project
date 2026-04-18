@@ -32,8 +32,8 @@ public class EnemyHitReceiver : HitReceiverBase
 
         StartInvincibility();
 
-        // 원거리/스킬 공격 적중 — 히트렉·카메라 셰이크 이벤트 발행
-        EventBus.Publish(new EnemyHitByPlayerEvent());
+        // 원거리/스킬 공격 적중 — 히트렉·카메라 셰이크 이벤트 발행 (소울 충전 제외)
+        EventBus.Publish(new EnemyHitByPlayerEvent(isMelee: false));
     }
 
     protected override void OnTriggerEnter2D(Collider2D other)
@@ -57,6 +57,6 @@ public class EnemyHitReceiver : HitReceiverBase
         StartInvincibility();
 
         // 근접 공격 적중 — 소울 충전 이벤트 발행
-        EventBus.Publish(new EnemyHitByPlayerEvent());
+        EventBus.Publish(new EnemyHitByPlayerEvent(isMelee: true));
     }
 }

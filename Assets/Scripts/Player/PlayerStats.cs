@@ -34,8 +34,8 @@ public class PlayerStats : CharacterStats
     private void OnEnable()  => EventBus.Subscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
     private void OnDisable() => EventBus.Unsubscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
 
-    // 적 피격 이벤트 수신 시 soulPerHit만큼 소울을 충전합니다.
-    private void OnEnemyHit(EnemyHitByPlayerEvent _) => AddSoul(soulPerHit);
+    // 근접 공격 적중 시에만 소울을 충전합니다. (투사체 적중 제외)
+    private void OnEnemyHit(EnemyHitByPlayerEvent evt) { if (evt.IsMelee) AddSoul(soulPerHit); }
 
     // 소울을 소모합니다. 잔량이 부족하면 false를 반환합니다.
     public bool UseSoul(int amount)

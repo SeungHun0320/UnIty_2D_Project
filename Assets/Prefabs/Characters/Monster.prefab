@@ -526,3 +526,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHitReceiver
   invincibilityDuration: 0.5
+  playerAttackMask:
+    serializedVersion: 2
+    m_Bits: 512

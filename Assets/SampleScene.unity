@@ -10706,6 +10706,8 @@ MonoBehaviour:
     velocityY: 0
   smoothTimeX: 0.15
   smoothTimeY: 0.05
+  instantYSnapFrameCount: 8
+  cycleThresholdMultiplier: 1.5
 --- !u!1 &1262596244
 GameObject:
   m_ObjectHideFlags: 0

@@ -112,6 +112,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
   lifeTime: 1.5
+  enemyHurtboxMask:
+    serializedVersion: 2
+    m_Bits: 1024
   speedCurve:
     serializedVersion: 2
     m_Curve:

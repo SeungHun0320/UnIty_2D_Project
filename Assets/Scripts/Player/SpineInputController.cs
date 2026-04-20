@@ -33,10 +33,6 @@ public class SpineInputController : MonoBehaviour
     private System.Action<InputAction.CallbackContext>[] _skillPerformedHandlers;
 
     private Vector2 _moveInput;
-    private bool _waitingForRespawn;
-    private bool _waitingForRestart;
-    private InputAction _runtimeRespawnAction;
-    private InputAction _runtimeRestartAction;
 
     private void Awake()
     {
@@ -57,14 +53,6 @@ public class SpineInputController : MonoBehaviour
             playerMover.OnLanded += HandleLanded;
         if (animationDriverComponent != null)
             animationDriverComponent.OnActionComplete += HandleAttackComplete;
-
-        _runtimeRespawnAction = new InputAction(name: "Respawn", type: InputActionType.Button);
-        _runtimeRespawnAction.AddBinding("<Keyboard>/e");
-        _runtimeRespawnAction.AddBinding("<Gamepad>/buttonEast");
-
-        _runtimeRestartAction = new InputAction(name: "Restart", type: InputActionType.Button);
-        _runtimeRestartAction.AddBinding("<Keyboard>/r");
-        _runtimeRestartAction.AddBinding("<Gamepad>/start");
 
         EnsureActions();
     }
@@ -105,10 +93,6 @@ public class SpineInputController : MonoBehaviour
 
         InputAction jump = GetJumpAction();
         if (jump != null) { jump.performed += OnJumpPerformed; jump.Enable(); }
-
-        EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
-        EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
-        EventBus.Subscribe<StageClearEvent>(OnStageClear);
     }
 
     private void OnDisable()
@@ -131,68 +115,21 @@ public class SpineInputController : MonoBehaviour
 
         InputAction jumpOff = GetJumpAction();
         if (jumpOff != null) { jumpOff.performed -= OnJumpPerformed; jumpOff.Disable(); }
-
-        if (_runtimeRespawnAction != null)
-        {
-            _runtimeRespawnAction.performed -= OnRespawnPerformed;
-            _runtimeRespawnAction.Disable();
-        }
-
-        if (_runtimeRestartAction != null)
-        {
-            _runtimeRestartAction.performed -= OnRestartPerformed;
-            _runtimeRestartAction.Disable();
-        }
-
-        EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
-        EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
-        EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
-    }
-
-    // 사망 시 일반 입력을 차단하고 E키 리스폰 대기 모드로 전환합니다.
-    private void OnPlayerDead(PlayerDeadEvent _)
-    {
-        if (_waitingForRespawn) return;
-        _waitingForRespawn = true;
-        _runtimeRespawnAction.performed += OnRespawnPerformed;
-        _runtimeRespawnAction.Enable();
-    }
-
-    private void OnRespawnPerformed(InputAction.CallbackContext _)
-    {
-        if (!_waitingForRespawn) return;
-        GameManager.Instance?.RespawnPlayer();
-    }
-
-    private void OnPlayerRespawn(PlayerRespawnEvent _)
-    {
-        _waitingForRespawn = false;
-        _runtimeRespawnAction.performed -= OnRespawnPerformed;
-        _runtimeRespawnAction.Disable();
-    }
-
-    // 스테이지 클리어 시 R키 재시작 대기 모드로 전환합니다.
-    private void OnStageClear(StageClearEvent _)
-    {
-        if (_waitingForRestart) return;
-        _waitingForRestart = true;
-        _runtimeRestartAction.performed += OnRestartPerformed;
-        _runtimeRestartAction.Enable();
-    }
-
-    private void OnRestartPerformed(InputAction.CallbackContext _)
-    {
-        if (!_waitingForRestart) return;
-        _waitingForRestart = false;
-        _runtimeRestartAction.performed -= OnRestartPerformed;
-        _runtimeRestartAction.Disable();
-        GameManager.Instance?.RestartStage();
     }
 
     private void Update()
     {
         if (playerStateMachine == null) return;
-        if (_waitingForRespawn) { _moveInput = Vector2.zero; return; }
+
+        // 사망·클리어·일시정지 상태에서는 이동 입력을 차단합니다.
+        var state = GameManager.Instance?.CurrentGameState;
+        if (state == GameState.GameOver
+         || state == GameState.StageClear
+         || state == GameState.Paused)
+        {
+            _moveInput = Vector2.zero;
+            return;
+        }
 
         InputAction move = GetMoveAction();
         _moveInput = move != null ? move.ReadValue<Vector2>() : Vector2.zero;

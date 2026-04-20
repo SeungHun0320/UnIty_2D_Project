@@ -8,8 +8,9 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [Header("Panels")]
-    [SerializeField] private DeathPanel deathPanel;
+    [SerializeField] private DeathPanel      deathPanel;
     [SerializeField] private StageClearPanel stageClearPanel;
+    [SerializeField] private PausePanel      pausePanel;
 
     private readonly Dictionary<Type, BasePanel> _panels = new();
 
@@ -20,6 +21,7 @@ public class UIManager : MonoBehaviour
 
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);
+        if (pausePanel != null)      Register(pausePanel);
     }
 
     private void OnEnable()
@@ -28,6 +30,8 @@ public class UIManager : MonoBehaviour
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Subscribe<StageClearEvent>(OnStageClear);
         EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
+        EventBus.Subscribe<GamePausedEvent>(OnGamePaused);
+        EventBus.Subscribe<GameResumedEvent>(OnGameResumed);
     }
 
     private void OnDisable()
@@ -36,13 +40,16 @@ public class UIManager : MonoBehaviour
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
         EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
+        EventBus.Unsubscribe<GamePausedEvent>(OnGamePaused);
+        EventBus.Unsubscribe<GameResumedEvent>(OnGameResumed);
     }
 
     private void OnPlayerDead(PlayerDeadEvent _)       => Show<DeathPanel>();
     private void OnPlayerRespawn(PlayerRespawnEvent _) => Hide<DeathPanel>();
     private void OnStageClear(StageClearEvent _)       => Show<StageClearPanel>();
-    // 스테이지 재시작 시 스테이지 클리어 패널을 숨깁니다.
-    private void OnStageRestart(StageRestartEvent _)   => Hide<StageClearPanel>();
+    private void OnStageRestart(StageRestartEvent _)   { Hide<StageClearPanel>(); Hide<PausePanel>(); }
+    private void OnGamePaused(GamePausedEvent _)       => Show<PausePanel>();
+    private void OnGameResumed(GameResumedEvent _)     => Hide<PausePanel>();
 
     public void Register(BasePanel panel)
     {

@@ -114,12 +114,27 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary> 스테이지를 재시작합니다. 플레이어 리셋 + 적 재생성. </summary>
+    /// 일시정지·클리어 상태 모두에서 호출 가능합니다.
     public void RestartStage()
     {
-        if (_currentGameState != GameState.StageClear) return;
+        if (_currentGameState != GameState.StageClear
+         && _currentGameState != GameState.Paused) return;
+
+        // 일시정지 중 재시작 시 timeScale을 복구합니다.
+        Time.timeScale = 1f;
         RespawnPlayer();
         EventBus.Publish(new StageRestartEvent());
         Debug.Log("[GameManager] Stage Restarted.");
+    }
+
+    /// <summary> 게임을 종료합니다. 에디터에서는 플레이 모드를 종료합니다. </summary>
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     /// <summary> 스테이지 클리어 처리. </summary>
@@ -151,6 +166,7 @@ public class GameManager : MonoBehaviour
     {
         SetGameState(GameState.Paused);
         Time.timeScale = 0f;
+        EventBus.Publish(new GamePausedEvent());
     }
 
     /// <summary> 게임 재개. </summary>
@@ -160,7 +176,17 @@ public class GameManager : MonoBehaviour
         {
             SetGameState(GameState.Playing);
             Time.timeScale = 1f;
+            EventBus.Publish(new GameResumedEvent());
         }
+    }
+
+    /// <summary> 현재 상태에 따라 일시정지/재개를 토글합니다. </summary>
+    public void TogglePause()
+    {
+        if (_currentGameState == GameState.Paused)
+            Resume();
+        else if (_currentGameState == GameState.Playing)
+            Pause();
     }
 }
 

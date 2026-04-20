@@ -15121,14 +15121,20 @@ MonoBehaviour:
     tapSkill: {fileID: 0}
     holdSkill: {fileID: 0}
     holdThreshold: 0.4
+    repeatsWhileHeld: 0
+    repeatInterval: 0.3
   - skill: {fileID: 0}
     tapSkill: {fileID: 11400000, guid: 6ff3a59ee4aef8744b15e3829b85b387, type: 2}
     holdSkill: {fileID: 11400000, guid: 6553fe931590aa9429a8b12d1e530a23, type: 2}
     holdThreshold: 0.4
+    repeatsWhileHeld: 1
+    repeatInterval: 0.3
   - skill: {fileID: 0}
     tapSkill: {fileID: 0}
     holdSkill: {fileID: 0}
     holdThreshold: 0.4
+    repeatsWhileHeld: 0
+    repeatInterval: 0.3
   bufferWindow: 0.15
 --- !u!114 &2121868745
 MonoBehaviour:

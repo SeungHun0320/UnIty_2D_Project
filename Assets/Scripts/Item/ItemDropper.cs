@@ -20,15 +20,8 @@ public class ItemDropper : MonoBehaviour
 
     [SerializeField] private List<DropEntry> dropTable;
 
-    private void OnEnable()  => EventBus.Subscribe<EnemyDeadEvent>(OnEnemyDead);
-    private void OnDisable() => EventBus.Unsubscribe<EnemyDeadEvent>(OnEnemyDead);
-
-    private void OnEnemyDead(EnemyDeadEvent evt)
-    {
-        // 자신의 사망 이벤트만 처리
-        if (evt.Enemy != gameObject) return;
-        Drop(transform.position);
-    }
+    // EnemyDeathHandler가 사망 애니메이션 종료 직전에 호출합니다.
+    public void TriggerDrop(Vector3 position) => Drop(position);
 
     private void Drop(Vector3 position)
     {

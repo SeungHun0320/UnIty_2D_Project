@@ -13,13 +13,21 @@ public class EnemyDeathHandler : MonoBehaviour
     [Header("Settings")]
     [SerializeField, Min(0f)] private float destroyDelay = 2f;
 
-    private EnemyStats     _stats;
-    private HitScaleEffect _scaleEffect;
+    [Header("Death Knockback")]
+    [SerializeField, Min(0f)] private float deathKnockbackX = 4f;
+    [SerializeField, Min(0f)] private float deathKnockbackY = 6f;
+
+    private EnemyStats        _stats;
+    private HitScaleEffect    _scaleEffect;
+    private EnemyHitReceiver  _hitReceiver;
+    private ItemDropper       _itemDropper;
 
     private void Awake()
     {
         _stats       = GetComponent<EnemyStats>();
         _scaleEffect = GetComponent<HitScaleEffect>();
+        _hitReceiver = GetComponentInChildren<EnemyHitReceiver>();
+        _itemDropper = GetComponent<ItemDropper>();
 
         if (behaviourTree == null)
             behaviourTree = GetComponent<RustBehaviourTree>();
@@ -38,11 +46,17 @@ public class EnemyDeathHandler : MonoBehaviour
         if (behaviourTree != null)
             behaviourTree.enabled = false;
 
-        // 물리 정지
+        // 사망 넉백 — 마지막 피격 방향으로 튕겨납니다.
         if (rb != null)
         {
-            rb.linearVelocity = Vector2.zero;
-            rb.bodyType = RigidbodyType2D.Kinematic;
+            float dirX = 0f;
+            if (_hitReceiver != null)
+            {
+                float dx = transform.position.x - _hitReceiver.LastHitSourcePos.x;
+                dirX = Mathf.Approximately(dx, 0f) ? 1f : Mathf.Sign(dx);
+            }
+            rb.bodyType       = RigidbodyType2D.Dynamic;
+            rb.linearVelocity = new Vector2(dirX * deathKnockbackX, deathKnockbackY);
         }
 
         // 사망 애니메이션
@@ -51,7 +65,15 @@ public class EnemyDeathHandler : MonoBehaviour
         // 피격의 절반 강도로 squash & stretch 재생
         _scaleEffect?.Play(destroyDelay * 0.5f, 0.5f);
 
-        // 사망 애니메이션 완료 후 제거
-        Destroy(gameObject, destroyDelay);
+        // 사망 애니메이션 종료 직전 드롭 + 제거
+        StartCoroutine(DropThenDestroy());
+    }
+
+    private System.Collections.IEnumerator DropThenDestroy()
+    {
+        yield return new WaitForSeconds(destroyDelay - 0.05f);
+        _itemDropper?.TriggerDrop(transform.position);
+        yield return new WaitForSeconds(0.05f);
+        Destroy(gameObject);
     }
 }

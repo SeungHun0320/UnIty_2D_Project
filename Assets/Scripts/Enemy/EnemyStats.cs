@@ -12,9 +12,8 @@ public class EnemyStats : CharacterStats
     protected override void OnDead()
     {
         base.OnDead();
-        // 사망 시 물리 충돌 및 공격 히트박스를 비활성화합니다.
-        var col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false;
+        // 피격 감지만 비활성화 — 메인 물리 콜라이더는 유지해 지형 충돌이 동작합니다.
+        GetComponentInChildren<EnemyHitReceiver>()?.gameObject.SetActive(false);
         GetComponentInChildren<EnemyAttackHitbox>()?.Deactivate();
         // EnemyDeadEvent는 GameManager.OnEnemyDead() 내부에서 발행합니다. 중복 발행 방지.
         GameManager.Instance?.OnEnemyDead(gameObject);

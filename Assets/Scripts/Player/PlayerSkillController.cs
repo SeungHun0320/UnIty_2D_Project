@@ -22,6 +22,10 @@ public class PlayerSkillController : MonoBehaviour
         public SkillData holdSkill;
         [Tooltip("탭/홀드 판별 기준 시간(초). 이 시간 이내 릴리즈면 탭, 초과하면 홀드.")]
         [Min(0.05f)] public float holdThreshold = 0.4f;
+        [Tooltip("true면 키를 누르고 있는 동안 holdSkill을 반복 실행합니다.")]
+        public bool repeatsWhileHeld = false;
+        [Tooltip("반복 실행 간격(초). repeatsWhileHeld가 true일 때만 사용합니다.")]
+        [Min(0.05f)] public float repeatInterval = 0.3f;
 
         public bool IsTapOrHold => tapSkill != null && holdSkill != null;
     }
@@ -32,7 +36,8 @@ public class PlayerSkillController : MonoBehaviour
         public float cooldownTimer;
         public float holdTimer;
         public bool  isHolding;
-        public bool  holdFired;  // TapOrHold: holdSkill이 이미 실행됐으면 릴리즈 시 tap 차단
+        public bool  holdFired;    // TapOrHold: holdSkill이 이미 실행됐으면 릴리즈 시 tap 차단
+        public int   repeatCount;  // 반복 실행 누적 횟수 (중복 방지용)
     }
 
     [SerializeField] private SlotConfig[] slots;
@@ -81,11 +86,24 @@ public class PlayerSkillController : MonoBehaviour
 
             if (cfg.IsTapOrHold)
             {
-                // holdThreshold 초과 → holdSkill 실행
                 if (!_states[i].holdFired && _states[i].holdTimer >= cfg.holdThreshold)
                 {
+                    // 최초 holdThreshold 도달 → holdSkill 실행
                     _states[i].holdFired = true;
                     ExecuteSkill(i, cfg.holdSkill);
+                }
+                else if (_states[i].holdFired && cfg.repeatsWhileHeld)
+                {
+                    // 반복 모드: repeatInterval마다 재실행
+                    // holdTimer를 holdThreshold 기준으로 초과분을 누적해 간격을 측정합니다.
+                    float elapsed = _states[i].holdTimer - cfg.holdThreshold;
+                    int   fires   = Mathf.FloorToInt(elapsed / cfg.repeatInterval);
+                    // 이미 실행한 횟수보다 많아졌을 때만 실행 (중복 방지)
+                    if (fires > _states[i].repeatCount)
+                    {
+                        _states[i].repeatCount = fires;
+                        ExecuteSkill(i, cfg.holdSkill);
+                    }
                 }
             }
             else if (cfg.skill != null && cfg.skill.activationType == SkillActivationType.Hold)
@@ -141,9 +159,10 @@ public class PlayerSkillController : MonoBehaviour
                 ExecuteSkill(i, cfg.tapSkill);
         }
 
-        _states[i].isHolding = false;
-        _states[i].holdTimer  = 0f;
-        _states[i].holdFired  = false;
+        _states[i].isHolding   = false;
+        _states[i].holdTimer   = 0f;
+        _states[i].holdFired   = false;
+        _states[i].repeatCount = 0;
     }
 
     // Instant 슬롯 전용 — 키 performed 시 호출

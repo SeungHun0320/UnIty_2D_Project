@@ -11,6 +11,9 @@ public class EnemyHitReceiver : HitReceiverBase
     private SpineAnimationDriver _animationDriver;
     private EnemyHitState _hitState;
 
+    // 마지막 피격 위치 — EnemyDeathHandler가 사망 시 넉백 방향 계산에 사용합니다.
+    public Vector2 LastHitSourcePos { get; private set; }
+
     protected override void Awake()
     {
         base.Awake();
@@ -24,6 +27,7 @@ public class EnemyHitReceiver : HitReceiverBase
     public void ReceiveHit(float damage, Vector2 sourcePosition = default)
     {
         if (IsInvincible) return;
+        LastHitSourcePos = sourcePosition;
         _enemyStats?.TakeDamage(damage);
         _animationDriver?.PlayHit();
 
@@ -46,6 +50,7 @@ public class EnemyHitReceiver : HitReceiverBase
         var playerStats = other.GetComponentInParent<PlayerStats>();
         if (playerStats == null) return;
 
+        LastHitSourcePos = other.transform.position;
         _enemyStats?.TakeDamage(playerStats.TotalAttackPower);
         Debug.Log($"[EnemyHitReceiver] {transform.parent?.name} HP: {_enemyStats?.CurrentHealth} / {_enemyStats?.MaxHealth}");
         _animationDriver?.PlayHit();

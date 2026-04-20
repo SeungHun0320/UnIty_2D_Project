@@ -150,11 +150,13 @@ public class PlayerMover : MonoBehaviour
     private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[8];
     private RaycastHit2D BoxCastSolid(Vector2 origin, Vector2 size, Vector2 direction, float distance)
     {
-        int count = Physics2D.BoxCastNonAlloc(origin, size, 0f, direction, _hitBuffer, distance, groundLayers);
+        var filter = new ContactFilter2D { useTriggers = false };
+        filter.SetLayerMask(groundLayers);
+        int count = Physics2D.BoxCast(origin, size, 0f, direction, filter, _hitBuffer, distance);
         for (int i = 0; i < count; i++)
         {
             RaycastHit2D h = _hitBuffer[i];
-            if (h.collider == _col || h.collider.isTrigger) continue;
+            if (h.collider == _col) continue;
             if (Vector2.Dot(h.normal, direction) < 0f) return h;
         }
         return default;

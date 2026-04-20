@@ -30,8 +30,6 @@ public class SoulUI : MonoBehaviour
     [Header("Gauge Layout")]
     [Tooltip("0이면 자동 계산, 0보다 크면 이 값(px)을 최대 높이로 사용합니다.")]
     [SerializeField, Min(0f)] private float fullViewportHeightOverride = 0f;
-    [Tooltip("true면 fillAnimImage를 현재 높이에 맞춰 원본 비율로 같이 스케일합니다.")]
-    [SerializeField] private bool scaleFillImageByViewportHeight = false;
     [Tooltip("true면 FillMaskShape(FullMask)의 알파를 사용해 FlowAnim을 마스킹합니다.")]
     [SerializeField] private bool useAlphaMask = true;
     [Tooltip("true면 위치/앵커를 코드가 자동으로 맞춥니다. false면 사용자가 씬에서 조정한 위치를 유지합니다.")]

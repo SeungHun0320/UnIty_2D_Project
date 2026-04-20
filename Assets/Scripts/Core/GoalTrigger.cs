@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class GoalTrigger : MonoBehaviour
 {
+    [SerializeField] private string playerTag = "Player";
+
     private void Awake()
     {
         GetComponent<Collider2D>().isTrigger = true;
@@ -11,7 +13,7 @@ public class GoalTrigger : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (!other.CompareTag(playerTag)) return;
         GameManager.Instance?.OnStageClear();
     }
 }

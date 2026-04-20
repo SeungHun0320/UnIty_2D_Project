@@ -52,6 +52,8 @@ public class SkillState : IPlayerState
             _routine = null;
         }
         sm.SkillContext.Hitbox?.Deactivate();
+        // 공격 완료 시 버퍼 입력 소비 기회를 줍니다.
+        sm.GetComponent<PlayerSkillController>()?.OnSkillFinished();
     }
 
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold) { }

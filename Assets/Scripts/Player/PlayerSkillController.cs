@@ -1,26 +1,57 @@
 using UnityEngine;
 
-// 스킬 슬롯, 쿨다운, 소울 소모, 발동 방식(Instant/Hold)을 관리합니다. (SRP)
-// SpineInputController가 OnSlotPerformed/Pressed/Released를 호출하면
-// 슬롯의 activationType에 따라 즉시 실행하거나 hold 타이머를 처리합니다.
+// 스킬 슬롯, 쿨다운, 소울 소모, Instant/Hold/TapOrHold 발동 방식을 관리합니다. (SRP)
+// tapSkill + holdSkill 둘 다 세팅된 슬롯은 자동으로 TapOrHold 모드로 동작합니다.
 [RequireComponent(typeof(PlayerStateMachine))]
 [RequireComponent(typeof(PlayerStats))]
 public class PlayerSkillController : MonoBehaviour
 {
-    // 슬롯별 상태를 하나의 구조체로 묶어 배열 인덱스 동기화 오류를 방지합니다.
-    private struct SkillSlot
+    // Inspector에서 슬롯별 스킬을 설정합니다.
+    // skill만 세팅 → Instant 또는 Hold (SkillData.activationType 따름)
+    // tapSkill + holdSkill 세팅 → TapOrHold 모드 (holdThreshold로 판별)
+    [System.Serializable]
+    public class SlotConfig
     {
-        public SkillData data;
-        public float     cooldownTimer;
-        public float     holdTimer;
-        public bool      holdActive;
+        [Tooltip("단독 스킬 (Instant 또는 Hold). TapOrHold 모드면 비워두세요.")]
+        public SkillData skill;
+
+        [Header("TapOrHold 모드 (아래 둘 다 세팅 시 활성화)")]
+        [Tooltip("짧게 누를 때 실행할 스킬 (Instant 권장)")]
+        public SkillData tapSkill;
+        [Tooltip("길게 누를 때 실행할 스킬 (Hold 권장)")]
+        public SkillData holdSkill;
+        [Tooltip("탭/홀드 판별 기준 시간(초). 이 시간 이내 릴리즈면 탭, 초과하면 홀드.")]
+        [Min(0.05f)] public float holdThreshold = 0.4f;
+
+        public bool IsTapOrHold => tapSkill != null && holdSkill != null;
     }
 
-    [SerializeField] private SkillData[] slots;
+    // 슬롯별 런타임 상태 (SO 오염 방지 — SlotConfig에 넣지 않습니다)
+    private struct SlotState
+    {
+        public float cooldownTimer;
+        public float holdTimer;
+        public bool  isHolding;
+        public bool  holdFired;  // TapOrHold: holdSkill이 이미 실행됐으면 릴리즈 시 tap 차단
+    }
 
-    private SkillSlot[]        _slots;
-    private PlayerStateMachine _sm;
-    private PlayerStats        _stats;
+    [SerializeField] private SlotConfig[] slots;
+
+    [Header("Input Buffer")]
+    [Tooltip("공격 중 입력을 이 시간(초) 동안 기억했다가 공격 완료 직후 자동 실행합니다.")]
+    [SerializeField, Min(0f)] private float bufferWindow = 0.15f;
+
+    // 버퍼에 저장할 입력 — 슬롯 인덱스 + 입력 시각
+    private struct BufferedInput
+    {
+        public int   slotIndex;
+        public float timestamp;
+    }
+
+    private BufferedInput?      _buffer;
+    private SlotState[]         _states;
+    private PlayerStateMachine  _sm;
+    private PlayerStats         _stats;
 
     private void Awake()
     {
@@ -28,109 +59,174 @@ public class PlayerSkillController : MonoBehaviour
         _stats = GetComponent<PlayerStats>();
 
         int count = slots != null ? slots.Length : 0;
-        _slots = new SkillSlot[count];
-        for (int i = 0; i < count; i++)
-            _slots[i].data = slots[i];
+        _states = new SlotState[count];
     }
 
     private void Update()
     {
-        for (int i = 0; i < _slots.Length; i++)
+        // 버퍼 유효시간 만료 시 자동 폐기
+        if (_buffer.HasValue && Time.time - _buffer.Value.timestamp > bufferWindow)
+            _buffer = null;
+
+        for (int i = 0; i < _states.Length; i++)
         {
-            if (_slots[i].cooldownTimer > 0f)
-                _slots[i].cooldownTimer -= Time.deltaTime;
+            if (_states[i].cooldownTimer > 0f)
+                _states[i].cooldownTimer -= Time.deltaTime;
 
-            // Hold 타이머 틱 — 눌리는 동안 누적, holdDuration 초과 시 발동
-            if (!_slots[i].holdActive) continue;
+            if (!_states[i].isHolding) continue;
 
-            _slots[i].holdTimer += Time.deltaTime;
+            _states[i].holdTimer += Time.deltaTime;
 
-            if (_slots[i].data != null && _slots[i].holdTimer >= _slots[i].data.holdDuration)
+            SlotConfig cfg = slots[i];
+
+            if (cfg.IsTapOrHold)
             {
-                _slots[i].holdActive = false;
-                _slots[i].holdTimer  = 0f;
-                ExecuteSlot(i);
+                // holdThreshold 초과 → holdSkill 실행
+                if (!_states[i].holdFired && _states[i].holdTimer >= cfg.holdThreshold)
+                {
+                    _states[i].holdFired = true;
+                    ExecuteSkill(i, cfg.holdSkill);
+                }
+            }
+            else if (cfg.skill != null && cfg.skill.activationType == SkillActivationType.Hold)
+            {
+                // 기존 Hold 단독 슬롯
+                if (_states[i].holdTimer >= cfg.skill.holdDuration)
+                {
+                    _states[i].isHolding = false;
+                    _states[i].holdTimer  = 0f;
+                    ExecuteSkill(i, cfg.skill);
+                }
             }
         }
     }
 
     // ── 입력 진입점 (SpineInputController에서 호출) ───────────────────────────
 
-    // Instant 슬롯: 키를 누르는 순간 발동
-    public void OnSlotPerformed(int slotIndex)
+    // 키를 누르는 순간
+    public void OnSlotPressed(int i)
     {
-        if (!IsSlotValid(slotIndex)) return;
-        if (_slots[slotIndex].data.activationType != SkillActivationType.Instant) return;
-        ExecuteSlot(slotIndex);
+        if (!IsValid(i)) return;
+        SlotConfig cfg = slots[i];
+
+        if (cfg.IsTapOrHold)
+        {
+            if (!CanUse(i, cfg.tapSkill) && !CanUse(i, cfg.holdSkill)) return;
+            _states[i].isHolding  = true;
+            _states[i].holdTimer  = 0f;
+            _states[i].holdFired  = false;
+        }
+        else if (cfg.skill != null)
+        {
+            if (cfg.skill.activationType == SkillActivationType.Hold)
+            {
+                if (!CanUse(i, cfg.skill)) return;
+                _states[i].isHolding = true;
+                _states[i].holdTimer  = 0f;
+            }
+            // Instant는 OnSlotPerformed에서 처리
+        }
     }
 
-    // Hold 슬롯: 키를 누르기 시작할 때 타이머 시작
-    public void OnSlotPressed(int slotIndex)
+    // 키를 떼는 순간
+    public void OnSlotReleased(int i)
     {
-        if (!IsSlotValid(slotIndex)) return;
-        if (_slots[slotIndex].data.activationType != SkillActivationType.Hold) return;
-        if (!CanUse(slotIndex)) return;
+        if (i < 0 || i >= _states.Length) return;
+        SlotConfig cfg = slots[i];
 
-        _slots[slotIndex].holdActive = true;
-        _slots[slotIndex].holdTimer  = 0f;
+        if (cfg.IsTapOrHold)
+        {
+            // holdSkill이 아직 실행 안 됐으면 tap 실행
+            if (_states[i].isHolding && !_states[i].holdFired)
+                ExecuteSkill(i, cfg.tapSkill);
+        }
+
+        _states[i].isHolding = false;
+        _states[i].holdTimer  = 0f;
+        _states[i].holdFired  = false;
     }
 
-    // Hold 슬롯: 키를 떼면 차징 취소
-    public void OnSlotReleased(int slotIndex)
+    // Instant 슬롯 전용 — 키 performed 시 호출
+    public void OnSlotPerformed(int i)
     {
-        if (slotIndex < 0 || slotIndex >= _slots.Length) return;
-        _slots[slotIndex].holdActive = false;
-        _slots[slotIndex].holdTimer  = 0f;
+        if (!IsValid(i)) return;
+        SlotConfig cfg = slots[i];
+
+        // TapOrHold / Hold 슬롯은 Pressed/Released로 처리하므로 여기선 무시
+        if (cfg.IsTapOrHold) return;
+        if (cfg.skill == null || cfg.skill.activationType != SkillActivationType.Instant) return;
+
+        ExecuteSkill(i, cfg.skill);
     }
 
     // ── UI 연동 ───────────────────────────────────────────────────────────────
 
-    // 0 ~ 1 범위의 쿨다운 잔여 비율을 반환합니다.
-    public float GetCooldownRatio(int slotIndex)
+    public float GetCooldownRatio(int i)
     {
-        if (!IsSlotValid(slotIndex)) return 0f;
-        if (_slots[slotIndex].data.cooldown <= 0f) return 0f;
-        return Mathf.Clamp01(_slots[slotIndex].cooldownTimer / _slots[slotIndex].data.cooldown);
+        if (!IsValid(i)) return 0f;
+        SlotConfig cfg = slots[i];
+        SkillData  sd  = cfg.IsTapOrHold ? cfg.tapSkill : cfg.skill;
+        if (sd == null || sd.cooldown <= 0f) return 0f;
+        return Mathf.Clamp01(_states[i].cooldownTimer / sd.cooldown);
     }
 
-    // Hold 슬롯의 차징 진행도를 0 ~ 1로 반환합니다. (UI 피드백용)
-    public float GetHoldRatio(int slotIndex)
+    public float GetHoldRatio(int i)
     {
-        if (!IsSlotValid(slotIndex)) return 0f;
-        if (_slots[slotIndex].data.holdDuration <= 0f) return 0f;
-        return Mathf.Clamp01(_slots[slotIndex].holdTimer / _slots[slotIndex].data.holdDuration);
+        if (!IsValid(i)) return 0f;
+        SlotConfig cfg = slots[i];
+        if (cfg.IsTapOrHold)
+            return Mathf.Clamp01(_states[i].holdTimer / cfg.holdThreshold);
+        if (cfg.skill == null || cfg.skill.holdDuration <= 0f) return 0f;
+        return Mathf.Clamp01(_states[i].holdTimer / cfg.skill.holdDuration);
     }
 
     // ── 내부 헬퍼 ────────────────────────────────────────────────────────────
 
-    // 슬롯 실행: 쿨다운 소모 + 소울 소모 + 상태머신에 전달
-    private void ExecuteSlot(int slotIndex)
+    private void ExecuteSkill(int i, SkillData sd)
     {
-        if (!CanUse(slotIndex)) return;
+        if (sd == null) return;
 
-        _slots[slotIndex].cooldownTimer = _slots[slotIndex].data.cooldown;
-        _stats.UseSoul(_slots[slotIndex].data.soulCost);
-        _sm.OnSkillInput(_slots[slotIndex].data);
+        // 공격 중이면 버퍼에 저장하고 완료 후 재시도
+        if (_sm.CurrentState == PlayerState.Skill)
+        {
+            _buffer = new BufferedInput { slotIndex = i, timestamp = Time.time };
+            return;
+        }
+
+        if (!CanUse(i, sd)) return;
+
+        _states[i].cooldownTimer = sd.cooldown;
+        _stats.UseSoul(sd.soulCost);
+        _sm.OnSkillInput(sd);
     }
 
-    // 발동 가능 여부 검사: 사망 / 쿨다운 / 소울 부족 / 스킬 자체 조건
-    private bool CanUse(int slotIndex)
+    // 공격 완료 시 SkillState.Exit()에서 호출됩니다. 버퍼 소비를 시도합니다.
+    public void OnSkillFinished()
     {
-        if (_sm.CurrentState == PlayerState.Dead)                    return false;
-        if (_slots[slotIndex].cooldownTimer > 0f)                    return false;
-        if (_stats.CurrentSoul < _slots[slotIndex].data.soulCost)    return false;
+        if (!_buffer.HasValue) return;
+        if (Time.time - _buffer.Value.timestamp > bufferWindow) { _buffer = null; return; }
 
-        // 스킬 자체 조건 — HealSkillData 등이 SkillData.CanActivate()를 오버라이드합니다.
-        if (!_slots[slotIndex].data.CanActivate(_stats))             return false;
+        int buffered = _buffer.Value.slotIndex;
+        _buffer = null;
 
+        if (!IsValid(buffered)) return;
+        SlotConfig cfg = slots[buffered];
+
+        // TapOrHold 슬롯은 tap(짧게)으로 재실행합니다.
+        SkillData sd = cfg.IsTapOrHold ? cfg.tapSkill : cfg.skill;
+        ExecuteSkill(buffered, sd);
+    }
+
+    private bool CanUse(int i, SkillData sd)
+    {
+        if (sd == null)                                             return false;
+        if (_sm.CurrentState == PlayerState.Dead)                  return false;
+        if (_states[i].cooldownTimer > 0f)                         return false;
+        if (_stats.CurrentSoul < sd.soulCost)                      return false;
+        if (!sd.CanActivate(_stats))                               return false;
         return true;
     }
 
-    private bool IsSlotValid(int slotIndex)
-    {
-        return _slots != null
-            && slotIndex >= 0
-            && slotIndex < _slots.Length
-            && _slots[slotIndex].data != null;
-    }
+    private bool IsValid(int i) =>
+        slots != null && i >= 0 && i < slots.Length && slots[i] != null;
 }

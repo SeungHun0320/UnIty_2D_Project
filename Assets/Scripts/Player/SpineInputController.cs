@@ -218,34 +218,36 @@ public class SpineInputController : MonoBehaviour
     private static InputAction CreateDefaultMoveAction()
     {
         var action = new InputAction(name: "Move", type: InputActionType.Value);
+        // 방향키만 사용합니다. WASD는 제거했습니다.
         action.AddCompositeBinding("2DVector")
-            .With("Up", "<Keyboard>/w").With("Down", "<Keyboard>/s")
-            .With("Left", "<Keyboard>/a").With("Right", "<Keyboard>/d");
-        action.AddCompositeBinding("2DVector")
-            .With("Up", "<Keyboard>/upArrow").With("Down", "<Keyboard>/downArrow")
-            .With("Left", "<Keyboard>/leftArrow").With("Right", "<Keyboard>/rightArrow");
+            .With("Up",    "<Keyboard>/upArrow")
+            .With("Down",  "<Keyboard>/downArrow")
+            .With("Left",  "<Keyboard>/leftArrow")
+            .With("Right", "<Keyboard>/rightArrow");
         action.AddBinding("<Gamepad>/leftStick");
         return action;
     }
 
     // 슬롯 인덱스에 따라 기본 키를 할당합니다.
-    // slot 0 → J (기본 공격), slot 1 → K (스킬), slot 2 → L (힐)
+    // slot 0 → X (기본 공격 Instant)
+    // slot 1 → A (TapOrHold: 짧게=총알, 길게=체력회복)
+    // slot 2 → C (예약: 대시)
     private static InputAction CreateDefaultSkillAction(int slotIndex)
     {
         var action = new InputAction(name: $"Skill_{slotIndex}", type: InputActionType.Button);
         switch (slotIndex)
         {
             case 0:
-                action.AddBinding("<Keyboard>/j");
-                action.AddBinding("<Mouse>/leftButton");
+                action.AddBinding("<Keyboard>/x");
                 action.AddBinding("<Gamepad>/buttonSouth");
                 break;
             case 1:
-                action.AddBinding("<Keyboard>/k");
+                action.AddBinding("<Keyboard>/a");
                 action.AddBinding("<Gamepad>/buttonWest");
                 break;
             case 2:
-                action.AddBinding("<Keyboard>/l");
+                // 대시용 예약 — 나중에 구현
+                action.AddBinding("<Keyboard>/c");
                 action.AddBinding("<Gamepad>/buttonNorth");
                 break;
             default:
@@ -259,6 +261,7 @@ public class SpineInputController : MonoBehaviour
     {
         var action = new InputAction(name: "Jump", type: InputActionType.Button);
         action.AddBinding("<Keyboard>/space");
+        action.AddBinding("<Keyboard>/z");
         action.AddBinding("<Gamepad>/buttonSouth");
         return action;
     }

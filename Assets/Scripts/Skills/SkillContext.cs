@@ -10,4 +10,5 @@ public class SkillContext
     public PlayerStats      Stats;
     public Transform        Origin;      // 방향 참조 (localScale.x 부호로 방향 판별)
     public Transform        SpawnPoint;  // 투사체 스폰 위치 (없으면 Origin + offset 사용)
+    public ProjectilePool   Pool;        // 로컬 투사체 풀 (null이면 Instantiate 폴백)
 }

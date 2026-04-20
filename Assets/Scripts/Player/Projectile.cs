@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 // 원거리 스킬에서 발사되는 투사체입니다.
 // 지정 방향으로 이동하며 EnemyHurtbox 레이어에 닿으면 데미지를 줍니다.
+// 풀에서 재사용될 경우 Init() 호출로 상태를 초기화하고, 수명 만료·피격 시 onRelease 콜백으로 반납합니다.
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 public class Projectile : MonoBehaviour
@@ -21,7 +23,9 @@ public class Projectile : MonoBehaviour
     private float       _damage;
     private Vector2     _direction;
     private float       _elapsed;
+    private float       _lifeTimer;
     private bool        _initialized;
+    private Action      _onRelease;
 
     private void Awake()
     {
@@ -31,20 +35,30 @@ public class Projectile : MonoBehaviour
     }
 
     // Init() 호출 전까지 이동하지 않도록 _initialized 플래그로 보호합니다.
-    public void Init(Vector2 direction, float damage)
+    // onRelease: 수명 만료·피격 시 호출되는 풀 반납 콜백 (null이면 Destroy로 동작)
+    public void Init(Vector2 direction, float damage, Action onRelease = null)
     {
         _direction   = direction.normalized;
         _damage      = damage;
         _elapsed     = 0f;
+        _lifeTimer   = lifeTime;
+        _onRelease   = onRelease;
         _initialized = true;
-        Destroy(gameObject, lifeTime);
     }
 
     private void FixedUpdate()
     {
         if (!_initialized) return;
 
-        _elapsed += Time.fixedDeltaTime;
+        _elapsed   += Time.fixedDeltaTime;
+        _lifeTimer -= Time.fixedDeltaTime;
+
+        if (_lifeTimer <= 0f)
+        {
+            Release();
+            return;
+        }
+
         float currentSpeed = speedCurve.Evaluate(_elapsed);
         // Kinematic RB2D는 MovePosition으로 이동해야 물리 충돌이 올바르게 처리됩니다.
         _rb.MovePosition(_rb.position + _direction * currentSpeed * Time.fixedDeltaTime);
@@ -59,6 +73,22 @@ public class Projectile : MonoBehaviour
         if (enemy == null) return;
 
         enemy.ReceiveHit(_damage);
-        Destroy(gameObject);
+        Release();
+    }
+
+    // 풀 반납(onRelease) 또는 Destroy로 객체를 정리합니다.
+    private void Release()
+    {
+        _initialized = false;
+
+        if (_onRelease != null)
+        {
+            _onRelease.Invoke();
+            _onRelease = null;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }

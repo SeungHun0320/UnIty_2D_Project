@@ -45,7 +45,11 @@ public class ShieldAttackData : SkillData
             ? (Vector2)ctx.SpawnPoint.position
             : (Vector2)ctx.Origin.position + new Vector2(spawnOffset.x * dirX, spawnOffset.y);
 
-        GameObject go = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+        // 풀이 있으면 풀에서 꺼내고, 없으면 Instantiate 폴백
+        GameObject go = ctx.Pool != null
+            ? ctx.Pool.Get(projectilePrefab, spawnPos, Quaternion.identity)
+            : Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+
         // localScale.x로 방향을 잡으면 애니메이션 flipX가 방향과 무관하게 동작합니다.
         go.transform.localScale = new Vector3(dirX, 1f, 1f);
         Projectile proj = go.GetComponent<Projectile>();
@@ -54,6 +58,11 @@ public class ShieldAttackData : SkillData
             ? ctx.Stats.TotalAttackPower * damageMultiplier
             : damageMultiplier;
 
-        proj?.Init(new Vector2(dirX, 0f), damage);
+        // 풀 반납 콜백을 Projectile에 전달합니다.
+        System.Action onRelease = ctx.Pool != null
+            ? () => ctx.Pool.Release(projectilePrefab, go)
+            : null;
+
+        proj?.Init(new Vector2(dirX, 0f), damage, onRelease);
     }
 }

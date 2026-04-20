@@ -10379,7 +10379,6 @@ MonoBehaviour:
   maxSoul: 99
   currentSoul: 50
   fullViewportHeightOverride: 0
-  scaleFillImageByViewportHeight: 0
   useAlphaMask: 1
   autoLayout: 0
   useShaderCircleClip: 1
@@ -11334,6 +11333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9421a8ebadfdb343a778e3ae27c3e59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoalTrigger
+  playerTag: Player
 --- !u!1 &1425935084
 GameObject:
   m_ObjectHideFlags: 0
@@ -13732,6 +13732,7 @@ GameObject:
   - component: {fileID: 2121868745}
   - component: {fileID: 2121868747}
   - component: {fileID: 2121868746}
+  - component: {fileID: 2121868748}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -14121,6 +14122,20 @@ MonoBehaviour:
   playerStateMachine: {fileID: 2121868736}
   playerMover: {fileID: 2121868741}
   skillController: {fileID: 2121868744}
+--- !u!114 &2121868748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2121868729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af1fd2fbe46b0ab4bb2066e72c770baa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectilePool
+  defaultCapacity: 5
+  maxSize: 20
 --- !u!1 &2134996387
 GameObject:
   m_ObjectHideFlags: 0

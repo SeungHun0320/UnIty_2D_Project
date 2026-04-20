@@ -151,6 +151,7 @@ public class PlayerStateMachine : MonoBehaviour
             Stats       = playerStatsComponent,
             Origin      = transform,
             SpawnPoint  = projectileSpawnPoint != null ? projectileSpawnPoint : transform,
+            Pool        = GetComponent<ProjectilePool>(),
         };
 
         ChangeState(IdleState);

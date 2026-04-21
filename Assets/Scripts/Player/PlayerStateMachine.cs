@@ -169,13 +169,21 @@ public class PlayerStateMachine : MonoBehaviour
     {
         EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawnEvent);
+        EventBus.Subscribe<StageClearEvent>(OnStageClearEvent);
     }
     private void OnDisable()
     {
         EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDeadEvent);
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawnEvent);
+        EventBus.Unsubscribe<StageClearEvent>(OnStageClearEvent);
     }
     private void OnPlayerDeadEvent(PlayerDeadEvent _) => OnDead();
+    // 스테이지 클리어 시 달리기 애니메이션이 계속 재생되지 않도록 Idle로 전환합니다.
+    private void OnStageClearEvent(StageClearEvent _)
+    {
+        if (CurrentState == PlayerState.Dead) return;
+        ChangeState(IdleState);
+    }
     private void OnPlayerRespawnEvent(PlayerRespawnEvent _)
     {
         animationDriverComponent?.ResetState();

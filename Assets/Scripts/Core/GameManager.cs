@@ -46,7 +46,10 @@ public class GameManager : MonoBehaviour
     {
         _isLoadingScene = false;
 
-        // 첫 씬: DDOL 플레이어 참조 초기화 (씬 전환 후에는 이미 설정돼 있습니다)
+        // Bootstrap 씬 자체가 로드될 때는 게임 초기화를 수행하지 않습니다.
+        if (scene.name == "Bootstrap") return;
+
+        // 플레이어 참조 초기화 (Bootstrap에서 DDOL로 넘어오므로 최초 1회만 실행)
         if (_playerStats == null)
         {
             var ps = FindAnyObjectByType<PlayerStats>();
@@ -76,6 +79,7 @@ public class GameManager : MonoBehaviour
         _playerTransform.position = spawnPoint.position;
 
         _enterFromGoal = false;
+        Time.timeScale = 1f;
         SetGameState(GameState.Playing);
         EventBus.Publish(new StageLoadedEvent(_stageContext));
     }
@@ -178,23 +182,33 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] Stage Restarted.");
     }
 
-    /// <summary> 스테이지 클리어 처리. 3초 후 자동으로 다음 씬으로 이동합니다. </summary>
+    /// <summary> 스테이지 클리어 처리. 다음 씬이 있으면 즉시 전환, 없으면 StageClear 패널을 표시합니다. </summary>
     public void OnStageClear()
     {
         if (_currentGameState == GameState.StageClear) return;
         SetGameState(GameState.StageClear);
-        EventBus.Publish(new StageClearEvent());
 
-        if (_stageContext != null && !string.IsNullOrEmpty(_stageContext.nextSceneName))
+        bool hasNextScene = _stageContext != null && !string.IsNullOrEmpty(_stageContext.nextSceneName);
+
+        if (hasNextScene)
+        {
+            // 중간 스테이지: 패널 없이 바로 다음 씬으로 전환
             StartCoroutine(AutoLoadNextStage());
+        }
+        else
+        {
+            // 마지막 스테이지: StageClear 패널 표시
+            Time.timeScale = 0f;
+            EventBus.Publish(new StageClearEvent());
+        }
 
         Debug.Log("[GameManager] Stage Clear!");
     }
 
-    // 3초(실제 시간) 대기 후 다음 씬으로 자동 전환합니다. (timeScale=0 중에도 동작)
+    // 1초 대기 후 다음 씬으로 자동 전환합니다.
     private IEnumerator AutoLoadNextStage()
     {
-        yield return new WaitForSecondsRealtime(3f);
+        yield return new WaitForSeconds(1f);
         LoadNextStage();
     }
 

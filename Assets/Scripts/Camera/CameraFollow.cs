@@ -43,6 +43,14 @@ public class CameraFollow : MonoBehaviour
         _cam = GetComponent<Camera>();
     }
 
+    // StageLoadedEvent 타이밍 문제 폴백: target이 없으면 직접 Player를 탐색합니다.
+    private void Start()
+    {
+        if (target != null) return;
+        var player = FindAnyObjectByType<PlayerStats>();
+        if (player != null) target = player.transform.root;
+    }
+
     private void OnEnable()
     {
         EventBus.Subscribe<PlayerHitByEnemyEvent>(OnPlayerHit);

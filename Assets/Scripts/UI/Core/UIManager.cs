@@ -11,6 +11,8 @@ public class UIManager : MonoBehaviour
     [Header("Persistent Canvas")]
     [Tooltip("씬 전환 시 유지할 Canvas 루트 오브젝트를 연결합니다.")]
     [SerializeField] private GameObject canvasRoot;
+    [Tooltip("씬 전환 시 유지할 EventSystem 오브젝트를 연결합니다.")]
+    [SerializeField] private GameObject eventSystemRoot;
 
     [Header("Panels")]
     [SerializeField] private DeathPanel      deathPanel;
@@ -24,8 +26,10 @@ public class UIManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        if (canvasRoot != null) DontDestroyOnLoad(canvasRoot);
-        else Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다. Canvas가 씬 전환 시 소멸됩니다.");
+        if (canvasRoot != null)     DontDestroyOnLoad(canvasRoot);
+        else Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
+        if (eventSystemRoot != null) DontDestroyOnLoad(eventSystemRoot);
+        else Debug.LogWarning("[UIManager] eventSystemRoot가 연결되지 않았습니다.");
 
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);
@@ -40,6 +44,7 @@ public class UIManager : MonoBehaviour
         EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
         EventBus.Subscribe<GamePausedEvent>(OnGamePaused);
         EventBus.Subscribe<GameResumedEvent>(OnGameResumed);
+        EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
     }
 
     private void OnDisable()
@@ -50,6 +55,7 @@ public class UIManager : MonoBehaviour
         EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
         EventBus.Unsubscribe<GamePausedEvent>(OnGamePaused);
         EventBus.Unsubscribe<GameResumedEvent>(OnGameResumed);
+        EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
     }
 
     private void OnPlayerDead(PlayerDeadEvent _)       => Show<DeathPanel>();
@@ -58,6 +64,14 @@ public class UIManager : MonoBehaviour
     private void OnStageRestart(StageRestartEvent _)   { Hide<StageClearPanel>(); Hide<PausePanel>(); }
     private void OnGamePaused(GamePausedEvent _)       => Show<PausePanel>();
     private void OnGameResumed(GameResumedEvent _)     => Hide<PausePanel>();
+
+    // 씬 전환 완료 시 모든 패널을 닫습니다. (DDOL Canvas가 이전 씬 UI 상태를 유지하지 않도록)
+    private void OnStageLoaded(StageLoadedEvent _)
+    {
+        Hide<DeathPanel>();
+        Hide<StageClearPanel>();
+        Hide<PausePanel>();
+    }
 
     public void Register(BasePanel panel)
     {

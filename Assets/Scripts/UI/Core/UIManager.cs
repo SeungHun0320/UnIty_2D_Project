@@ -18,6 +18,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private DeathPanel      deathPanel;
     [SerializeField] private StageClearPanel stageClearPanel;
     [SerializeField] private PausePanel      pausePanel;
+    [SerializeField] private SavePanel       savePanel;
 
     private readonly Dictionary<Type, BasePanel> _panels = new();
 
@@ -34,6 +35,7 @@ public class UIManager : MonoBehaviour
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);
         if (pausePanel != null)      Register(pausePanel);
+        if (savePanel != null)       Register(savePanel);
     }
 
     private void OnEnable()
@@ -71,6 +73,7 @@ public class UIManager : MonoBehaviour
         Hide<DeathPanel>();
         Hide<StageClearPanel>();
         Hide<PausePanel>();
+        Hide<SavePanel>();
     }
 
     public void Register(BasePanel panel)

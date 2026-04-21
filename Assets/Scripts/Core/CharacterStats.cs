@@ -56,6 +56,13 @@ public abstract class CharacterStats : MonoBehaviour, ICharacterStats, IDamageab
         RaiseHealthChanged();
     }
 
+    // 세이브 복원 등 직접 체력을 지정할 때 사용합니다.
+    public void SetHealth(float amount)
+    {
+        currentHealth = Mathf.Clamp(amount, 0f, maxHealth);
+        RaiseHealthChanged();
+    }
+
     // 완전 회복용 헬퍼입니다.
     public virtual void ResetHealthToMax()
     {

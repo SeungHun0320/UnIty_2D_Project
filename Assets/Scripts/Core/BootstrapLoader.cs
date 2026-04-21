@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Bootstrap 씬에서 가장 먼저 실행되어 첫 게임 씬을 로드합니다.
-// Bootstrap 씬에는 GameManager, UIManager, Player 등 DDOL 오브젝트가 위치합니다.
+// Bootstrap 씬에서 가장 먼저 실행되어 Title 씬을 로드합니다.
+// Bootstrap 씬에는 GameManager, UIManager, SaveManager 등 DDOL 오브젝트가 위치합니다.
 [DefaultExecutionOrder(-99)]
 public class BootstrapLoader : MonoBehaviour
 {
-    [SerializeField] private string firstSceneName = "Stage1";
+    [SerializeField] private string firstSceneName = "Title";
 
     private void Start()
     {

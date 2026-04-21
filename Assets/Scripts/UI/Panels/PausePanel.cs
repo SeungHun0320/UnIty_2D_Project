@@ -7,21 +7,31 @@ public class PausePanel : BasePanel
 {
     [Header("버튼")]
     [SerializeField] private Button resumeButton;
+    [SerializeField] private Button saveButton;
     [SerializeField] private Button quitButton;
 
     protected override void Awake()
     {
         base.Awake();
         if (resumeButton != null) resumeButton.onClick.AddListener(OnResumeClicked);
+        if (saveButton   != null) saveButton.onClick.AddListener(OnSaveClicked);
         if (quitButton   != null) quitButton.onClick.AddListener(OnQuitClicked);
     }
 
     private void OnDestroy()
     {
         if (resumeButton != null) resumeButton.onClick.RemoveListener(OnResumeClicked);
+        if (saveButton   != null) saveButton.onClick.RemoveListener(OnSaveClicked);
         if (quitButton   != null) quitButton.onClick.RemoveListener(OnQuitClicked);
     }
 
     private void OnResumeClicked() => GameManager.Instance?.Resume();
-    private void OnQuitClicked()   => GameManager.Instance?.QuitGame();
+
+    private void OnSaveClicked()
+    {
+        Hide();
+        UIManager.Instance?.Show<SavePanel>();
+    }
+
+    private void OnQuitClicked() => GameManager.Instance?.QuitGame();
 }

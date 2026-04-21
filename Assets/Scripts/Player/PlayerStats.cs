@@ -48,6 +48,13 @@ public class PlayerStats : CharacterStats
     // 근접 공격 적중 시에만 소울을 충전합니다. (투사체 적중 제외)
     private void OnEnemyHit(EnemyHitByPlayerEvent evt) { if (evt.IsMelee) AddSoul(soulPerHit); }
 
+    // 세이브 복원 등 직접 소울을 지정할 때 사용합니다.
+    public void SetSoul(int amount)
+    {
+        currentSoul = Mathf.Clamp(amount, 0, maxSoul);
+        RaiseSoulChanged();
+    }
+
     // 소울을 소모합니다. 잔량이 부족하면 false를 반환합니다.
     public bool UseSoul(int amount)
     {

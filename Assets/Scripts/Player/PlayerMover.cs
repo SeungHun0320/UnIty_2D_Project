@@ -190,4 +190,13 @@ public class PlayerMover : MonoBehaviour
 
     // 외부에서 즉시 접지 여부를 확인할 때 사용합니다 (점프 입력 이벤트에서 호출).
     public bool CheckGroundedImmediate() => CheckGrounded();
+
+    // Kinematic Rigidbody2D는 transform.position 단독 설정 시 내부 위치가 불일치합니다.
+    // 스폰/리스폰 시 반드시 이 메서드로 위치를 설정하세요.
+    public void Teleport(Vector2 position)
+    {
+        _velocity = Vector2.zero;
+        _rb.position = position;
+        transform.position = (Vector3)position + new Vector3(0f, 0f, transform.position.z);
+    }
 }

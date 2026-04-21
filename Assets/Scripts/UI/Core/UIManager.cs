@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // UI 패널 등록/조회 및 게임 이벤트-패널 연결을 담당하는 싱글톤입니다.
+// DDOL로 동작하며 canvasRoot(Canvas 루트 오브젝트)도 함께 유지합니다.
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
+
+    [Header("Persistent Canvas")]
+    [Tooltip("씬 전환 시 유지할 Canvas 루트 오브젝트를 연결합니다.")]
+    [SerializeField] private GameObject canvasRoot;
 
     [Header("Panels")]
     [SerializeField] private DeathPanel      deathPanel;
@@ -18,6 +23,9 @@ public class UIManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
+        if (canvasRoot != null) DontDestroyOnLoad(canvasRoot);
+        else Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다. Canvas가 씬 전환 시 소멸됩니다.");
 
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);

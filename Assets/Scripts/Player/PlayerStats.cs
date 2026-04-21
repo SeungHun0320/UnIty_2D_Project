@@ -2,9 +2,11 @@ using System;
 using UnityEngine;
 
 // 플레이어 전용 스탯 컴포넌트입니다. (SRP: 스탯 관리만 담당)
-// 공통 스탯(CharacterStats)을 상속받아 Soul 등 플레이어 전용 확장을 제공합니다.
+// 씬 전환 시 데이터 유지를 위해 DDOL 싱글톤으로 동작합니다.
 public class PlayerStats : CharacterStats
 {
+    // 씬 전환 후 중복 인스턴스를 제거하기 위한 정적 참조입니다.
+    private static PlayerStats _instance;
     [Header("Player Only")]
     [Tooltip("플레이어 전용 추가 공격력(버프 등)에 사용합니다.")]
     [SerializeField] private float bonusAttackPower = 0f;
@@ -26,6 +28,15 @@ public class PlayerStats : CharacterStats
 
     protected override void Awake()
     {
+        // 이미 DDOL 인스턴스가 있으면 중복 제거합니다. (씬에 Player 오브젝트가 있을 경우 대비)
+        if (_instance != null && _instance != this)
+        {
+            Destroy(transform.root.gameObject);
+            return;
+        }
+        _instance = this;
+        DontDestroyOnLoad(transform.root.gameObject);
+
         base.Awake();
         currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
         RaiseSoulChanged();

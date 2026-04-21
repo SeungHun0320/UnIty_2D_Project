@@ -1,31 +1,26 @@
 using UnityEngine;
 
 // 몬스터 사망 시퀀스를 담당합니다. (SRP)
-// EnemyStats.OnDeadEvent를 구독해 AI 중단 → 물리 정지 → 사망 애니메이션 → 오브젝트 제거를 처리합니다.
+// EnemyStats.OnDeadEvent를 구독해 AI 중단 → 사망 넉백 → 사망 애니메이션 → 오브젝트 제거를 처리합니다.
 [RequireComponent(typeof(EnemyStats))]
 public class EnemyDeathHandler : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private RustBehaviourTree behaviourTree;
+    [SerializeField] private RustBehaviourTree    behaviourTree;
     [SerializeField] private EnemyAnimationDriver animationDriver;
-    [SerializeField] private Rigidbody2D rb;
 
     [Header("Settings")]
     [SerializeField, Min(0f)] private float destroyDelay = 2f;
 
-    [Header("Death Knockback")]
-    [SerializeField, Min(0f)] private float deathKnockbackX = 4f;
-    [SerializeField, Min(0f)] private float deathKnockbackY = 6f;
-
-    private EnemyStats        _stats;
-    private HitScaleEffect    _scaleEffect;
-    private EnemyHitReceiver  _hitReceiver;
-    private ItemDropper       _itemDropper;
+    private EnemyStats       _stats;
+    private EnemyHitState    _hitState;
+    private EnemyHitReceiver _hitReceiver;
+    private ItemDropper      _itemDropper;
 
     private void Awake()
     {
         _stats       = GetComponent<EnemyStats>();
-        _scaleEffect = GetComponent<HitScaleEffect>();
+        _hitState    = GetComponent<EnemyHitState>();
         _hitReceiver = GetComponentInChildren<EnemyHitReceiver>();
         _itemDropper = GetComponent<ItemDropper>();
 
@@ -33,8 +28,6 @@ public class EnemyDeathHandler : MonoBehaviour
             behaviourTree = GetComponent<RustBehaviourTree>();
         if (animationDriver == null)
             animationDriver = GetComponent<EnemyAnimationDriver>();
-        if (rb == null)
-            rb = GetComponent<Rigidbody2D>();
     }
 
     private void OnEnable()  { if (_stats != null) _stats.OnDeadEvent += HandleDeath; }
@@ -46,24 +39,12 @@ public class EnemyDeathHandler : MonoBehaviour
         if (behaviourTree != null)
             behaviourTree.enabled = false;
 
-        // 사망 넉백 — 마지막 피격 방향으로 튕겨납니다.
-        if (rb != null)
-        {
-            float dirX = 0f;
-            if (_hitReceiver != null)
-            {
-                float dx = transform.position.x - _hitReceiver.LastHitSourcePos.x;
-                dirX = Mathf.Approximately(dx, 0f) ? 1f : Mathf.Sign(dx);
-            }
-            rb.bodyType       = RigidbodyType2D.Dynamic;
-            rb.linearVelocity = new Vector2(dirX * deathKnockbackX, deathKnockbackY);
-        }
+        // 사망 넉백 — EnemyHitState 재사용 (방향 계산 · 속도 적용 · 스케일 이펙트 일괄 처리)
+        if (_hitReceiver != null)
+            _hitState?.Enter(_hitReceiver.LastHitSourcePos);
 
         // 사망 애니메이션
         animationDriver?.PlayDead();
-
-        // 피격의 절반 강도로 squash & stretch 재생
-        _scaleEffect?.Play(destroyDelay * 0.5f, 0.5f);
 
         // 사망 애니메이션 종료 직전 드롭 + 제거
         StartCoroutine(DropThenDestroy());

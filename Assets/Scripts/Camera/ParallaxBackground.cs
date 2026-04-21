@@ -1,9 +1,10 @@
 using UnityEngine;
 
 // 시차 스크롤 배경을 제어합니다.
-// 카메라가 움직일 때 각 레이어가 다른 속도로 스크롤되어 원근감을 만듭니다.
+// 씬 전환 시 유지되도록 DDOL 싱글톤으로 동작합니다.
 public class ParallaxBackground : MonoBehaviour
 {
+    private static ParallaxBackground _instance;
     [System.Serializable]
     public class ParallaxLayer
     {
@@ -43,8 +44,26 @@ public class ParallaxBackground : MonoBehaviour
     private float _previousCameraY;
     private int _instantYSnapFrames;
 
-    private void OnEnable()  => EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
-    private void OnDisable() => EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
+    private void OnEnable()
+    {
+        EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
+        EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
+    }
+
+    private void OnDisable()
+    {
+        EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
+        EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
+    }
+
+    // 씬 전환 후 새 카메라를 찾아 참조를 갱신합니다.
+    private void OnStageLoaded(StageLoadedEvent _)
+    {
+        targetCamera = Camera.main;
+        if (targetCamera == null) return;
+        _previousCameraX = targetCamera.transform.position.x;
+        _previousCameraY = targetCamera.transform.position.y;
+    }
 
     private void OnStageRestart(StageRestartEvent _)
     {
@@ -69,11 +88,17 @@ public class ParallaxBackground : MonoBehaviour
 
     private void Awake()
     {
+        // 중복 인스턴스 제거 후 DDOL로 씬 전환 시 배경을 유지합니다.
+        if (_instance != null && _instance != this) { Destroy(gameObject); return; }
+        _instance = this;
+        transform.SetParent(null);
+        DontDestroyOnLoad(gameObject);
+
         if (targetCamera == null)
             targetCamera = Camera.main;
 
-        _previousCameraX = targetCamera.transform.position.x;
-        _previousCameraY = targetCamera.transform.position.y;
+        _previousCameraX = targetCamera != null ? targetCamera.transform.position.x : 0f;
+        _previousCameraY = targetCamera != null ? targetCamera.transform.position.y : 0f;
 
         foreach (var layer in layers)
         {

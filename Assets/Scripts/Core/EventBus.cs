@@ -98,3 +98,10 @@ public readonly struct StageRestartEvent { }
 // 일시정지 / 재개 시 발행됩니다. UIManager가 PausePanel 표시/숨김에 사용합니다.
 public readonly struct GamePausedEvent { }
 public readonly struct GameResumedEvent { }
+
+// 씬 로드 완료 후 발행됩니다. CameraFollow 등 씬 참조가 필요한 시스템이 구독합니다.
+public readonly struct StageLoadedEvent
+{
+    public readonly StageContext Context;
+    public StageLoadedEvent(StageContext ctx) { Context = ctx; }
+}

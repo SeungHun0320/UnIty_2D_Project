@@ -380,6 +380,54 @@ Transform:
   - {fileID: 766045122}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &68527921
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 68527923}
+  - component: {fileID: 68527922}
+  m_Layer: 0
+  m_Name: StageContext
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &68527922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 68527921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64dd198474e39ab4e93d3c9f4f058d80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageContext
+  startPoint: {fileID: 323688444}
+  goalPoint: {fileID: 1406088794}
+  nextSceneName: Stage2
+  previousSceneName: 
+--- !u!4 &68527923
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 68527921}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &75925502
 GameObject:
   m_ObjectHideFlags: 0
@@ -855,9 +903,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2013401126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 137.3334, y: -127.47246}
   m_SizeDelta: {x: 166, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &277278028
@@ -8885,10 +8933,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1598642748}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 90}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 35, y: -38.3297}
+  m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &564455995
 MonoBehaviour:
@@ -9308,10 +9356,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 150671cbc9de2894c9f55191b9fc6807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  playerStatsComponent: {fileID: 2121868737}
-  enemyStatsComponent: {fileID: 0}
-  startPoint: {fileID: 323688444}
-  playerTransform: {fileID: 2121868733}
 --- !u!114 &655334706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9324,6 +9368,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f68d7ae3026e3843b48cf3be7b43271, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  canvasRoot: {fileID: 960987031}
   deathPanel: {fileID: 945924464}
   stageClearPanel: {fileID: 1914899147}
   pausePanel: {fileID: 1208695137}
@@ -12640,9 +12685,9 @@ RectTransform:
   - {fileID: 1600885512}
   m_Father: {fileID: 2013401126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 110.1684, y: -47.642757}
   m_SizeDelta: {x: 220.33, y: 76.6594}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1598642749
@@ -12724,10 +12769,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1598642748}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 149.16501, y: -38.3297}
+  m_SizeDelta: {x: 142.33, y: 51.763664}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1600885513
 MonoBehaviour:
@@ -36028,3 +36073,4 @@ SceneRoots:
   - {fileID: 2121868733}
   - {fileID: 215581992}
   - {fileID: 61485945}
+  - {fileID: 68527923}

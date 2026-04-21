@@ -36,6 +36,7 @@ public class GameInputHandler : MonoBehaviour
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Subscribe<StageClearEvent>(OnStageClear);
         EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
+        EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
     }
 
     private void OnDisable()
@@ -53,6 +54,7 @@ public class GameInputHandler : MonoBehaviour
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
         EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
+        EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
     }
 
     private void OnPausePerformed(InputAction.CallbackContext _)
@@ -100,7 +102,26 @@ public class GameInputHandler : MonoBehaviour
 
     private void OnStageRestart(StageRestartEvent _)
     {
-        // RestartStage()가 이미 _waitingForRestart를 정리하므로 여기선 안전망만 둡니다.
+        // UI 버튼으로 재시작 시에도 액션 구독/활성화를 정리합니다.
         _waitingForRestart = false;
+        _restartAction.performed -= OnRestartPerformed;
+        _restartAction.Disable();
+    }
+
+    // 씬 전환 시 이전 씬의 대기 상태를 초기화합니다.
+    private void OnStageLoaded(StageLoadedEvent _)
+    {
+        if (_waitingForRestart)
+        {
+            _waitingForRestart = false;
+            _restartAction.performed -= OnRestartPerformed;
+            _restartAction.Disable();
+        }
+        if (_waitingForRespawn)
+        {
+            _waitingForRespawn = false;
+            _respawnAction.performed -= OnRespawnPerformed;
+            _respawnAction.Disable();
+        }
     }
 }

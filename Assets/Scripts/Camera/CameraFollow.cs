@@ -47,12 +47,21 @@ public class CameraFollow : MonoBehaviour
     {
         EventBus.Subscribe<PlayerHitByEnemyEvent>(OnPlayerHit);
         EventBus.Subscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
+        EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
     }
 
     private void OnDisable()
     {
         EventBus.Unsubscribe<PlayerHitByEnemyEvent>(OnPlayerHit);
         EventBus.Unsubscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
+        EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
+    }
+
+    // 씬 전환 후 DDOL 플레이어를 새로 찾아 target을 갱신합니다.
+    private void OnStageLoaded(StageLoadedEvent _)
+    {
+        var player = FindAnyObjectByType<PlayerStats>();
+        if (player != null) target = player.transform.root;
     }
 
     private void OnPlayerHit(PlayerHitByEnemyEvent evt) =>

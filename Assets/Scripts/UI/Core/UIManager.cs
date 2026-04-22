@@ -14,6 +14,10 @@ public class UIManager : MonoBehaviour
     [Tooltip("씬 전환 시 유지할 EventSystem 오브젝트를 연결합니다.")]
     [SerializeField] private GameObject eventSystemRoot;
 
+    [Header("Game HUD")]
+    [Tooltip("게임 플레이 중에만 표시할 HUD 루트 오브젝트 (체력/소울/Geo 등)")]
+    [SerializeField] private GameObject gameHUDRoot;
+
     [Header("Panels")]
     [SerializeField] private DeathPanel      deathPanel;
     [SerializeField] private StageClearPanel stageClearPanel;
@@ -67,13 +71,14 @@ public class UIManager : MonoBehaviour
     private void OnGamePaused(GamePausedEvent _)       => Show<PausePanel>();
     private void OnGameResumed(GameResumedEvent _)     => Hide<PausePanel>();
 
-    // 씬 전환 완료 시 모든 패널을 닫습니다. (DDOL Canvas가 이전 씬 UI 상태를 유지하지 않도록)
+    // 씬 전환 완료 시 모든 패널을 닫고 게임 HUD를 표시합니다.
     private void OnStageLoaded(StageLoadedEvent _)
     {
         Hide<DeathPanel>();
         Hide<StageClearPanel>();
         Hide<PausePanel>();
         Hide<SavePanel>();
+        if (gameHUDRoot != null) gameHUDRoot.SetActive(true);
     }
 
     public void Register(BasePanel panel)
@@ -101,5 +106,13 @@ public class UIManager : MonoBehaviour
     {
         _panels.TryGetValue(typeof(T), out var panel);
         return panel as T;
+    }
+
+    // 씬 전환 전 모든 패널과 게임 HUD를 숨깁니다. (GoToTitle 등에서 호출)
+    public void HideAllPanels()
+    {
+        foreach (var panel in _panels.Values)
+            panel?.Hide();
+        if (gameHUDRoot != null) gameHUDRoot.SetActive(false);
     }
 }

@@ -12,12 +12,27 @@ public abstract class PlayerStatsBinder : MonoBehaviour
 
     private void OnEnable()
     {
+        EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
         EnsureStats();
         Subscribe();
         SyncInitial();
     }
 
-    private void OnDisable() => Unsubscribe();
+    private void OnDisable()
+    {
+        EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
+        Unsubscribe();
+    }
+
+    // 씬 로드 완료 시 Player가 생성된 이후이므로 참조를 새로 잡아 재연결합니다.
+    private void OnStageLoaded(StageLoadedEvent _)
+    {
+        Unsubscribe();
+        playerStats = null;
+        EnsureStats();
+        Subscribe();
+        SyncInitial();
+    }
 
     // PlayerStats 참조가 없으면 씬에서 자동으로 탐색합니다.
     protected void EnsureStats()

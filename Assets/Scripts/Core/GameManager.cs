@@ -77,27 +77,26 @@ public class GameManager : MonoBehaviour
             else Debug.LogWarning("[GameManager] playerPrefab이 설정되지 않았습니다.");
         }
 
+        // 스폰 위치 이동 — StageContext 또는 spawnPoint가 없어도 아래 상태 초기화는 반드시 실행합니다.
         if (_stageContext == null)
         {
             Debug.LogWarning("[GameManager] StageContext가 등록되지 않았습니다. 스폰 위치를 설정할 수 없습니다.");
-            return;
         }
-
-        // 진입 방향에 따라 스폰 위치를 결정합니다.
-        Transform spawnPoint = _enterFromGoal ? _stageContext.goalPoint : _stageContext.startPoint;
-        if (spawnPoint == null)
-        {
-            Debug.LogWarning("[GameManager] 스폰 포인트가 StageContext에 설정되지 않았습니다.");
-            return;
-        }
-
-        if (_playerTransform == null) return;
-
-        // Kinematic Rigidbody2D는 rb.position도 함께 설정해야 위치가 올바르게 반영됩니다.
-        if (_playerMover != null)
-            _playerMover.Teleport(spawnPoint.position);
         else
-            _playerTransform.position = spawnPoint.position;
+        {
+            // 진입 방향에 따라 스폰 위치를 결정합니다.
+            Transform spawnPoint = _enterFromGoal ? _stageContext.goalPoint : _stageContext.startPoint;
+            if (spawnPoint == null)
+                Debug.LogWarning("[GameManager] 스폰 포인트가 StageContext에 설정되지 않았습니다.");
+            else if (_playerTransform != null)
+            {
+                // Kinematic Rigidbody2D는 rb.position도 함께 설정해야 위치가 올바르게 반영됩니다.
+                if (_playerMover != null)
+                    _playerMover.Teleport(spawnPoint.position);
+                else
+                    _playerTransform.position = spawnPoint.position;
+            }
+        }
 
         _enterFromGoal = false;
         Time.timeScale = 1f;
@@ -173,6 +172,7 @@ public class GameManager : MonoBehaviour
         if (_isLoadingScene) return;
         Time.timeScale  = 1f;
         _isLoadingScene = true;
+        UIManager.Instance?.HideAllPanels();
         StartCoroutine(LoadSceneCoroutine("Title"));
     }
 

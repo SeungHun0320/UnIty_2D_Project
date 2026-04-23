@@ -68,11 +68,7 @@ public class UIManager : MonoBehaviour
     private void OnPlayerRespawn(PlayerRespawnEvent _) => Hide<DeathPanel>();
     private void OnStageClear(StageClearEvent _)       => Show<StageClearPanel>();
 
-    private void OnGamePaused(GamePausedEvent _)
-    {
-        Debug.Log($"[UIManager] OnGamePaused → Show<PausePanel>. pausePanel={pausePanel != null}, registered={_panels.ContainsKey(typeof(PausePanel))}");
-        Show<PausePanel>();
-    }
+    private void OnGamePaused(GamePausedEvent _)   => Show<PausePanel>();
     private void OnGameResumed(GameResumedEvent _)     => Hide<PausePanel>();
 
     // 씬 전환 완료 시 모든 패널을 닫고 게임 HUD를 표시합니다.

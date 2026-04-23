@@ -30,9 +30,7 @@ public abstract class BasePanel : MonoBehaviour
 
         if (_fadeCoroutine != null) { StopCoroutine(_fadeCoroutine); _fadeCoroutine = null; }
 
-        Debug.Log($"[BasePanel] nullCheck: this={this==null} GO={gameObject==null} CG={_canvasGroup==null} | scene={gameObject.scene.name}");
         gameObject.SetActive(true);
-        Debug.Log($"[BasePanel] afterSetActive: activeSelf={gameObject.activeSelf} activeInHierarchy={gameObject.activeInHierarchy}");
         _canvasGroup.alpha          = 1f;
         _canvasGroup.interactable   = true;
         _canvasGroup.blocksRaycasts = true;

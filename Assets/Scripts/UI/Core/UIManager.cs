@@ -47,7 +47,7 @@ public class UIManager : MonoBehaviour
         EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Subscribe<StageClearEvent>(OnStageClear);
-        EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
+
         EventBus.Subscribe<GamePausedEvent>(OnGamePaused);
         EventBus.Subscribe<GameResumedEvent>(OnGameResumed);
         EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
@@ -58,7 +58,7 @@ public class UIManager : MonoBehaviour
         EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
         EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
-        EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
+
         EventBus.Unsubscribe<GamePausedEvent>(OnGamePaused);
         EventBus.Unsubscribe<GameResumedEvent>(OnGameResumed);
         EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
@@ -67,8 +67,12 @@ public class UIManager : MonoBehaviour
     private void OnPlayerDead(PlayerDeadEvent _)       => Show<DeathPanel>();
     private void OnPlayerRespawn(PlayerRespawnEvent _) => Hide<DeathPanel>();
     private void OnStageClear(StageClearEvent _)       => Show<StageClearPanel>();
-    private void OnStageRestart(StageRestartEvent _)   { Hide<StageClearPanel>(); Hide<PausePanel>(); }
-    private void OnGamePaused(GamePausedEvent _)       => Show<PausePanel>();
+
+    private void OnGamePaused(GamePausedEvent _)
+    {
+        Debug.Log($"[UIManager] OnGamePaused → Show<PausePanel>. pausePanel={pausePanel != null}, registered={_panels.ContainsKey(typeof(PausePanel))}");
+        Show<PausePanel>();
+    }
     private void OnGameResumed(GameResumedEvent _)     => Hide<PausePanel>();
 
     // 씬 전환 완료 시 모든 패널을 닫고 게임 HUD를 표시합니다.

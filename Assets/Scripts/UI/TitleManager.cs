@@ -14,6 +14,9 @@ public class TitleManager : MonoBehaviour
 
     private void Start()
     {
+        // slotTexts가 Inspector에서 연결되지 않은 경우 SaveManager.Instance 유무만 확인합니다.
+        if (SaveManager.Instance == null)
+            Debug.LogWarning("[TitleManager] SaveManager.Instance가 null입니다. Bootstrap 씬을 통해 실행하세요.");
         ShowMain();
     }
 

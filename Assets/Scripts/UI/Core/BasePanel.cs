@@ -7,7 +7,6 @@ using UnityEngine;
 public abstract class BasePanel : MonoBehaviour
 {
     [Header("Fade")]
-    [SerializeField, Min(0f)] private float fadeInDuration  = 0.3f;
     [SerializeField, Min(0f)] private float fadeOutDuration = 0.3f;
 
     private CanvasGroup _canvasGroup;
@@ -25,13 +24,18 @@ public abstract class BasePanel : MonoBehaviour
 
     public void Show()
     {
+        // 부모 체인이 비활성인 경우 활성화합니다.
+        for (var t = transform.parent; t != null; t = t.parent)
+            if (!t.gameObject.activeSelf) t.gameObject.SetActive(true);
+
+        if (_fadeCoroutine != null) { StopCoroutine(_fadeCoroutine); _fadeCoroutine = null; }
+
+        Debug.Log($"[BasePanel] nullCheck: this={this==null} GO={gameObject==null} CG={_canvasGroup==null} | scene={gameObject.scene.name}");
         gameObject.SetActive(true);
-        if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-        _fadeCoroutine = StartCoroutine(Fade(0f, 1f, fadeInDuration, () =>
-        {
-            _canvasGroup.interactable   = true;
-            _canvasGroup.blocksRaycasts = true;
-        }));
+        Debug.Log($"[BasePanel] afterSetActive: activeSelf={gameObject.activeSelf} activeInHierarchy={gameObject.activeInHierarchy}");
+        _canvasGroup.alpha          = 1f;
+        _canvasGroup.interactable   = true;
+        _canvasGroup.blocksRaycasts = true;
         OnShow();
     }
 

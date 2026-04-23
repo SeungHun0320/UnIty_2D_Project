@@ -16,6 +16,19 @@ public class SavePanel : BasePanel
     protected override void Awake()
     {
         base.Awake();
+
+        // slotTexts가 Inspector에서 연결되지 않은 경우 슬롯 버튼 자식 Text에서 자동 탐색합니다.
+        if ((slotTexts == null || slotTexts.Length == 0)
+            && slot1Button != null && slot2Button != null && slot3Button != null)
+        {
+            slotTexts = new[]
+            {
+                slot1Button.GetComponentInChildren<Text>(true),
+                slot2Button.GetComponentInChildren<Text>(true),
+                slot3Button.GetComponentInChildren<Text>(true),
+            };
+        }
+
         if (slot1Button != null) slot1Button.onClick.AddListener(OnSlot1Clicked);
         if (slot2Button != null) slot2Button.onClick.AddListener(OnSlot2Clicked);
         if (slot3Button != null) slot3Button.onClick.AddListener(OnSlot3Clicked);

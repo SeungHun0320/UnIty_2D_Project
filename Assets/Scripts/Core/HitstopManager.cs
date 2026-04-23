@@ -53,7 +53,9 @@ public class HitstopManager : MonoBehaviour
     {
         Time.timeScale = hitstopTimeScale;
         yield return new WaitForSecondsRealtime(duration);
-        Time.timeScale = 1f;
+        // 일시정지·StageClear 등으로 timeScale을 0으로 바꿔야 하는 상태라면 복원하지 않습니다.
+        if (GameManager.Instance?.CurrentGameState == GameState.Playing)
+            Time.timeScale = 1f;
         _hitstopCoroutine = null;
     }
 }

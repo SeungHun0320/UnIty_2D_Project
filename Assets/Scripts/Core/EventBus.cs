@@ -92,9 +92,6 @@ public readonly struct PlayerHitByEnemyEvent
     public PlayerHitByEnemyEvent(UnityEngine.Vector2 hitDirection) { HitDirection = hitDirection; }
 }
 
-// 스테이지 재시작 시 발행됩니다. EnemySpawner가 구독해 적을 재생성합니다.
-public readonly struct StageRestartEvent { }
-
 // 일시정지 / 재개 시 발행됩니다. UIManager가 PausePanel 표시/숨김에 사용합니다.
 public readonly struct GamePausedEvent { }
 public readonly struct GameResumedEvent { }

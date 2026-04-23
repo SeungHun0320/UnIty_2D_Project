@@ -54,7 +54,11 @@ public class SaveManager : MonoBehaviour
     public void Save(int slot)
     {
         var data = BuildSaveData(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-        if (data == null) return;
+        if (data == null)
+        {
+            Debug.LogWarning("[SaveManager] 저장 실패: GameManager.Instance가 null입니다.");
+            return;
+        }
         _repository.Save(data, slot);
         Debug.Log($"[SaveManager] Slot {slot} 저장 완료 ({data.savedAt})");
     }

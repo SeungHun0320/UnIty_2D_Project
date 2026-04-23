@@ -77,6 +77,10 @@ public class GameManager : MonoBehaviour
             else Debug.LogWarning("[GameManager] playerPrefab이 설정되지 않았습니다.");
         }
 
+        // StageContext.Awake()가 GameManager보다 먼저 실행됐을 경우를 대비해 직접 탐색합니다.
+        if (_stageContext == null)
+            _stageContext = FindAnyObjectByType<StageContext>();
+
         // 스폰 위치 이동 — StageContext 또는 spawnPoint가 없어도 아래 상태 초기화는 반드시 실행합니다.
         if (_stageContext == null)
         {
@@ -221,16 +225,6 @@ public class GameManager : MonoBehaviour
             _playerTransform.position = _stageContext.startPoint.position;
         SetGameState(GameState.Playing);
         EventBus.Publish(new PlayerRespawnEvent(_stageContext.startPoint.position));
-    }
-
-    /// <summary> 스테이지를 재시작합니다. (마지막 스테이지 클리어 패널에서 사용) </summary>
-    public void RestartStage()
-    {
-        if (_currentGameState != GameState.StageClear
-         && _currentGameState != GameState.Paused) return;
-        Time.timeScale = 1f;
-        RespawnPlayer();
-        EventBus.Publish(new StageRestartEvent());
     }
 
     /// <summary> 스테이지 클리어 처리. 다음 씬이 있으면 즉시 전환, 없으면 StageClear 패널 표시. </summary>

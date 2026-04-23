@@ -36,34 +36,6 @@ public class ParallaxBackground : MonoBehaviour
     private float _previousCameraY;
     private int _instantYSnapFrames;
 
-    private void OnEnable()
-    {
-        EventBus.Subscribe<StageRestartEvent>(OnStageRestart);
-    }
-
-    private void OnDisable()
-    {
-        EventBus.Unsubscribe<StageRestartEvent>(OnStageRestart);
-    }
-
-    private void OnStageRestart(StageRestartEvent _)
-    {
-        if (targetCamera == null) return;
-
-        _previousCameraX = targetCamera.transform.position.x;
-        _previousCameraY = targetCamera.transform.position.y;
-        _instantYSnapFrames = instantYSnapFrameCount;
-
-        foreach (var layer in layers)
-        {
-            if (layer.tiles == null || layer.tiles[0] == null) continue;
-            float snapY = layer.tiles[0].transform.position.y;
-            layer.idealY    = snapY;
-            layer.currentY  = snapY;
-            layer.velocityY = 0f;
-        }
-    }
-
     private void Awake()
     {
         if (targetCamera == null)

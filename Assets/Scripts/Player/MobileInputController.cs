@@ -17,7 +17,6 @@ public class MobileInputController : MonoBehaviour
     private bool    _leftPressed;
     private bool    _rightPressed;
     private bool    _waitingForRespawn;
-    private bool    _waitingForRestart;
 
     // ── 유니티 이벤트 ─────────────────────────────────────────────────────────
 
@@ -50,14 +49,12 @@ public class MobileInputController : MonoBehaviour
     {
         EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
-        EventBus.Subscribe<StageClearEvent>(OnStageClear);
     }
 
     private void OnDisable()
     {
         EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
-        EventBus.Unsubscribe<StageClearEvent>(OnStageClear);
 
         // 비활성화 시 이동 입력 초기화
         _leftPressed = _rightPressed = false;
@@ -155,19 +152,6 @@ public class MobileInputController : MonoBehaviour
     private void OnPlayerRespawn(PlayerRespawnEvent _)
     {
         _waitingForRespawn = false;
-    }
-
-    private void OnStageClear(StageClearEvent _)
-    {
-        _waitingForRestart = true;
-    }
-
-    // 재시작 버튼에서 호출합니다.
-    public void OnRestart()
-    {
-        if (!_waitingForRestart) return;
-        _waitingForRestart = false;
-        GameManager.Instance?.RestartStage();
     }
 
 #if UNITY_EDITOR

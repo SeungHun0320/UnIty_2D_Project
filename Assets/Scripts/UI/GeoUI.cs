@@ -106,8 +106,9 @@ public class GeoUI : MonoBehaviour
     private void QueueApplySizes()
     {
         if (_sizesQueued) return;
+        // 비활성 오브젝트에서는 Coroutine을 시작할 수 없으므로 즉시 적용합니다.
+        if (!gameObject.activeInHierarchy) { ApplySizes(); return; }
         _sizesQueued = true;
-
         StartCoroutine(ApplySizesNextFrame());
     }
 

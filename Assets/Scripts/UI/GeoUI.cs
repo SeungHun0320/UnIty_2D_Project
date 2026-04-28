@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// 할로우 나이트 스타일 지오(골드) UI. 왼쪽에 지오 아이콘, 오른쪽에 숫자 텍스트.
 /// 획득 시 바로 반영하지 않고 아래 대기 텍스트에 쌓였다가 일정 시간 후 메인 지오에 반영.
+/// 데이터는 GeoWallet(Model)이 소유하며, 이 클래스는 시각적 표시만 담당합니다.
 /// </summary>
 public class GeoUI : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class GeoUI : MonoBehaviour
     [Tooltip("대기 중인 지오 표시 텍스트 (아래 줄). 쌓였다가 commitDelay 후 메인에 반영.")]
     [SerializeField] private Text pendingText;
 
+    [Header("Model")]
+    [SerializeField] private GeoWallet geoWallet;
+
     [Header("크기 (인스펙터에서 수정하면 아이콘/텍스트 크기 적용)")]
     [SerializeField] [Min(16f)] private float iconSize = 36f;
     [SerializeField] [Min(12)] private int fontSize = 24;
@@ -24,7 +28,6 @@ public class GeoUI : MonoBehaviour
 
     [Header("표시")]
     [SerializeField] private string prefix = "";
-    [SerializeField] private int currentGeo;
 
     [Header("대기 반영")]
     [Tooltip("지오 획득 후 이 시간(초) 동안 추가 획득이 없으면 대기량을 메인 지오에 반영.")]
@@ -45,6 +48,11 @@ public class GeoUI : MonoBehaviour
 
     private void Awake()
     {
+        if (geoWallet == null)
+            geoWallet = FindAnyObjectByType<GeoWallet>();
+        if (geoWallet == null)
+            Debug.LogWarning("[GeoUI] GeoWallet을 찾을 수 없습니다.");
+
         if (geoText == null)
             geoText = GetComponentInChildren<Text>();
         if (pendingText == null && transform.childCount > 0)
@@ -60,6 +68,25 @@ public class GeoUI : MonoBehaviour
         RefreshVisibility();
 
         _debugKeyHandler = new DebugKeyHandler(this);
+    }
+
+    private void OnEnable()
+    {
+        if (geoWallet != null)
+        {
+            geoWallet.OnGeoAdded += HandleGeoAdded;
+            geoWallet.OnGeoSet   += HandleGeoSet;
+            SyncDisplay();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (geoWallet != null)
+        {
+            geoWallet.OnGeoAdded -= HandleGeoAdded;
+            geoWallet.OnGeoSet   -= HandleGeoSet;
+        }
     }
 
     private void Start()
@@ -120,31 +147,39 @@ public class GeoUI : MonoBehaviour
         ApplySizes();
     }
 
-    /// <summary> 지오를 대기 풀에 추가. commitDelay 후 메인 지오에 반영됨. </summary>
-    public void AddGeo(int amount)
+    // GeoWallet.OnGeoAdded → 대기 풀에 추가해 pendingText에 표시
+    private void HandleGeoAdded(int amount)
     {
         if (amount <= 0) return;
         _pendingCommitter.AddPending(amount);
     }
 
-    /// <summary> 현재 지오를 지정값으로 설정 (세이브 로드 등). 대기량/코루틴은 초기화. </summary>
-    public void SetGeo(int amount)
+    // GeoWallet.OnGeoSet → 대기량·코루틴 초기화 후 즉시 디스플레이 갱신
+    private void HandleGeoSet(int total)
     {
-        currentGeo = Mathf.Max(0, amount);
         _pendingCommitter.ResetPending();
         if (geoText != null)
-            geoText.text = prefix + currentGeo.ToString();
+            geoText.text = prefix + total.ToString();
         RefreshPendingText();
         RefreshVisibility();
     }
 
-    private void CommitPending(int pendingAmount)
+    // CommitPending 호출 시 GeoWallet.CurrentGeo로 텍스트를 갱신합니다.
+    private void CommitPending()
     {
-        if (pendingAmount <= 0) return;
-        currentGeo += pendingAmount;
+        if (geoWallet == null) return;
         if (geoText != null)
-            geoText.text = prefix + currentGeo.ToString();
+            geoText.text = prefix + geoWallet.CurrentGeo.ToString();
         RefreshPendingText();
+        RefreshVisibility();
+    }
+
+    // 씬 로드 등으로 GeoWallet 값이 이미 설정된 경우 초기 동기화
+    private void SyncDisplay()
+    {
+        if (geoWallet == null) return;
+        if (geoText != null)
+            geoText.text = prefix + geoWallet.CurrentGeo.ToString();
         RefreshVisibility();
     }
 
@@ -160,21 +195,20 @@ public class GeoUI : MonoBehaviour
     /// <summary> 지오·대기량 둘 다 0이면 숨김, 하나라도 있으면 표시. </summary>
     private void RefreshVisibility()
     {
-        if (_canvasGroup == null) _canvasGroup = GetComponent<CanvasGroup>();
+        _canvasGroup ??= GetComponent<CanvasGroup>();
         if (_canvasGroup == null) return;
+        int currentGeo = geoWallet != null ? geoWallet.CurrentGeo : 0;
         bool show = currentGeo > 0 || _pendingCommitter.PendingGeo > 0;
         _canvasGroup.alpha = show ? 1f : 0f;
         _canvasGroup.blocksRaycasts = show;
         _canvasGroup.interactable = show;
     }
 
-    public int GetGeo() => currentGeo;
     public int GetPendingGeo() => _pendingCommitter != null ? _pendingCommitter.PendingGeo : 0;
 
     private void EnsurePendingCommitter()
     {
-        if (_pendingCommitter == null)
-            _pendingCommitter = new PendingGeoCommitter(this);
+        _pendingCommitter ??= new PendingGeoCommitter(this);
     }
 
     private sealed class PendingGeoCommitter
@@ -216,10 +250,8 @@ public class GeoUI : MonoBehaviour
         {
             yield return new WaitForSeconds(_owner.commitDelay);
             _commitRoutine = null;
-
-            int amount = _pendingGeo;
             _pendingGeo = 0;
-            _owner.CommitPending(amount);
+            _owner.CommitPending();
         }
     }
 
@@ -237,12 +269,13 @@ public class GeoUI : MonoBehaviour
             if (!enabled) return;
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
+            if (_owner.geoWallet == null) return;
 
             if (keyboard.f3Key.wasPressedThisFrame)
-                _owner.AddGeo(step);
+                _owner.geoWallet.AddGeo(step);
 
             if (keyboard.f4Key.wasPressedThisFrame)
-                _owner.SetGeo(_owner.GetGeo() - step);
+                _owner.geoWallet.SetGeo(_owner.geoWallet.GetGeo() - step);
         }
     }
 }

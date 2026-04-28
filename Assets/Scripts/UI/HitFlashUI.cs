@@ -4,37 +4,19 @@ using UnityEngine.UI;
 
 // 플레이어 피격 시 화면 플래시 이펙트를 재생합니다.
 // hitSprites 배열을 1프레임씩 순서대로 표시해 히트감을 강조합니다.
+// 체력 감소 감지는 HitFlashBinder(ViewModel)가 담당합니다.
 public class HitFlashUI : MonoBehaviour
 {
     [SerializeField] private Sprite[] hitSprites;
 
     private Image _image;
     private Coroutine _flashCoroutine;
-    private float _lastHealth = float.MaxValue;
 
     private void Awake()
     {
         _image = GetComponent<Image>();
         if (_image != null)
             _image.enabled = false;
-    }
-
-    private void OnEnable()
-    {
-        EventBus.Subscribe<HealthChangedEvent>(OnHealthChanged);
-    }
-
-    private void OnDisable()
-    {
-        EventBus.Unsubscribe<HealthChangedEvent>(OnHealthChanged);
-    }
-
-    private void OnHealthChanged(HealthChangedEvent e)
-    {
-        if (!e.IsPlayer) return;
-        if (e.CurrentHealth < _lastHealth)
-            Flash();
-        _lastHealth = e.CurrentHealth;
     }
 
     public void Flash()

@@ -42,8 +42,8 @@ public class SaveManager : MonoBehaviour
             (player as PlayerStats)?.SetSoul(data.currentSoul);
         }
 
-        var geoUI = FindAnyObjectByType<GeoUI>();
-        geoUI?.SetGeo(data.geoAmount);
+        var geoWallet = FindAnyObjectByType<GeoWallet>();
+        geoWallet?.SetGeo(data.geoAmount);
 
         GameManager.Instance?.SetPlaytime(data.playtime);
     }
@@ -79,7 +79,7 @@ public class SaveManager : MonoBehaviour
 
         var player      = gm.Player as CharacterStats;
         var playerStats = player as PlayerStats;
-        var geoUI       = FindAnyObjectByType<GeoUI>();
+        var geoWallet   = FindAnyObjectByType<GeoWallet>();
 
         return new SaveData
         {
@@ -87,7 +87,7 @@ public class SaveManager : MonoBehaviour
             currentHealth = player?.CurrentHealth ?? 0f,
             maxHealth     = player?.MaxHealth     ?? 0f,
             currentSoul   = playerStats?.CurrentSoul ?? 0,
-            geoAmount     = geoUI?.GetGeo() ?? 0,
+            geoAmount     = geoWallet?.GetGeo() ?? 0,
             savedAt       = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
             playtime      = gm.Playtime,
         };

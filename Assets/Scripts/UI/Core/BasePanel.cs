@@ -30,7 +30,13 @@ public abstract class BasePanel : MonoBehaviour
 
         if (_fadeCoroutine != null) { StopCoroutine(_fadeCoroutine); _fadeCoroutine = null; }
 
+        // 씬에서 비활성으로 저장된 패널은 Awake가 아직 실행되지 않았을 수 있습니다.
+        // SetActive(true) 시 Awake가 최초 실행되고 내부에서 SetActive(false)를 호출하므로
+        // _canvasGroup을 먼저 확보하고, 비활성화된 경우 한 번 더 활성화합니다.
+        if (_canvasGroup == null) _canvasGroup = GetComponent<CanvasGroup>();
         gameObject.SetActive(true);
+        if (!gameObject.activeSelf) gameObject.SetActive(true);
+
         _canvasGroup.alpha          = 1f;
         _canvasGroup.interactable   = true;
         _canvasGroup.blocksRaycasts = true;

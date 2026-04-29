@@ -28,14 +28,13 @@ public class PlayerStats : CharacterStats
 
     protected override void Awake()
     {
-        // 이미 DDOL 인스턴스가 있으면 중복 제거합니다. (씬에 Player 오브젝트가 있을 경우 대비)
+        // 씬 내 중복 플레이어가 있으면 제거합니다. (GameManager가 DDOL 플레이어를 관리합니다.)
         if (_instance != null && _instance != this)
         {
             Destroy(transform.root.gameObject);
             return;
         }
         _instance = this;
-        DontDestroyOnLoad(transform.root.gameObject);
 
         base.Awake();
         currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);

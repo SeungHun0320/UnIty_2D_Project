@@ -30,11 +30,8 @@ public class UIManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
-        if (canvasRoot != null)     DontDestroyOnLoad(canvasRoot);
-        else Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
-        if (eventSystemRoot != null) DontDestroyOnLoad(eventSystemRoot);
-        else Debug.LogWarning("[UIManager] eventSystemRoot가 연결되지 않았습니다.");
+        if (canvasRoot == null)      Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
+        if (eventSystemRoot == null) Debug.LogWarning("[UIManager] eventSystemRoot가 연결되지 않았습니다.");
 
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);

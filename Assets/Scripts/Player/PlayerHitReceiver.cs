@@ -37,7 +37,6 @@ public class PlayerHitReceiver : HitReceiverBase
         // 히트렉·카메라 셰이크를 먼저 발동 — 이후 데미지/Flash가 hitstop 안에서 시작되도록
         EventBus.Publish(new PlayerHitByEnemyEvent(new Vector2(dirX, 0f)));
 
-        // 데미지 적용 (hitstop 시작 후이므로 HitFlashUI도 timeScale=0 상태에서 시작)
         _playerStats?.TakeDamage(enemyStats.AttackPower);
 
         // 히트 상태 전환 → 애니메이션 재생

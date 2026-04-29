@@ -37,7 +37,6 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -65,6 +64,8 @@ public class GameManager : MonoBehaviour
             if (playerPrefab != null)
             {
                 var go = Instantiate(playerPrefab);
+                // 플레이어 생명주기는 GameManager가 관리합니다. (체력 등 상태 씬 전환 간 유지)
+                DontDestroyOnLoad(go);
                 var ps = go.GetComponentInChildren<PlayerStats>(true);
                 if (ps != null)
                 {

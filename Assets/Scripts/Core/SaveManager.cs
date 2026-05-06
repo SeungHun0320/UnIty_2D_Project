@@ -39,6 +39,17 @@ public class SaveManager : MonoBehaviour
         {
             player.SetHealth(data.currentHealth);
             (player as PlayerStats)?.SetSoul(data.currentSoul);
+            
+            // 플레이어 트랜스폼 복원
+            var playerTransform = player.transform;
+            if (data.playerPosition != null && data.playerPosition.Length == 3)
+            {
+                playerTransform.position = new Vector3(data.playerPosition[0], data.playerPosition[1], data.playerPosition[2]);
+            }
+            if (data.playerRotation != null && data.playerRotation.Length == 4)
+            {
+                playerTransform.rotation = new Quaternion(data.playerRotation[0], data.playerRotation[1], data.playerRotation[2], data.playerRotation[3]);
+            }
         }
 
         var geoWallet = FindAnyObjectByType<GeoWallet>();
@@ -79,8 +90,8 @@ public class SaveManager : MonoBehaviour
         var player      = gm.Player as CharacterStats;
         var playerStats = player as PlayerStats;
         var geoWallet   = FindAnyObjectByType<GeoWallet>();
-
-        return new SaveData
+        
+        var data = new SaveData
         {
             sceneName     = sceneName,
             currentHealth = player?.CurrentHealth ?? 0f,
@@ -90,6 +101,18 @@ public class SaveManager : MonoBehaviour
             savedAt       = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
             playtime      = gm.Playtime,
         };
+        
+        // 플레이어 트랜스폼 저장
+        if (player != null)
+        {
+            var pos = player.transform.position;
+            data.playerPosition = new float[] { pos.x, pos.y, pos.z };
+            
+            var rot = player.transform.rotation;
+            data.playerRotation = new float[] { rot.x, rot.y, rot.z, rot.w };
+        }
+        
+        return data;
     }
 
     // ── 불러오기 ──────────────────────────────────────────────────────────────

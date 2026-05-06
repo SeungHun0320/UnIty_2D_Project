@@ -9,6 +9,10 @@ public class SaveData
     public int    geoAmount;
     public string savedAt;   // "yyyy-MM-dd HH:mm"
     public float  playtime;  // 초 단위 누적 플레이 시간
+    
+    // 플레이어 트랜스폼 정보
+    public float[] playerPosition = new float[3];  // [x, y, z]
+    public float[] playerRotation = new float[4];  // [x, y, z, w] - Quaternion
 }
 
 // Title 씬 슬롯 버튼 미리보기용 경량 정보입니다.

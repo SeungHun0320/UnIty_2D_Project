@@ -71,7 +71,7 @@ public class SavePanel : BasePanel
             int slot = i + 1;
             var info = SaveManager.Instance.GetSlotInfo(slot);
             slotTexts[i].text = info.isEmpty
-                ? $"Slot {slot} — 비어있음"
+                ? $"Slot {slot} - 비어있음"
                 : $"Slot {slot}  {info.sceneName}  {FormatPlaytime(info.playtime)}\n{info.savedAt}";
         }
     }

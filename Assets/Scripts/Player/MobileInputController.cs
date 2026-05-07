@@ -149,6 +149,32 @@ public class MobileInputController : MonoBehaviour
         GameInstance.Instance?.RespawnPlayer();
     }
 
+    // 일시정지 버튼에서 호출합니다.
+    public void OnPauseClicked() => GameInstance.Instance?.TogglePause();
+
+    // InputRouter가 모바일 환경에서 호출합니다. 계층 구조에 무관하게 이름으로 버튼을 탐색합니다.
+    public void WireButtons(Transform mobileUIRoot)
+    {
+        var btnMap = new System.Collections.Generic.Dictionary<string, MobileButton>();
+        foreach (var btn in mobileUIRoot.GetComponentsInChildren<MobileButton>(true))
+            btnMap[btn.name] = btn;
+
+        Wire("BtnLeft",   OnLeftDown,  OnLeftUp);
+        Wire("BtnRight",  OnRightDown, OnRightUp);
+        Wire("BtnJump",   OnJumpDown,  null);
+        Wire("BtnAttack", OnSlot0Down, null);
+        Wire("BtnSkill",  OnSlot1Down, null);
+        Wire("BtnHeal",   OnSlot2Down, OnSlot2Up);
+
+        void Wire(string btnName, UnityEngine.Events.UnityAction press, UnityEngine.Events.UnityAction release)
+        {
+            if (!btnMap.TryGetValue(btnName, out var btn))
+            { Debug.LogWarning($"[MobileInputController] {btnName} 버튼을 찾지 못했습니다."); return; }
+            if (press   != null) btn.onPress.AddListener(press);
+            if (release != null) btn.onRelease.AddListener(release);
+        }
+    }
+
     private void OnPlayerRespawn(PlayerRespawnEvent _)
     {
         _waitingForRespawn = false;

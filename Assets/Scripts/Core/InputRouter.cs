@@ -23,8 +23,22 @@ public class InputRouter : MonoBehaviour
             || Application.platform == RuntimePlatform.Android
             || Application.platform == RuntimePlatform.IPhonePlayer;
 
+        // 프리팹→씬 직접 참조 불가, 비활성 오브젝트도 탐색하기 위해 Canvas 하위를 직접 탐색합니다.
+        if (mobileUIRoot == null)
+        {
+            foreach (var canvas in FindObjectsOfType<Canvas>())
+            {
+                var t = canvas.transform.Find("MobileUI");
+                if (t != null) { mobileUIRoot = t.gameObject; break; }
+            }
+        }
+
         if (keyboardController != null) keyboardController.enabled = !isMobile;
         if (mobileController   != null) mobileController.enabled   = isMobile;
         if (mobileUIRoot       != null) mobileUIRoot.SetActive(isMobile);
+
+        // 모바일이면 버튼 이벤트를 MobileInputController에 런타임 연결합니다.
+        if (isMobile && mobileController != null && mobileUIRoot != null)
+            mobileController.WireButtons(mobileUIRoot.transform);
     }
 }

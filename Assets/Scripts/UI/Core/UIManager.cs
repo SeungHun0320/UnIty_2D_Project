@@ -16,6 +16,10 @@ public class UIManager : MonoBehaviour
     [Tooltip("게임 플레이 중에만 표시할 HUD 루트 오브젝트 (체력/소울/Geo 등)")]
     [SerializeField] private GameObject gameHUDRoot;
 
+    [Header("Mobile UI")]
+    [Tooltip("씬 전환 시 숨길 모바일 전용 버튼 UI 루트입니다.")]
+    [SerializeField] private GameObject mobileUIRoot;
+
     [Header("Panels")]
     [SerializeField] private DeathPanel      deathPanel;
     [SerializeField] private StageClearPanel stageClearPanel;
@@ -31,6 +35,13 @@ public class UIManager : MonoBehaviour
         else                         Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
         if (eventSystemRoot != null) DontDestroyOnLoad(eventSystemRoot);
         else                         Debug.LogWarning("[UIManager] eventSystemRoot가 연결되지 않았습니다.");
+
+        // mobileUIRoot가 미연결이면 canvasRoot 하위에서 탐색합니다.
+        if (mobileUIRoot == null && canvasRoot != null)
+        {
+            var t = canvasRoot.transform.Find("MobileUI");
+            if (t != null) mobileUIRoot = t.gameObject;
+        }
 
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);
@@ -104,11 +115,12 @@ public class UIManager : MonoBehaviour
         return panel as T;
     }
 
-    // 씬 전환 전 모든 패널과 게임 HUD를 숨깁니다. (GoToTitle 등에서 호출)
+    // 씬 전환 전 모든 패널과 게임 HUD, 모바일 UI를 숨깁니다. (GoToTitle 등에서 호출)
     public void HideAllPanels()
     {
         foreach (var panel in _panels.Values)
             panel?.Hide();
-        if (gameHUDRoot != null) gameHUDRoot.SetActive(false);
+        if (gameHUDRoot  != null) gameHUDRoot.SetActive(false);
+        if (mobileUIRoot != null) mobileUIRoot.SetActive(false);
     }
 }

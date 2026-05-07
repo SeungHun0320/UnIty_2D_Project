@@ -645,7 +645,7 @@ MonoBehaviour:
   keyboardController: {fileID: 6408710600772924351}
   mobileController: {fileID: 3817006862584854842}
   mobileUIRoot: {fileID: 0}
-  forceMobile: 0
+  forceMobile: 1
 --- !u!114 &677216973768711616
 MonoBehaviour:
   m_ObjectHideFlags: 0

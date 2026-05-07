@@ -15,16 +15,20 @@ public class TitleManager : MonoBehaviour
     private void Start()
     {
         // slotTexts가 Inspector에서 연결되지 않은 경우 SaveManager.Instance 유무만 확인합니다.
-        if (SaveManager.Instance == null)
-            Debug.LogWarning("[TitleManager] SaveManager.Instance가 null입니다. Bootstrap 씬을 통해 실행하세요.");
+        if (GameInstance.Instance == null)
+        {
+            Debug.LogWarning("[TitleManager] GameInstance가 null입니다. Bootstrap 씬을 통해 실행하세요.");
+        }
+
         ShowMain();
+
     }
 
     // ── 메인 패널 버튼 ────────────────────────────────────────────────────────
 
     public void OnNewGameClicked()
     {
-        GameManager.Instance?.StartNewGame();
+        GameInstance.Instance?.StartNewGame();
     }
 
     public void OnLoadGameClicked()
@@ -35,7 +39,7 @@ public class TitleManager : MonoBehaviour
 
     public void OnQuitClicked()
     {
-        GameManager.Instance?.QuitGame();
+        GameInstance.Instance?.QuitGame();
     }
 
     // ── 슬롯 선택 패널 버튼 ──────────────────────────────────────────────────
@@ -48,14 +52,14 @@ public class TitleManager : MonoBehaviour
 
     public void OnSlotClicked(int slot)
     {
-        if (SaveManager.Instance == null) return;
-        var info = SaveManager.Instance.GetSlotInfo(slot);
+        if (GameInstance.Instance == null) return;
+        var info = GameInstance.Instance.GetSlotInfo(slot);
         if (info.isEmpty)
         {
             Debug.Log($"[TitleManager] Slot {slot} 비어있음");
             return;
         }
-        SaveManager.Instance.LoadGame(slot);
+        GameInstance.Instance.LoadGame(slot);
     }
 
     public void OnBackClicked()
@@ -79,14 +83,14 @@ public class TitleManager : MonoBehaviour
 
     private void RefreshSlotTexts()
     {
-        if (slotTexts == null || SaveManager.Instance == null) return;
+        if (slotTexts == null || GameInstance.Instance == null) return;
         for (int i = 0; i < slotTexts.Length; i++)
         {
             if (slotTexts[i] == null) continue;
-            var info = SaveManager.Instance.GetSlotInfo(i);
+            var info = GameInstance.Instance.GetSlotInfo(i);
             slotTexts[i].text = info.isEmpty
-                ? (i == SaveManager.AutoSlot ? "AUTO — 비어있음" : $"Slot {i} — 비어있음")
-                : $"{(i == SaveManager.AutoSlot ? "AUTO" : $"Slot {i}")}  {info.sceneName}  {FormatPlaytime(info.playtime)}\n{info.savedAt}";
+                ? (i == GameInstance.AutoSlot ? "AUTO — 비어있음" : $"Slot {i} — 비어있음")
+                : $"{(i == GameInstance.AutoSlot ? "AUTO" : $"Slot {i}")}  {info.sceneName}  {FormatPlaytime(info.playtime)}\n{info.savedAt}";
         }
     }
 

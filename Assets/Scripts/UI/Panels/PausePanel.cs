@@ -28,15 +28,15 @@ public class PausePanel : BasePanel
         if (quitButton   != null) quitButton.onClick.RemoveListener(OnQuitClicked);
     }
 
-    private void OnResumeClicked() => GameManager.Instance?.Resume();
+    private void OnResumeClicked() => GameInstance.Instance?.Resume();
 
     private void OnSaveClicked()
     {
         Hide();
-        UIManager.Instance?.Show<SavePanel>();
+        GameInstance.Instance?.ShowPanel<SavePanel>();
     }
 
-    private void OnTitleClicked() => GameManager.Instance?.GoToTitle();
+    private void OnTitleClicked() => GameInstance.Instance?.GoToTitle();
 
-    private void OnQuitClicked() => GameManager.Instance?.QuitGame();
+    private void OnQuitClicked() => GameInstance.Instance?.QuitGame();
 }

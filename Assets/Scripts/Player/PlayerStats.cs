@@ -74,7 +74,7 @@ public class PlayerStats : CharacterStats
     }
 
     // 사망 시 GameManager에 알려 게임 오버를 처리합니다.
-    protected override void OnDead() => GameManager.Instance?.OnPlayerDead();
+    protected override void OnDead() => GameInstance.Instance?.OnPlayerDead();
 
     private void RaiseSoulChanged()
     {

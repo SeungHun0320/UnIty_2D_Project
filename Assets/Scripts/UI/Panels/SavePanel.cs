@@ -52,24 +52,24 @@ public class SavePanel : BasePanel
 
     private void SaveAndBack(int slot)
     {
-        SaveManager.Instance?.Save(slot);
+        GameInstance.Instance?.Save(slot);
         OnBackClicked();
     }
 
     private void OnBackClicked()
     {
         Hide();
-        UIManager.Instance?.Show<PausePanel>();
+        GameInstance.Instance?.ShowPanel<PausePanel>();
     }
 
     private void RefreshSlotTexts()
     {
-        if (slotTexts == null || SaveManager.Instance == null) return;
+        if (slotTexts == null || GameInstance.Instance == null) return;
         for (int i = 0; i < slotTexts.Length; i++)
         {
             if (slotTexts[i] == null) continue;
             int slot = i + 1;
-            var info = SaveManager.Instance.GetSlotInfo(slot);
+            var info = GameInstance.Instance.GetSlotInfo(slot);
             slotTexts[i].text = info.isEmpty
                 ? $"Slot {slot} - 비어있음"
                 : $"Slot {slot}  {info.sceneName}  {FormatPlaytime(info.playtime)}\n{info.savedAt}";

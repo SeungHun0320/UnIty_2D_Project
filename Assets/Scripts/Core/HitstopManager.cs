@@ -5,8 +5,6 @@ using UnityEngine;
 // 공격 명중 순간 Time.timeScale을 잠깐 멈춰 임팩트를 연출합니다.
 public class HitstopManager : MonoBehaviour
 {
-    public static HitstopManager Instance { get; private set; }
-
     [Header("Hitstop Durations")]
     [SerializeField] private float playerHitDuration = 0.08f; // 플레이어 피격 히트렉 시간(초)
     [SerializeField] private float enemyHitDuration  = 0.05f; // 적 피격 히트렉 시간(초)
@@ -15,16 +13,6 @@ public class HitstopManager : MonoBehaviour
     [SerializeField] [Range(0f, 0.3f)] private float hitstopTimeScale = 0f; // 0 = 완전 정지
 
     private Coroutine _hitstopCoroutine;
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-    }
 
     private void OnEnable()
     {
@@ -54,7 +42,7 @@ public class HitstopManager : MonoBehaviour
         Time.timeScale = hitstopTimeScale;
         yield return new WaitForSecondsRealtime(duration);
         // 일시정지·StageClear 등으로 timeScale을 0으로 바꿔야 하는 상태라면 복원하지 않습니다.
-        if (GameManager.Instance?.CurrentGameState == GameState.Playing)
+        if (GameInstance.Instance?.CurrentGameState == GameState.Playing)
             Time.timeScale = 1f;
         _hitstopCoroutine = null;
     }

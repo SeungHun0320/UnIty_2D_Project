@@ -17,11 +17,11 @@ public class StageContext : MonoBehaviour
 
     private void Awake()
     {
-        if (GameManager.Instance == null)
+        if (GameInstance.Instance == null)
         {
-            Debug.LogWarning("[StageContext] GameManager.Instance가 없습니다.");
+            Debug.LogWarning("[StageContext] GameInstance가 없습니다.");
             return;
         }
-        GameManager.Instance.RegisterStage(this);
+        GameInstance.Instance.RegisterStage(this);
     }
 }

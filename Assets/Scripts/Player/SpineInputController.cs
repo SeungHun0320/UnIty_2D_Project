@@ -122,7 +122,7 @@ public class SpineInputController : MonoBehaviour
         if (playerStateMachine == null) return;
 
         // 사망·클리어·일시정지 상태에서는 이동 입력을 차단합니다.
-        var state = GameManager.Instance?.CurrentGameState;
+        var state = GameInstance.Instance?.CurrentGameState;
         if (state == GameState.GameOver
          || state == GameState.StageClear
          || state == GameState.Paused)

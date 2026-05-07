@@ -241,7 +241,7 @@ public class PlayerSkillController : MonoBehaviour
         if (sd == null)                                             return false;
         if (_sm.CurrentState == PlayerState.Dead)                  return false;
         // 일시정지·클리어·게임오버 중 스킬 차단 (InputSystem은 timeScale 무관 발동)
-        var gs = GameManager.Instance?.CurrentGameState;
+        var gs = GameInstance.Instance?.CurrentGameState;
         if (gs != null && gs != GameState.Playing)                 return false;
         if (_states[i].cooldownTimer > 0f)                         return false;
         if (_stats.CurrentSoul < sd.soulCost)                      return false;

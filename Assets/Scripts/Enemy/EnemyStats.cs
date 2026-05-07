@@ -16,7 +16,7 @@ public class EnemyStats : CharacterStats
         GetComponentInChildren<EnemyHitReceiver>()?.gameObject.SetActive(false);
         GetComponentInChildren<EnemyAttackHitbox>()?.Deactivate();
         // EnemyDeadEvent는 GameManager.OnEnemyDead() 내부에서 발행합니다. 중복 발행 방지.
-        GameManager.Instance?.OnEnemyDead(gameObject);
+        GameInstance.Instance?.OnEnemyDead(gameObject);
     }
 }
 

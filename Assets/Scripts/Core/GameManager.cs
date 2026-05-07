@@ -7,8 +7,6 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(-100)]
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; }
-
     [Header("Player")]
     [Tooltip("Bootstrap → 게임 씬 최초 진입 시 동적으로 생성할 Player 프리팹입니다.")]
     [SerializeField] private GameObject playerPrefab;
@@ -35,8 +33,6 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -114,11 +110,8 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (Instance == this)
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            EventBus.Clear();
-        }
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        EventBus.Clear();
     }
 
     // ── 스테이지 등록 ────────────────────────────────────────────────────────
@@ -150,7 +143,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager] 다음 씬이 설정되지 않았습니다.");
             return;
         }
-        SaveManager.Instance?.AutoSave(_stageContext.nextSceneName);
+        GameInstance.Instance?.AutoSave(_stageContext.nextSceneName);
         _enterFromGoal  = false;
         _isLoadingScene = true;
         StartCoroutine(LoadSceneCoroutine(_stageContext.nextSceneName));
@@ -165,7 +158,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager] 이전 씬이 설정되지 않았습니다.");
             return;
         }
-        SaveManager.Instance?.AutoSave(_stageContext.previousSceneName);
+        GameInstance.Instance?.AutoSave(_stageContext.previousSceneName);
         _enterFromGoal  = true;
         _isLoadingScene = true;
         StartCoroutine(LoadSceneCoroutine(_stageContext.previousSceneName));
@@ -177,7 +170,7 @@ public class GameManager : MonoBehaviour
         if (_isLoadingScene) return;
         Time.timeScale  = 1f;
         _isLoadingScene = true;
-        UIManager.Instance?.HideAllPanels();
+        GameInstance.Instance?.HideAllPanels();
         StartCoroutine(LoadSceneCoroutine("Title"));
     }
 

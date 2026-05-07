@@ -32,6 +32,6 @@ public class BackTrigger : MonoBehaviour
     {
         if (!_ready) return;
         if (!other.CompareTag(playerTag)) return;
-        GameManager.Instance?.LoadPreviousStage();
+        GameInstance.Instance?.LoadPreviousStage();
     }
 }

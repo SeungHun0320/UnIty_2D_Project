@@ -4,8 +4,6 @@ using UnityEngine;
 // Repository 패턴으로 저장 방식을 교체 가능합니다. (DIP)
 public class SaveManager : MonoBehaviour
 {
-    public static SaveManager Instance { get; private set; }
-
     // 슬롯 0 = AUTO(자동저장), 슬롯 1~3 = 수동저장
     public const int AutoSlot        = 0;
     public const int ManualSlotCount = 3;
@@ -16,8 +14,6 @@ public class SaveManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
         _repository = new JsonRepository();
     }
 
@@ -34,7 +30,7 @@ public class SaveManager : MonoBehaviour
 
     private void ApplyRestore(SaveData data)
     {
-        var player = GameManager.Instance?.Player as CharacterStats;
+        var player = GameInstance.Instance?.Player as CharacterStats;
         if (player != null)
         {
             player.SetHealth(data.currentHealth);
@@ -55,7 +51,7 @@ public class SaveManager : MonoBehaviour
         var geoWallet = FindAnyObjectByType<GeoWallet>();
         geoWallet?.SetGeo(data.geoAmount);
 
-        GameManager.Instance?.SetPlaytime(data.playtime);
+        GameInstance.Instance?.SetPlaytime(data.playtime);
     }
 
     // ── 저장 ─────────────────────────────────────────────────────────────────
@@ -66,7 +62,7 @@ public class SaveManager : MonoBehaviour
         var data = BuildSaveData(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         if (data == null)
         {
-            Debug.LogWarning("[SaveManager] 저장 실패: GameManager.Instance가 null입니다.");
+            Debug.LogWarning("[SaveManager] 저장 실패: GameInstance.Game이 null입니다.");
             return;
         }
         _repository.Save(data, slot);
@@ -84,13 +80,13 @@ public class SaveManager : MonoBehaviour
 
     private SaveData BuildSaveData(string sceneName)
     {
-        var gm = GameManager.Instance;
-        if (gm == null) return null;
+        var gi = GameInstance.Instance;
+        if (gi == null) return null;
 
-        var player      = gm.Player as CharacterStats;
+        var player      = gi.Player as CharacterStats;
         var playerStats = player as PlayerStats;
         var geoWallet   = FindAnyObjectByType<GeoWallet>();
-        
+
         var data = new SaveData
         {
             sceneName     = sceneName,
@@ -99,7 +95,7 @@ public class SaveManager : MonoBehaviour
             currentSoul   = playerStats?.CurrentSoul ?? 0,
             geoAmount     = geoWallet?.GetGeo() ?? 0,
             savedAt       = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-            playtime      = gm.Playtime,
+            playtime      = gi.Playtime,
         };
         
         // 플레이어 트랜스폼 저장
@@ -127,7 +123,7 @@ public class SaveManager : MonoBehaviour
             return false;
         }
         _pendingRestore = data;
-        GameManager.Instance?.LoadScene(data.sceneName);
+        GameInstance.Instance?.LoadScene(data.sceneName);
         return true;
     }
 

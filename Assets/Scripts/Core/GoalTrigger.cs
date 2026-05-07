@@ -32,6 +32,6 @@ public class GoalTrigger : MonoBehaviour
     {
         if (!_ready) return;
         if (!other.CompareTag(playerTag)) return;
-        GameManager.Instance?.OnStageClear();
+        GameInstance.Instance?.OnStageClear();
     }
 }

@@ -44,8 +44,14 @@ public class GameInputHandler : MonoBehaviour
         EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
     }
 
+    private void OnDestroy()
+    {
+        _pauseAction.Dispose();
+        _respawnAction.Dispose();
+    }
+
     private void OnPausePerformed(InputAction.CallbackContext _)
-        => GameManager.Instance?.TogglePause();
+        => GameInstance.Instance?.TogglePause();
 
     // 사망 시 리스폰 대기 모드로 전환합니다.
     private void OnPlayerDead(PlayerDeadEvent _)
@@ -59,7 +65,7 @@ public class GameInputHandler : MonoBehaviour
     private void OnRespawnPerformed(InputAction.CallbackContext _)
     {
         if (!_waitingForRespawn) return;
-        GameManager.Instance?.RespawnPlayer();
+        GameInstance.Instance?.RespawnPlayer();
     }
 
     private void OnPlayerRespawn(PlayerRespawnEvent _)

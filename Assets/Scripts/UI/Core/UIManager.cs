@@ -6,8 +6,6 @@ using UnityEngine;
 // DDOL로 동작하며 canvasRoot(Canvas 루트 오브젝트)도 함께 유지합니다.
 public class UIManager : MonoBehaviour
 {
-    public static UIManager Instance { get; private set; }
-
     [Header("Persistent Canvas")]
     [Tooltip("씬 전환 시 유지할 Canvas 루트 오브젝트를 연결합니다.")]
     [SerializeField] private GameObject canvasRoot;
@@ -28,10 +26,11 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-        if (canvasRoot == null)      Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
-        if (eventSystemRoot == null) Debug.LogWarning("[UIManager] eventSystemRoot가 연결되지 않았습니다.");
+        // canvasRoot / eventSystemRoot는 GameInstance 자식이 아니므로 직접 DDOL 처리합니다.
+        if (canvasRoot != null)      DontDestroyOnLoad(canvasRoot);
+        else                         Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
+        if (eventSystemRoot != null) DontDestroyOnLoad(eventSystemRoot);
+        else                         Debug.LogWarning("[UIManager] eventSystemRoot가 연결되지 않았습니다.");
 
         if (deathPanel != null)      Register(deathPanel);
         if (stageClearPanel != null) Register(stageClearPanel);

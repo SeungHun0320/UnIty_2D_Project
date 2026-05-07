@@ -146,7 +146,7 @@ public class MobileInputController : MonoBehaviour
     public void OnRespawn()
     {
         if (!_waitingForRespawn) return;
-        GameManager.Instance?.RespawnPlayer();
+        GameInstance.Instance?.RespawnPlayer();
     }
 
     private void OnPlayerRespawn(PlayerRespawnEvent _)

@@ -5832,6 +5832,7 @@ GameObject:
   - component: {fileID: 2013401128}
   - component: {fileID: 2013401127}
   - component: {fileID: 2013401129}
+  - component: {fileID: 2013401130}
   m_Layer: 0
   m_Name: GeoPanel
   m_TagString: Untagged
@@ -5875,15 +5876,11 @@ MonoBehaviour:
   geoImage: {fileID: 564455995}
   geoText: {fileID: 1600885513}
   pendingText: {fileID: 277278028}
-  geoWallet: {fileID: 2013401129}
   iconSize: 70
   fontSize: 50
   pendingFontSize: 50
   prefix: 
-  commitDelay: 1.5
   pendingPrefix: +
-  enableDebugKeys: 1
-  debugStep: 10
 --- !u!114 &2013401128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5922,6 +5919,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b06955292ca7554f87e8286941a88f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeoWallet
+--- !u!114 &2013401130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013401125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7952c58de99dff348bf0aa7ac9ba8277, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GeoRewardBinder
+  geoWallet: {fileID: 2013401129}
+  geoUI: {fileID: 2013401127}
+  commitDelay: 1.5
+  enableDebugKeys: 1
+  debugStep: 10
 --- !u!1 &2057104626
 GameObject:
   m_ObjectHideFlags: 0

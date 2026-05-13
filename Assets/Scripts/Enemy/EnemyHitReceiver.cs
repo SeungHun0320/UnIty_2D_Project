@@ -7,9 +7,9 @@ public class EnemyHitReceiver : HitReceiverBase
 {
     [SerializeField] private LayerMask playerAttackMask;
 
-    private EnemyStats _enemyStats;
+    private EnemyStats          _enemyStats;
     private SpineAnimationDriver _animationDriver;
-    private EnemyHitState _hitState;
+    private EnemyHitState       _hitState;
 
     // 마지막 피격 위치 — EnemyDeathHandler가 사망 시 넉백 방향 계산에 사용합니다.
     public Vector2 LastHitSourcePos { get; private set; }
@@ -23,45 +23,34 @@ public class EnemyHitReceiver : HitReceiverBase
     }
 
     // 투사체 등 외부에서 직접 데미지를 줄 때 호출합니다.
-    // sourcePosition : 공격 발생 위치 (넉백 방향 계산용, 생략 시 정면 넉백)
     public void ReceiveHit(float damage, Vector2 sourcePosition = default)
     {
         if (IsInvincible) return;
+        ApplyHit(damage, sourcePosition, isMelee: false);
+    }
+
+    protected override void OnTriggerEnter2D(Collider2D other)
+    {
+        if (IsInvincible) return;
+        if ((playerAttackMask.value & (1 << other.gameObject.layer)) == 0) return;
+
+        var playerStats = other.GetComponentInParent<PlayerStats>();
+        if (playerStats == null) return;
+
+        ApplyHit(playerStats.TotalAttackPower, other.transform.position, isMelee: true);
+    }
+
+    private void ApplyHit(float damage, Vector2 sourcePosition, bool isMelee)
+    {
         LastHitSourcePos = sourcePosition;
         _enemyStats?.TakeDamage(damage);
+        Debug.Log($"[EnemyHitReceiver] {transform.parent?.name} HP: {_enemyStats?.CurrentHealth} / {_enemyStats?.MaxHealth}");
         _animationDriver?.PlayHit();
 
         if (_enemyStats == null || !_enemyStats.IsDead)
             _hitState?.Enter(sourcePosition);
 
         StartInvincibility();
-
-        // 원거리/스킬 공격 적중 — 히트렉·카메라 셰이크 이벤트 발행 (소울 충전 제외)
-        EventBus.Publish(new EnemyHitByPlayerEvent(isMelee: false));
-    }
-
-    protected override void OnTriggerEnter2D(Collider2D other)
-    {
-        if (IsInvincible) return;
-
-        // PlayerAttackHitbox 레이어만 처리 — 플레이어 몸 접촉은 무시합니다.
-        if ((playerAttackMask.value & (1 << other.gameObject.layer)) == 0) return;
-
-        var playerStats = other.GetComponentInParent<PlayerStats>();
-        if (playerStats == null) return;
-
-        LastHitSourcePos = other.transform.position;
-        _enemyStats?.TakeDamage(playerStats.TotalAttackPower);
-        Debug.Log($"[EnemyHitReceiver] {transform.parent?.name} HP: {_enemyStats?.CurrentHealth} / {_enemyStats?.MaxHealth}");
-        _animationDriver?.PlayHit();
-
-        // 사망 시 히트 스테이트 적용 안 함 — 사망 처리에 맡깁니다.
-        if (_enemyStats == null || !_enemyStats.IsDead)
-            _hitState?.Enter(other.transform.position);
-
-        StartInvincibility();
-
-        // 근접 공격 적중 — 소울 충전 이벤트 발행
-        EventBus.Publish(new EnemyHitByPlayerEvent(isMelee: true));
+        EventBus.Publish(new EnemyHitByPlayerEvent(isMelee));
     }
 }

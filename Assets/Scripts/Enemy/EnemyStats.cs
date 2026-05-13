@@ -15,8 +15,8 @@ public class EnemyStats : CharacterStats
         // 피격 감지만 비활성화 — 메인 물리 콜라이더는 유지해 지형 충돌이 동작합니다.
         GetComponentInChildren<EnemyHitReceiver>()?.gameObject.SetActive(false);
         GetComponentInChildren<EnemyAttackHitbox>()?.Deactivate();
-        // EnemyDeadEvent는 GameManager.OnEnemyDead() 내부에서 발행합니다. 중복 발행 방지.
-        GameInstance.Instance?.OnEnemyDead(gameObject);
+        // 상태 변경 없는 단순 알림이므로 EventBus 직접 발행합니다.
+        EventBus.Publish(new EnemyDeadEvent(gameObject));
     }
 }
 

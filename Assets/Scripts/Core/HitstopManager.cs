@@ -18,16 +18,27 @@ public class HitstopManager : MonoBehaviour
     {
         EventBus.Subscribe<PlayerHitByEnemyEvent>(OnPlayerHit);
         EventBus.Subscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
+        EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
     }
 
     private void OnDisable()
     {
         EventBus.Unsubscribe<PlayerHitByEnemyEvent>(OnPlayerHit);
         EventBus.Unsubscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
+        EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
     }
 
     private void OnPlayerHit(PlayerHitByEnemyEvent _) => TriggerHitstop(playerHitDuration);
     private void OnEnemyHit(EnemyHitByPlayerEvent _)  => TriggerHitstop(enemyHitDuration);
+
+    // 리스폰 시 진행 중인 히트렉을 강제 종료하고 timeScale을 복원합니다.
+    private void OnPlayerRespawn(PlayerRespawnEvent _)
+    {
+        if (_hitstopCoroutine == null) return;
+        StopCoroutine(_hitstopCoroutine);
+        _hitstopCoroutine = null;
+        Time.timeScale = 1f;
+    }
 
     // 외부에서 직접 히트렉을 발동시킬 수 있습니다.
     public void TriggerHitstop(float duration)

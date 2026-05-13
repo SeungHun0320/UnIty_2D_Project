@@ -5,7 +5,7 @@ using UnityEngine;
 // 씬 전환 시 데이터 유지를 위해 DDOL 싱글톤으로 동작합니다.
 public class PlayerStats : CharacterStats
 {
-    // 씬 전환 후 중복 인스턴스를 제거하기 위한 정적 참조입니다.
+    // 씬 전환 후 중복 인스턴스를 제거하기 위한 정적 참조입니다. (PlayerSpawner가 DDOL 관리)
     private static PlayerStats _instance;
     [Header("Player Only")]
     [Tooltip("플레이어 전용 추가 공격력(버프 등)에 사용합니다.")]
@@ -28,7 +28,7 @@ public class PlayerStats : CharacterStats
 
     protected override void Awake()
     {
-        // 씬 내 중복 플레이어가 있으면 제거합니다. (GameManager가 DDOL 플레이어를 관리합니다.)
+        // 씬 내 중복 플레이어가 있으면 제거합니다. (PlayerSpawner가 DDOL 플레이어를 관리합니다.)
         if (_instance != null && _instance != this)
         {
             Destroy(transform.root.gameObject);

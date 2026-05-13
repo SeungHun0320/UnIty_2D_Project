@@ -11,6 +11,7 @@ public class SaveManager : MonoBehaviour
 
     private IDataRepository _repository;
     private SaveData        _pendingRestore;
+    private GeoWallet       _geoWallet;
 
     private void Awake()
     {
@@ -30,26 +31,20 @@ public class SaveManager : MonoBehaviour
 
     private void ApplyRestore(SaveData data)
     {
-        var player = GameInstance.Instance?.Player as CharacterStats;
-        if (player != null)
+        if (GameInstance.Instance?.Player is PlayerStats player)
         {
             player.SetHealth(data.currentHealth);
-            (player as PlayerStats)?.SetSoul(data.currentSoul);
-            
+            player.SetSoul(data.currentSoul);
+
             // 플레이어 트랜스폼 복원
             var playerTransform = player.transform;
             if (data.playerPosition != null && data.playerPosition.Length == 3)
-            {
                 playerTransform.position = new Vector3(data.playerPosition[0], data.playerPosition[1], data.playerPosition[2]);
-            }
             if (data.playerRotation != null && data.playerRotation.Length == 4)
-            {
                 playerTransform.rotation = new Quaternion(data.playerRotation[0], data.playerRotation[1], data.playerRotation[2], data.playerRotation[3]);
-            }
         }
 
-        var geoWallet = FindAnyObjectByType<GeoWallet>();
-        geoWallet?.SetGeo(data.geoAmount);
+        _geoWallet?.SetGeo(data.geoAmount);
 
         GameInstance.Instance?.SetPlaytime(data.playtime);
     }
@@ -83,27 +78,25 @@ public class SaveManager : MonoBehaviour
         var gi = GameInstance.Instance;
         if (gi == null) return null;
 
-        var player      = gi.Player as CharacterStats;
-        var playerStats = player as PlayerStats;
-        var geoWallet   = FindAnyObjectByType<GeoWallet>();
+        var player = gi.Player as PlayerStats;
 
         var data = new SaveData
         {
             sceneName     = sceneName,
-            currentHealth = player?.CurrentHealth ?? 0f,
-            maxHealth     = player?.MaxHealth     ?? 0f,
-            currentSoul   = playerStats?.CurrentSoul ?? 0,
-            geoAmount     = geoWallet?.GetGeo() ?? 0,
+            currentHealth = player?.CurrentHealth  ?? 0f,
+            maxHealth     = player?.MaxHealth      ?? 0f,
+            currentSoul   = player?.CurrentSoul    ?? 0,
+            geoAmount     = _geoWallet?.GetGeo()   ?? 0,
             savedAt       = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
             playtime      = gi.Playtime,
         };
-        
+
         // 플레이어 트랜스폼 저장
         if (player != null)
         {
             var pos = player.transform.position;
             data.playerPosition = new float[] { pos.x, pos.y, pos.z };
-            
+
             var rot = player.transform.rotation;
             data.playerRotation = new float[] { rot.x, rot.y, rot.z, rot.w };
         }
@@ -148,4 +141,8 @@ public class SaveManager : MonoBehaviour
         _repository.Delete(slot);
         Debug.Log($"[SaveManager] Slot {slot} 삭제");
     }
+
+    // GeoWallet이 OnEnable/OnDisable에서 호출합니다.
+    public void RegisterGeoWallet(GeoWallet wallet)   => _geoWallet = wallet;
+    public void UnregisterGeoWallet(GeoWallet wallet) { if (_geoWallet == wallet) _geoWallet = null; }
 }

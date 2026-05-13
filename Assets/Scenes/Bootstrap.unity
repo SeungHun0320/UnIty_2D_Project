@@ -1970,6 +1970,8 @@ GameObject:
   - component: {fileID: 655334708}
   - component: {fileID: 655334709}
   - component: {fileID: 655334710}
+  - component: {fileID: 655334712}
+  - component: {fileID: 655334711}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -2004,7 +2006,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 150671cbc9de2894c9f55191b9fc6807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  playerPrefab: {fileID: 7653593801456742456, guid: ac588cb43679d5040bf6f4bdbdc82140, type: 3}
 --- !u!114 &655334706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2077,6 +2078,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12ef6113ea2e12d4484caef752096ded, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaveManager
+--- !u!114 &655334711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655334703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99d9e250e82c349478941668f44864c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneTransitionManager
+--- !u!114 &655334712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655334703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b05929c14ed30e4caa743d58084913a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
+  playerPrefab: {fileID: 7653593801456742456, guid: ac588cb43679d5040bf6f4bdbdc82140, type: 3}
 --- !u!1 &716849603
 GameObject:
   m_ObjectHideFlags: 0

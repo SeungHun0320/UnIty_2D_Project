@@ -30,7 +30,6 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        // canvasRoot / eventSystemRoot는 GameInstance 자식이 아니므로 직접 DDOL 처리합니다.
         if (canvasRoot != null)      DontDestroyOnLoad(canvasRoot);
         else                         Debug.LogWarning("[UIManager] canvasRoot가 연결되지 않았습니다.");
         if (eventSystemRoot != null) DontDestroyOnLoad(eventSystemRoot);

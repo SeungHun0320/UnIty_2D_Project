@@ -6,6 +6,11 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerStats))]
 public class PlayerSkillController : MonoBehaviour
 {
+    public const int SlotAttack       = 0;
+    public const int SlotSpecial      = 1;
+    public const int SlotDash         = 2;
+    public const int DefaultSlotCount = SlotDash + 1;
+
     // Inspector에서 슬롯별 스킬을 설정합니다.
     // skill만 세팅 → Instant 또는 Hold (SkillData.activationType 따름)
     // tapSkill + holdSkill 세팅 → TapOrHold 모드 (holdThreshold로 판별)

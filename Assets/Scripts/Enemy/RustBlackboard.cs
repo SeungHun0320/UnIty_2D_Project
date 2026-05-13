@@ -38,13 +38,6 @@ public class RustBlackboard : MonoBehaviour
         if (selfTransform == null)
             selfTransform = transform;
 
-        // 프리팹으로 인스턴스화 시 씬 참조가 소실되므로 런타임에 자동 탐색합니다.
-        if (playerTransform == null)
-        {
-            var player = FindAnyObjectByType<PlayerStats>();
-            if (player != null) playerTransform = player.transform;
-        }
-
         if (enemyStats == null)
             enemyStats = GetComponent<EnemyStats>();
 
@@ -59,6 +52,16 @@ public class RustBlackboard : MonoBehaviour
 
         if (hitStateComponent == null)
             hitStateComponent = GetComponent<EnemyHitState>();
+    }
+
+    private void Start()
+    {
+        // Start에서 탐색 — PlayerSpawner가 sceneLoaded(Awake~Start 사이)에서 플레이어를 생성하므로 Start 시점에는 반드시 존재합니다.
+        if (playerTransform == null)
+        {
+            var player = FindAnyObjectByType<PlayerStats>();
+            if (player != null) playerTransform = player.transform;
+        }
     }
 
     public bool IsDead => enemyStats != null && enemyStats.IsDead;

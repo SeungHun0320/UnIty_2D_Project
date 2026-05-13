@@ -102,3 +102,13 @@ public readonly struct StageLoadedEvent
     public readonly StageContext Context;
     public StageLoadedEvent(StageContext ctx) { Context = ctx; }
 }
+
+// 코인(지오) 획득 시 발행됩니다. GeoPickup → GeoWallet 단방향 흐름에 사용합니다.
+public readonly struct GeoCollectedEvent
+{
+    public readonly int Amount;
+    public GeoCollectedEvent(int amount) { Amount = amount; }
+}
+
+// 스테이지 재시작(리스폰) 시 발행됩니다. EnemySpawner가 구독해 적을 재스폰합니다.
+public readonly struct StageRestartEvent { }

@@ -4,6 +4,7 @@ using UnityEngine;
 // 새 상태를 추가할 때 기존 코드를 수정하지 않고 새 클래스를 추가하기만 합니다.
 public interface IPlayerState
 {
+    PlayerState StateType { get; }
     void Enter(PlayerStateMachine sm);
     void Exit(PlayerStateMachine sm);
     void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold);
@@ -13,6 +14,7 @@ public interface IPlayerState
 
 public class IdleState : IPlayerState
 {
+    public PlayerState StateType => PlayerState.Idle;
     public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.SetMoving(false);
     public void Exit(PlayerStateMachine sm) { }
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold)
@@ -24,6 +26,7 @@ public class IdleState : IPlayerState
 
 public class MovingState : IPlayerState
 {
+    public PlayerState StateType => PlayerState.Moving;
     public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.SetMoving(true);
     public void Exit(PlayerStateMachine sm) { }
     public void OnMoveInput(PlayerStateMachine sm, Vector2 move, float threshold)
@@ -36,6 +39,7 @@ public class MovingState : IPlayerState
 // 스킬 실행 상태입니다. CurrentSkill.Execute()를 실행하며 타입을 알 필요가 없습니다.
 public class SkillState : IPlayerState
 {
+    public PlayerState StateType => PlayerState.Skill;
     private Coroutine _routine;
 
     public void Enter(PlayerStateMachine sm)
@@ -69,6 +73,7 @@ public class SkillState : IPlayerState
 
 public class JumpingState : IPlayerState
 {
+    public PlayerState StateType => PlayerState.Jumping;
     public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.PlayJump();
     public void Exit(PlayerStateMachine sm) { }
     // 점프 중 이동 입력은 물리(PlayerMover)가 처리 - 상태 전환만 막음
@@ -80,6 +85,7 @@ public class JumpingState : IPlayerState
 
 public class HitState : IPlayerState
 {
+    public PlayerState StateType => PlayerState.Hit;
     public void Enter(PlayerStateMachine sm) => sm.AnimationDriver?.PlayHit();
     public void Exit(PlayerStateMachine sm) { }
     // 피격 중 이동 입력은 물리(PlayerMover/넉백)가 처리 - 상태 전환만 막음
@@ -91,6 +97,7 @@ public class HitState : IPlayerState
 
 public class DeadState : IPlayerState
 {
+    public PlayerState StateType => PlayerState.Dead;
     public void Enter(PlayerStateMachine sm)
     {
         sm.AnimationDriver?.PlayDead();
@@ -234,15 +241,7 @@ public class PlayerStateMachine : MonoBehaviour
     {
         _currentState?.Exit(this);
         _currentState = newState;
-
-        // 열거형 동기화 (인스펙터 표시용)
-        if      (newState is IdleState)    CurrentState = PlayerState.Idle;
-        else if (newState is MovingState)  CurrentState = PlayerState.Moving;
-        else if (newState is SkillState)   CurrentState = PlayerState.Skill;
-        else if (newState is JumpingState) CurrentState = PlayerState.Jumping;
-        else if (newState is HitState)     CurrentState = PlayerState.Hit;
-        else if (newState is DeadState)    CurrentState = PlayerState.Dead;
-
+        CurrentState  = newState.StateType;
         _currentState.Enter(this);
     }
 

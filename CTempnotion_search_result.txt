@@ -1,0 +1,4 @@
+  File "<string>", line 12
+    sys.stdout.buffer.write(b'FOUND ¾¾ ·Îµå at: ' + str(idx3).encode() + b'\n')
+                            ^^^^^^^^^^^^^^^^^^
+SyntaxError: bytes can only contain ASCII literal characters

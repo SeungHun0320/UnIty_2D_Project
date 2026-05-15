@@ -25,8 +25,6 @@ public class GeoUI : MonoBehaviour
 
     private CanvasGroup _canvasGroup;
     private bool _sizesQueued;
-    private int _lastCurrentGeo;
-    private int _lastPendingGeo;
 
     private void Awake()
     {
@@ -40,7 +38,7 @@ public class GeoUI : MonoBehaviour
         _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null)
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        RefreshVisibility();
+        SetVisible(false);
     }
 
     private void Start() => QueueApplySizes();
@@ -52,25 +50,29 @@ public class GeoUI : MonoBehaviour
     // GeoRewardBinder에서 호출 — 현재+대기 Geo를 동시에 갱신합니다.
     public void SyncDisplay(int currentGeo, int pendingGeo)
     {
-        _lastCurrentGeo = currentGeo;
-        _lastPendingGeo = pendingGeo;
         if (geoText != null)
             geoText.text = prefix + currentGeo;
         if (pendingText != null)
             pendingText.text = pendingGeo > 0 ? pendingPrefix + pendingGeo : "";
-        RefreshVisibility();
     }
 
     // GeoRewardBinder에서 호출 — 대기 Geo 텍스트만 갱신합니다.
     public void UpdatePendingGeo(int pending)
     {
-        _lastPendingGeo = pending;
         if (pendingText != null)
             pendingText.text = pending > 0 ? pendingPrefix + pending : "";
-        RefreshVisibility();
     }
 
-    /// <summary> iconSize, fontSize 등을 자식 UI에 적용합니다. </summary>
+    // GeoRewardBinder에서 호출 — 표시 여부를 결정합니다.
+    public void SetVisible(bool show)
+    {
+        if (_canvasGroup == null) return;
+        _canvasGroup.alpha          = show ? 1f : 0f;
+        _canvasGroup.blocksRaycasts = show;
+        _canvasGroup.interactable   = show;
+    }
+
+    // iconSize, fontSize 등을 자식 UI에 적용합니다.
     public void ApplySizes()
     {
         if (geoImage != null)
@@ -103,14 +105,5 @@ public class GeoUI : MonoBehaviour
         ApplySizes();
     }
 
-    // 지오·대기량 둘 다 0이면 숨김, 하나라도 있으면 표시합니다.
-    private void RefreshVisibility()
-    {
-        _canvasGroup ??= GetComponent<CanvasGroup>();
-        if (_canvasGroup == null) return;
-        bool show = _lastCurrentGeo > 0 || _lastPendingGeo > 0;
-        _canvasGroup.alpha          = show ? 1f : 0f;
-        _canvasGroup.blocksRaycasts = show;
-        _canvasGroup.interactable   = show;
-    }
+
 }

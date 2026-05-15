@@ -23,10 +23,6 @@ public class SoulUI : MonoBehaviour
     [HideInInspector, SerializeField] private Sprite chargingLoopSprite;
     [HideInInspector, SerializeField] private Sprite[] chargingFillFrames;
 
-    [Header("Soul Value")]
-    [SerializeField] private int maxSoul = 99;
-    [SerializeField] private int currentSoul = 0;
-
     [Header("Gauge Layout")]
     [Tooltip("0이면 자동 계산, 0보다 크면 이 값(px)을 최대 높이로 사용합니다.")]
     [SerializeField, Min(0f)] private float fullViewportHeightOverride = 0f;
@@ -40,6 +36,10 @@ public class SoulUI : MonoBehaviour
     [SerializeField] private Vector2 circleCenterUv = new Vector2(0.5f, 0.5f);
     [SerializeField, Range(0f, 1f)] private float circleRadiusUv = 0.5f;
     [SerializeField, Range(0f, 0.1f)] private float circleEdgeSoftness = 0.01f;
+
+    // ViewModel(PlayerSoulBinder)이 SetSoul/SetMaxSoul로 주입하는 렌더링 전용 상태
+    private int _maxSoul = 99;
+    private int _currentSoul;
 
     private bool _maskLayoutInitialized;
     private bool _fillLayoutInitialized;
@@ -66,9 +66,6 @@ public class SoulUI : MonoBehaviour
             enabled = false;
             return;
         }
-
-        maxSoul = Mathf.Max(1, maxSoul);
-        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
 
         EnsureViewportMask();
         EnsureShaderCircleClip();
@@ -144,7 +141,7 @@ public class SoulUI : MonoBehaviour
         }
 
         // full 상태는 원본 그대로(사용자 요구) -> non-full에서만 머티리얼 적용
-        if (currentSoul < maxSoul && fillAnimImage.material != _runtimeCircleMat)
+        if (_currentSoul < _maxSoul && fillAnimImage.material != _runtimeCircleMat)
             fillAnimImage.material = _runtimeCircleMat;
 
         _runtimeCircleMat.SetVector(CircleCenterId, new Vector4(circleCenterUv.x, circleCenterUv.y, 0f, 0f));
@@ -223,9 +220,6 @@ public class SoulUI : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        maxSoul = Mathf.Max(1, maxSoul);
-        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
-
         // 기본 게이지 모드에서는 에디터에서 강제 갱신/머티리얼 바인딩을 하지 않습니다.
         // (RectTransform/SendMessage 경고 및 상태 꼬임 방지)
         CacheFullViewportHeight();
@@ -289,9 +283,9 @@ public class SoulUI : MonoBehaviour
 
     public void SetSoul(int soul)
     {
-        bool wasFull = currentSoul >= maxSoul;
-        currentSoul = Mathf.Clamp(soul, 0, maxSoul);
-        bool isFull = currentSoul >= maxSoul;
+        bool wasFull = _currentSoul >= _maxSoul;
+        _currentSoul = soul;
+        bool isFull = _currentSoul >= _maxSoul;
 
         // full 경계 진입/이탈 시에는 즉시 전환을 강제해
         // FullSoul <-> ChargingLoop 스프라이트가 한 프레임도 지연되지 않게 합니다.
@@ -300,15 +294,13 @@ public class SoulUI : MonoBehaviour
 
     public void SetMaxSoul(int max)
     {
-        bool wasFull = currentSoul >= maxSoul;
-        maxSoul = Mathf.Max(1, max);
-        currentSoul = Mathf.Clamp(currentSoul, 0, maxSoul);
-        bool isFull = currentSoul >= maxSoul;
+        bool wasFull = _currentSoul >= _maxSoul;
+        _maxSoul = max;
+        // max가 줄어들면 현재 표시값도 조정해 렌더링 일관성을 유지합니다.
+        if (_currentSoul > _maxSoul) _currentSoul = _maxSoul;
+        bool isFull = _currentSoul >= _maxSoul;
         Refresh(immediate: wasFull != isFull);
     }
-
-    public int GetSoul() => currentSoul;
-    public int GetMaxSoul() => maxSoul;
 
     private void Refresh(bool immediate)
     {
@@ -332,7 +324,7 @@ public class SoulUI : MonoBehaviour
         if (_fullViewportHeight <= 0.001f)
             return;
 
-        float ratio = Mathf.Clamp01((float)currentSoul / maxSoul);
+        float ratio = Mathf.Clamp01(_maxSoul > 0 ? (float)_currentSoul / _maxSoul : 0f);
         ApplyFillImageHeight(ratio);
     }
 
@@ -379,8 +371,8 @@ public class SoulUI : MonoBehaviour
     {
         if (fillAnimImage == null) return;
 
-        bool isEmpty = currentSoul <= 0;
-        bool isFull = currentSoul >= maxSoul;
+        bool isEmpty = _currentSoul <= 0;
+        bool isFull = _currentSoul >= _maxSoul;
 
         if (isEmpty)
         {

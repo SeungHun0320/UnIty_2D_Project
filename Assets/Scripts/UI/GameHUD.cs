@@ -1,13 +1,10 @@
 using UnityEngine;
 
-/// <summary>
-/// HUD 컨테이너. MaskUI·SoulUI·GeoUI를 보유하며 전투 여부에 따라 페이드를 처리합니다.
-/// 데이터 갱신은 각 Binder(PlayerHealthMaskBinder, PlayerSoulBinder, GeoUI)가 담당합니다.
-/// </summary>
+// HUD 컨테이너. MaskUI·SoulUI·GeoUI를 보유하며 전투 여부에 따라 페이드를 처리합니다.
+// 체력 상태는 EventBus<HealthChangedEvent>로 수신합니다.
 public class GameHUD : MonoBehaviour
 {
     [Header("UI 참조")]
-    [SerializeField] private MaskUI maskUI;
     [SerializeField] private SoulUI soulUI;
     [SerializeField] private GeoUI geoUI;
 
@@ -17,6 +14,7 @@ public class GameHUD : MonoBehaviour
     [SerializeField] private float fadeSpeed = 2f;
 
     private bool _wantsVisible = true;
+    private bool _isFullHealth = false;
 
     private void Awake()
     {
@@ -26,11 +24,19 @@ public class GameHUD : MonoBehaviour
             hudCanvasGroup = gameObject.AddComponent<CanvasGroup>();
     }
 
+    private void OnEnable()  => EventBus.Subscribe<HealthChangedEvent>(OnHealthChanged);
+    private void OnDisable() => EventBus.Unsubscribe<HealthChangedEvent>(OnHealthChanged);
+
+    private void OnHealthChanged(HealthChangedEvent e)
+    {
+        if (!e.IsPlayer) return;
+        _isFullHealth = e.CurrentHealth >= e.MaxHealth;
+    }
+
     private void Update()
     {
         if (!fadeWhenFullHealth) return;
-        bool full = maskUI != null && maskUI.GetCurrentHealth() >= maskUI.GetMaxHealth();
-        _wantsVisible = !full;
+        _wantsVisible = !_isFullHealth;
         float target = _wantsVisible ? 1f : 0.3f;
         if (hudCanvasGroup != null)
             hudCanvasGroup.alpha = Mathf.MoveTowards(hudCanvasGroup.alpha, target, fadeSpeed * Time.deltaTime);

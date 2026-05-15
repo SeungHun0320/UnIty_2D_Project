@@ -39,11 +39,27 @@ public class GeoRewardBinder : MonoBehaviour
 
     private void OnEnable()
     {
+        EventBus.Subscribe<StageLoadedEvent>(OnStageLoaded);
         Subscribe();
         SyncInitial();
     }
 
-    private void OnDisable() => Unsubscribe();
+    private void OnDisable()
+    {
+        EventBus.Unsubscribe<StageLoadedEvent>(OnStageLoaded);
+        Unsubscribe();
+    }
+
+    // 씬 전환 후 GeoWallet이 재생성되므로 참조를 새로 잡아 재구독합니다.
+    private void OnStageLoaded(StageLoadedEvent _)
+    {
+        Unsubscribe();
+        geoWallet = FindAnyObjectByType<GeoWallet>();
+        if (geoWallet == null)
+            Debug.LogWarning("[GeoRewardBinder] 씬에서 GeoWallet을 찾을 수 없습니다.");
+        Subscribe();
+        SyncInitial();
+    }
 
     private void Update()
     {
@@ -73,7 +89,9 @@ public class GeoRewardBinder : MonoBehaviour
     private void SyncInitial()
     {
         if (geoWallet == null || geoUI == null) return;
-        geoUI.SyncDisplay(geoWallet.CurrentGeo, 0);
+        int current = geoWallet.CurrentGeo;
+        geoUI.SyncDisplay(current, 0);
+        geoUI.SetVisible(current > 0);
     }
 
     // GeoWallet.OnGeoAdded → 대기 누적 후 commitDelay 뒤 메인 텍스트에 반영
@@ -81,7 +99,11 @@ public class GeoRewardBinder : MonoBehaviour
     {
         if (amount <= 0) return;
         _pendingGeo += amount;
-        geoUI?.UpdatePendingGeo(_pendingGeo);
+        if (geoUI != null)
+        {
+            geoUI.UpdatePendingGeo(_pendingGeo);
+            geoUI.SetVisible(true);
+        }
 
         if (_commitRoutine != null)
             StopCoroutine(_commitRoutine);
@@ -97,7 +119,11 @@ public class GeoRewardBinder : MonoBehaviour
             _commitRoutine = null;
         }
         _pendingGeo = 0;
-        geoUI?.SyncDisplay(total, 0);
+        if (geoUI != null)
+        {
+            geoUI.SyncDisplay(total, 0);
+            geoUI.SetVisible(total > 0);
+        }
     }
 
     private IEnumerator CommitAfterDelay()
@@ -105,7 +131,11 @@ public class GeoRewardBinder : MonoBehaviour
         yield return new WaitForSeconds(commitDelay);
         _commitRoutine = null;
         _pendingGeo = 0;
-        if (geoWallet != null)
-            geoUI?.SyncDisplay(geoWallet.CurrentGeo, 0);
+        if (geoWallet != null && geoUI != null)
+        {
+            int current = geoWallet.CurrentGeo;
+            geoUI.SyncDisplay(current, 0);
+            geoUI.SetVisible(current > 0);
+        }
     }
 }

@@ -57,15 +57,14 @@ public class MaskUI : MonoBehaviour
 
     public void SetMaxHealth(int maxHealth)
     {
-        _maxHealth     = Mathf.Max(1, maxHealth);
-        _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
+        _maxHealth = maxHealth;
+        if (_currentHealth > _maxHealth) _currentHealth = _maxHealth;
         EnsureSlotCount();
         RefreshAllSlots();
     }
 
     public void SetHealth(int currentHealth, int previousHealth = -1)
     {
-        currentHealth = Mathf.Clamp(currentHealth, 0, _maxHealth);
         bool tookDamage = previousHealth >= 0 && currentHealth < previousHealth;
 
         _currentHealth = currentHealth;
@@ -80,20 +79,6 @@ public class MaskUI : MonoBehaviour
         RefreshAllSlots();
     }
 
-    public void Damage(int amount = 1)
-    {
-        int prev = _currentHealth;
-        SetHealth(_currentHealth - Mathf.Max(1, amount), prev);
-    }
-
-    public void Heal(int amount = 1)
-    {
-        int prev = _currentHealth;
-        SetHealth(_currentHealth + Mathf.Max(1, amount), prev);
-    }
-
-    public int GetCurrentHealth() => _currentHealth;
-    public int GetMaxHealth()     => _maxHealth;
 
     // ── 내부 로직 ─────────────────────────────────────────────────────────────
 

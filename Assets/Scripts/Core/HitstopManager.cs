@@ -12,12 +12,16 @@ public class HitstopManager : MonoBehaviour
     [Header("Hitstop Strength")]
     [SerializeField] [Range(0f, 0.3f)] private float hitstopTimeScale = 0f; // 0 = 완전 정지
 
+    [Header("Death Slowmo")]
+    [SerializeField] [Range(0f, 1f)] private float deathTimeScale = 0.3f; // 사망 시 슬로우모션 배율
+
     private Coroutine _hitstopCoroutine;
 
     private void OnEnable()
     {
         EventBus.Subscribe<PlayerHitByEnemyEvent>(OnPlayerHit);
         EventBus.Subscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
+        EventBus.Subscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Subscribe<PlayerRespawnEvent>(OnPlayerRespawn);
     }
 
@@ -25,18 +29,32 @@ public class HitstopManager : MonoBehaviour
     {
         EventBus.Unsubscribe<PlayerHitByEnemyEvent>(OnPlayerHit);
         EventBus.Unsubscribe<EnemyHitByPlayerEvent>(OnEnemyHit);
+        EventBus.Unsubscribe<PlayerDeadEvent>(OnPlayerDead);
         EventBus.Unsubscribe<PlayerRespawnEvent>(OnPlayerRespawn);
     }
 
     private void OnPlayerHit(PlayerHitByEnemyEvent _) => TriggerHitstop(playerHitDuration);
     private void OnEnemyHit(EnemyHitByPlayerEvent _)  => TriggerHitstop(enemyHitDuration);
 
-    // 리스폰 시 진행 중인 히트렉을 강제 종료하고 timeScale을 복원합니다.
+    // 사망 시 진행 중인 히트렉을 취소하고 슬로우모션으로 전환합니다.
+    private void OnPlayerDead(PlayerDeadEvent _)
+    {
+        if (_hitstopCoroutine != null)
+        {
+            StopCoroutine(_hitstopCoroutine);
+            _hitstopCoroutine = null;
+        }
+        Time.timeScale = deathTimeScale;
+    }
+
+    // 리스폰 시 히트렉·슬로우모션을 모두 취소하고 timeScale을 복원합니다.
     private void OnPlayerRespawn(PlayerRespawnEvent _)
     {
-        if (_hitstopCoroutine == null) return;
-        StopCoroutine(_hitstopCoroutine);
-        _hitstopCoroutine = null;
+        if (_hitstopCoroutine != null)
+        {
+            StopCoroutine(_hitstopCoroutine);
+            _hitstopCoroutine = null;
+        }
         Time.timeScale = 1f;
     }
 
@@ -52,8 +70,9 @@ public class HitstopManager : MonoBehaviour
     {
         Time.timeScale = hitstopTimeScale;
         yield return new WaitForSecondsRealtime(duration);
-        // 일시정지·StageClear 등으로 timeScale을 0으로 바꿔야 하는 상태라면 복원하지 않습니다.
-        if (GameInstance.Instance?.CurrentGameState == GameState.Playing)
+        // Paused·StageClear·GameOver는 각자 timeScale을 관리하므로 복원하지 않습니다.
+        var state = GameInstance.Instance?.CurrentGameState ?? GameState.Playing;
+        if (state == GameState.Playing)
             Time.timeScale = 1f;
         _hitstopCoroutine = null;
     }
